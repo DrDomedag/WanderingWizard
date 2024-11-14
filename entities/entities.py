@@ -1,8 +1,9 @@
 from passives import *
 from actives import *
 from effects import *
-from graphics import assets
+
 from collections import defaultdict
+from copy import copy
 
 # Allegiances
 NEUTRAL = 0
@@ -11,6 +12,7 @@ ENEMY_TEAM = 2
 
 class Entity:
     def __init__(self):
+        self.layer = "entity"
         self.name = "Nameless Entity"
         self.max_hp = 10
         self.hp = self.max_hp
@@ -21,8 +23,13 @@ class Entity:
         self.stationary = False
         self.allegiance = NEUTRAL
         self.resistances = defaultdict(lambda: 0)
-        self.asset = assets["unknown"]
+        self.asset = "unknown"
         self.flammable = True
+        self.walking = True
+        self.flying = False
+        self.swimming = False
+        self.intangible = False
+        self.position = None
 
 
 
@@ -33,7 +40,7 @@ class PC(Entity):
         self.max_hp = 50
         self.hp = self.max_hp
         self.allegiance = PLAYER_TEAM
-        self.asset = assets["wizard"]
+        self.asset = "wizard"
 
 class Troll(Entity):
     def __init__(self):
@@ -42,4 +49,12 @@ class Troll(Entity):
         self.max_hp = 30
         self.hp = self.max_hp
         self.passives.append(TrollRegen())
-        self.asset = assets["troll"]
+        self.asset = "troll"
+
+class Goblin(Entity):
+    def __init__(self):
+        super().__init__()
+        self.name = "Goblin"
+        self.max_hp = 5
+        self.hp = self.max_hp
+        self.asset = "goblin"
