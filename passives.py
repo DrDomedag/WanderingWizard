@@ -55,7 +55,7 @@ class TrollRegen(Passive):
         self.power = 5
 
     def startOfTurnEffect(self):
-        healingInstance = HealingInstance()
+        healingInstance = HealingInstance(self, self)
         healingInstance.amount = self.power
         healingInstance.apply(self.subject)
 

@@ -30,7 +30,7 @@ class Spell:
 
 
 class DamageInstance:
-    def __init__(self):
+    def __init__(self, malefactor, origin, sufferer):
         self.amount = 0
         self.type = BLUDGEONING
         self.malefactor = None
@@ -41,17 +41,17 @@ class DamageInstance:
 
 
 class HealingInstance:
-    def __init__(self):
+    def __init__(self, origin, benefactor):
         self.amount = 0
-        self.benefactor = None
-        self.origin = None
+        self.benefactor = benefactor
+        self.origin = origin
 
-    def apply(self, target):
+    def apply(self):
         # Can rewrite this logic later to allow for overheal, healing reduction etc.
-        if target.hp == target.max_hp:
+        if self.benefactor.hp == self.benefactor.max_hp:
             pass
-        elif target.hp + self.amount >= target.max_hp:
-            target.hp = target.max_hp
+        elif self.benefactor.hp + self.amount >= self.benefactor.max_hp:
+            self.benefactor.hp = self.benefactor.max_hp
         else:
-            target.hp += self.amount
+            self.benefactor.hp += self.amount
 

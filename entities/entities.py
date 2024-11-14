@@ -1,5 +1,5 @@
 from passives import *
-from actives import *
+from spells import *
 from effects import *
 
 from collections import defaultdict
@@ -30,6 +30,11 @@ class Entity:
         self.swimming = False
         self.intangible = False
         self.position = None
+
+    def startOfTurn(self):
+        self.currentActions = self.actionsPerRound
+        for p in self.passives:
+            p.startOfTurnEffect()
 
 
 

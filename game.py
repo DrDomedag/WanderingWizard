@@ -2,6 +2,7 @@ import pygame
 import sys
 from world.world import *
 from graphics import *
+from entities import *
 
 
 class Game:
@@ -45,6 +46,9 @@ class Game:
 
     def player_turn(self):
         player_turn_ended = False
+        for entity in self.world.active_entities.values():
+            if entity.allegiance == PLAYER_TEAM:
+                entity.startOfTurn()
         self.pc.currentActions = self.pc.actionsPerRound
         while not player_turn_ended:
             for event in pygame.event.get():
