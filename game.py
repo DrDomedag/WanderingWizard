@@ -20,13 +20,16 @@ class Game:
 
         self.graphics = GraphicsHandler(display, self.world)
 
+        self.world.set_current_active_tiles()
+
         self.graphics.render_everything()
 
         self.main_loop()
 
     def new_game(self):
-        self.pc = PC()
-        world = World(self.pc)
+        world = World()
+        self.pc = PC(world)
+        world.pc = self.pc
         world.createDefaultMap()
 
         world.active_floor = world.total_floor
@@ -47,8 +50,9 @@ class Game:
     def player_turn(self):
         player_turn_ended = False
         for entity in self.world.active_entities.values():
-            if entity.allegiance == PLAYER_TEAM:
-                entity.startOfTurn()
+            if entity is not None:
+                if entity.allegiance == PLAYER_TEAM:
+                    entity.startOfTurn()
         self.pc.currentActions = self.pc.actionsPerRound
         while not player_turn_ended:
             for event in pygame.event.get():
@@ -56,21 +60,37 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_a:
+                    if event.key == pygame.K_a or event.key == pygame.K_KP_4:
                         print("A pressed")
-                        if self.world.move_player_left():
+                        if self.world.player_step(LEFT):
                             self.pc.currentActions-=1
-                    if event.key == pygame.K_w:
+                    if event.key == pygame.K_w or event.key == pygame.K_KP_8:
                         print("W pressed")
-                        if self.world.move_player_up():
+                        if self.world.player_step(UP):
                             self.pc.currentActions -= 1
-                    if event.key == pygame.K_d:
+                    if event.key == pygame.K_d or event.key == pygame.K_KP_6:
                         print("D pressed")
-                        if self.world.move_player_right():
+                        if self.world.player_step(RIGHT):
                             self.pc.currentActions -= 1
-                    if event.key == pygame.K_s:
+                    if event.key == pygame.K_s or event.key == pygame.K_KP_2:
                         print("S pressed")
-                        if self.world.move_player_down():
+                        if self.world.player_step(DOWN):
+                            self.pc.currentActions -= 1
+                    if event.key == pygame.K_KP_7:
+                        print("S pressed")
+                        if self.world.player_step(UP_LEFT):
+                            self.pc.currentActions -= 1
+                    if event.key == pygame.K_KP_9:
+                        print("S pressed")
+                        if self.world.player_step(UP_RIGHT):
+                            self.pc.currentActions -= 1
+                    if event.key == pygame.K_KP_1:
+                        print("S pressed")
+                        if self.world.player_step(DOWN_LEFT):
+                            self.pc.currentActions -= 1
+                    if event.key == pygame.K_KP_3:
+                        print("S pressed")
+                        if self.world.player_step(DOWN_RIGHT):
                             self.pc.currentActions -= 1
                 if self.pc.currentActions <= 0:
                     player_turn_ended = True

@@ -2,6 +2,11 @@ import pygame
 import os
 from collections import defaultdict
 
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (200, 200, 200)
+
+
 import entities.entities
 
 #from copy import copy
@@ -53,12 +58,11 @@ class GraphicsHandler:
                 if extension == ".png":
                     self.asset_dict[name_without_extension] = file_path
 
-        print(f"Found {len(self.asset_dict.keys())} image files.")
+        #print(f"Found {len(self.asset_dict.keys())} image files.")
         for key in self.asset_dict.keys():
             self.assets[key] = pygame.image.load(self.asset_dict[key]).convert_alpha()
 
-        print(f"Loaded {len(self.assets.keys())} images as sprites.")
-        print(self.assets.keys())
+        #print(f"Loaded {len(self.assets.keys())} images as sprites.")
 
 
 
@@ -73,6 +77,8 @@ class GraphicsHandler:
             #if world.calculate_distance(tile_coords, world.current_coordinates) < VISUAL_RANGE:
             tile = self.world.total_floor[tile_coords]
             self.display.blit(self.assets[tile.asset], (self.SPRITE_SIZE * (tile_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (tile_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+
+        # Render items
 
         # Render walls:
         for entity_coords in self.world.active_walls.keys():
@@ -90,6 +96,40 @@ class GraphicsHandler:
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
                     self.display.blit(self.assets[entity.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
 
+        # Render effects
+
 
         pygame.display.flip()
 
+
+
+class Button:
+    def __init__(self, text, pos, size, color, hover_color, action=None):
+        self.text = text
+        self.pos = pos
+        self.size = size
+        self.color = color
+        self.hover_color = hover_color
+        self.action = action
+        self.rect = pygame.Rect(pos, size)
+        self.font = pygame.font.Font(None, 36)
+
+    def draw(self, screen):
+        # Change color when hovering
+        mouse_pos = pygame.mouse.get_pos()
+        if self.rect.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, self.hover_color, self.rect)
+        else:
+            pygame.draw.rect(screen, self.color, self.rect)
+
+        # Draw text on the button
+        text_surface = self.font.render(self.text, True, BLACK)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
+
+    def check_click(self):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.rect.collidepoint(mouse_pos):
+            if pygame.mouse.get_pressed()[0]:  # Left mouse button click
+                if self.action:
+                    self.action()

@@ -7,19 +7,30 @@ import random
 import math
 #from main import *
 
+UP_LEFT = 7
+UP = 8
+UP_RIGHT = 9
+LEFT = 4
+WAIT = 5
+RIGHT = 6
+DOWN_LEFT = 1
+DOWN = 2
+DOWN_RIGHT = 3
 
 class World:
-    def __init__(self, pc):
+    def __init__(self):
         self.total_floor = defaultdict(lambda: None)
         self.total_walls = defaultdict(lambda: None)
         self.total_entities = defaultdict(lambda: None)
         self.total_tile_effects = defaultdict(lambda: None)
+        self.total_items = defaultdict(lambda: None)
         self.active_floor = defaultdict(lambda: None)
         self.active_walls = defaultdict(lambda: None)
         self.active_entities = defaultdict(lambda: None)
         self.active_tile_effects = defaultdict(lambda: None)
-        self.pc = pc
-        self.active_tile_range = 30 # Consider setting to a greater number later
+        self.active_items = defaultdict(lambda: None)
+        self.pc = None
+        self.active_tile_range = 30 # Consider changing
         self.current_coordinates = (0, 0)
 
 
@@ -51,8 +62,8 @@ class World:
         for x in range(-10, 10, 1):
             for y in range(-10, 10, 1):
                 self[(x, y)] = FloorTile()
-                if random.random() > 0.9:
-                    self[(x, y)] = StoneWall()
+                #if random.random() > 0.9:
+                    #self[(x, y)] = StoneWall()
 
 
     def euclidean_distance(self, a, b):
@@ -84,18 +95,24 @@ class World:
         print(f"{entity.name} could not because it has no movement type appropriate for the tile.")
         return False
 
+    def player_step(self, direction):
+        if direction == UP_LEFT:
+            return self.move_player((self.current_coordinates[0] - 1, self.current_coordinates[1] - 1))
+        if direction == UP:
+            return self.move_player((self.current_coordinates[0], self.current_coordinates[1] - 1))
+        if direction == UP_RIGHT:
+            return self.move_player((self.current_coordinates[0] + 1, self.current_coordinates[1] - 1))
+        if direction == LEFT:
+            return self.move_player((self.current_coordinates[0] - 1, self.current_coordinates[1]))
+        if direction == RIGHT:
+            return self.move_player((self.current_coordinates[0] + 1, self.current_coordinates[1]))
+        if direction == DOWN_LEFT:
+            return self.move_player((self.current_coordinates[0] - 1, self.current_coordinates[1] + 1))
+        if direction == DOWN:
+            return self.move_player((self.current_coordinates[0], self.current_coordinates[1] + 1))
+        if direction == DOWN_RIGHT:
+            return self.move_player((self.current_coordinates[0] + 1, self.current_coordinates[1] + 1))
 
-    def move_player_left(self):
-        return self.move_player((self.current_coordinates[0] - 1, self.current_coordinates[1]))
-
-    def move_player_right(self):
-        return self.move_player((self.current_coordinates[0] + 1, self.current_coordinates[1]))
-
-    def move_player_up(self):
-        return self.move_player((self.current_coordinates[0], self.current_coordinates[1] - 1))
-
-    def move_player_down(self):
-        return self.move_player((self.current_coordinates[0], self.current_coordinates[1] + 1))
 
     def move_player(self, target):
         print(f"Attempting to move from {self.current_coordinates} to {target}")
@@ -111,13 +128,16 @@ class World:
         self.active_floor = defaultdict(lambda: None)
         self.active_entities = defaultdict(lambda: None)
 
+        generated_tiles = 0
+
         for x in range(self.current_coordinates[0] - self.active_tile_range,
                        self.current_coordinates[0] + self.active_tile_range):
             for y in range(self.current_coordinates[1] - self.active_tile_range,
-                           self.current_coordinates[0] + self.active_tile_range):
+                           self.current_coordinates[1] + self.active_tile_range):
                 coords = (x, y)
                 if coords not in self.total_floor.keys():
                     if self.total_floor[coords] is None:
+                        generated_tiles += 1
                         floor = self.generate_floor_tile()
                         self.total_floor[coords] = floor
                     if self.total_walls[coords] is None:
@@ -157,13 +177,27 @@ class World:
         if random.random() < 0.9:
             return None
         else:
-            return StoneWall()
+            return StoneWall(self)
 
     def generate_enemy(self):
         if random.random() < 0.95:
             return None
         else:
-            return Goblin()
+            return Goblin(self)
+
+    def can_see(self, x, y):
+        line_tiles = util.bresenham(x, y)
+        for coords in line_tiles:
+            if self.active_walls[coords] is not None and coords != y:
+                return False
+        return True
+    def get_visible_tiles(self, target):
+        visible_tiles = []
+        for tile in self.active_floor.keys():
+            if self.can_see(target, tile):
+                visible_tiles.append(tile)
+        return visible_tiles
+
 
 class Tile:
     def __init__(self):
@@ -182,12 +216,14 @@ class FloorTile(Tile):
     def __init__(self):
         super(FloorTile, self).__init__()
         self.name = "Floor"
+        self.type = "solid"
         self.asset = "dirt_tile"
 
 class LavaTile(Tile):
     def __init__(self):
         super().__init__()
         self.name = "Lava"
+        self.type = "liquid"
         self.walkable = False
         self.swimmable = True
         #self.onEnterEffects.append() Deal fire damage
@@ -196,6 +232,7 @@ class WaterTile(Tile):
     def __init__(self):
         super().__init__()
         self.name = "Water"
+        self.type = "liquid"
         self.asset = "water_tile"
         self.walkable = False
         self.swimmable = True
@@ -204,12 +241,13 @@ class ChasmTile(Tile):
     def __init__(self):
         super().__init__()
         self.name = "Chasm"
+        self.type = "void"
         self.walkable = False
         self.swimmable = False
 
 class Wall(Entity):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, world):
+        super().__init__(world)
         self.layer = "wall"
         self.name = "Wall"
         self.walkable = False
@@ -220,8 +258,8 @@ class Wall(Entity):
 
 
 class StoneWall(Wall):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, world):
+        super().__init__(world)
         self.name = "Stone Wall"
         self.hp = 100
         self.asset = "stone_wall"
@@ -240,8 +278,8 @@ class StoneWall(Wall):
 
 
 class WoodWall(Wall):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, world):
+        super().__init__(world)
         self.name = "Wooden Wall"
         self.hp = 50
         self.asset = "wood_wall"
