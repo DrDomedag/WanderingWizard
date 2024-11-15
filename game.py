@@ -1,7 +1,7 @@
 import pygame
 import sys
 from world.world import *
-from graphics import *
+from ui import *
 from entities import *
 
 
@@ -14,17 +14,21 @@ class Game:
         #print(f"current_display_size: {current_display_size}")
         pygame.display.set_caption('Wandering Wizard')
 
+        self.states = defaultdict(lambda : False)
+
         self.pc = None
 
         self.world = self.new_game()
 
-        self.graphics = GraphicsHandler(display, self.world)
+        self.ui = UI(display, self.world)
 
         self.world.set_current_active_tiles()
 
-        self.graphics.render_everything()
+        self.ui.render_everything()
 
         self.main_loop()
+
+
 
     def new_game(self):
         world = World()
@@ -51,50 +55,53 @@ class Game:
         player_turn_ended = False
         for entity in self.world.active_entities.values():
             if entity is not None:
-                if entity.allegiance == PLAYER_TEAM:
-                    entity.startOfTurn()
-        self.pc.currentActions = self.pc.actionsPerRound
+                if entity.allegiance == ALLEGIANCES.PLAYER_TEAM:
+                    entity.start_of_turn()
+        self.pc.current_actions = self.pc.actions_per_round
         while not player_turn_ended:
+            #self.graphics.find_tile_at_screen_coords(pygame.mouse.get_pos())
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        self.ui.left_click = True
+                    if event.button == 2:
+                        # This is a middle button/scroll wheel click
+                        pass
+                    if event.button == 3:
+                        self.ui.right_click = True
+
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a or event.key == pygame.K_KP_4:
-                        print("A pressed")
                         if self.world.player_step(LEFT):
-                            self.pc.currentActions-=1
+                            self.pc.current_actions-=1
                     if event.key == pygame.K_w or event.key == pygame.K_KP_8:
-                        print("W pressed")
                         if self.world.player_step(UP):
-                            self.pc.currentActions -= 1
+                            self.pc.current_actions -= 1
                     if event.key == pygame.K_d or event.key == pygame.K_KP_6:
-                        print("D pressed")
                         if self.world.player_step(RIGHT):
-                            self.pc.currentActions -= 1
+                            self.pc.current_actions -= 1
                     if event.key == pygame.K_s or event.key == pygame.K_KP_2:
-                        print("S pressed")
                         if self.world.player_step(DOWN):
-                            self.pc.currentActions -= 1
+                            self.pc.current_actions -= 1
                     if event.key == pygame.K_KP_7:
-                        print("S pressed")
                         if self.world.player_step(UP_LEFT):
-                            self.pc.currentActions -= 1
+                            self.pc.current_actions -= 1
                     if event.key == pygame.K_KP_9:
-                        print("S pressed")
                         if self.world.player_step(UP_RIGHT):
-                            self.pc.currentActions -= 1
+                            self.pc.current_actions -= 1
                     if event.key == pygame.K_KP_1:
-                        print("S pressed")
                         if self.world.player_step(DOWN_LEFT):
-                            self.pc.currentActions -= 1
+                            self.pc.current_actions -= 1
                     if event.key == pygame.K_KP_3:
-                        print("S pressed")
                         if self.world.player_step(DOWN_RIGHT):
-                            self.pc.currentActions -= 1
-                if self.pc.currentActions <= 0:
+                            self.pc.current_actions -= 1
+                if self.pc.current_actions <= 0:
                     player_turn_ended = True
-                self.graphics.render_everything()
+                self.ui.render_everything()
 
     def enemy_turn(self):
         print("The enemy does nothing during their turn.")

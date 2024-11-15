@@ -1,55 +1,7 @@
+from effects import *
+from util import *
 
 
-SORCERY = 0
-ENCHANTMENT = 1
-CONJURATION = 2
-
-
-# Theme ideas:
-'''
-Keep:
-Blood (includes Demons)
-Illusion (includes mind control)
-Astral (Arcane, aether...)
-Metal (summon dancing swords, walls of swords, robots, armour etc.)
-Water / Ice
-Air / Lightning
-Fire
-Nature
-Holy
-Dark / Unholy / Shadow
-Death / Bone
-Earth / Stone
-
-Minor:
-Draconic
-Transmutation
-
-
-Cut:
-Light
-Psionic
-Spirit
-Rune
-Entropy
-Emotion
-
-Combo themes:
-Fungus (Nature + Earth)
-Steam (Fire + Water)
-Rainbow (Nature + Light (or Illusion))
-Robots (Lightning + Metal)
-Blood Sacrifice (Blood + Holy)
-Crystal (Ice + Stone or Arcane)
-Fairies (Nature + Arcane)
-Decay (Nature + Dark)
-Poison (Nature + Blood)
-Acid (Nature + Water)
-Storm/Mist (Air + Water)
-Rune (Arcane + Earth)
-Extraterresterial (meteors etc.) (Astral + Earth)
-Void beings (Astral + Dark) 
-'''
 
 
 '''
@@ -86,8 +38,8 @@ Move two squares per step, ignoring intervening walls/entities.
 
 
 class Spell:
-    def __init__(self, world):
-        self.world = world
+    def __init__(self, caster):
+        self.caster = caster
 
         self.power = 5
         self.range = 1
@@ -95,14 +47,14 @@ class Spell:
         self.num_targets = 1
         self.action_cost = 2
         self.max_charges = 5
+        self.current_charges = self.max_charges
         self.duration = 0
         self.name = "Unnamed Spell"
         self.level = 1
-        self.tags = []
+        self.schools = []
         self.upgrades = []
         self.recovery_time = 5
 
-        self.caster = None
 
         self.requires_line_of_sight = True
         self.can_target_self = False
@@ -120,37 +72,150 @@ class Spell:
 
 
     def cast(self, target):
+        print(f"Cast {self.name} at {target}!")
+        self.current_charges -= 1
+        self.on_cast(target)
+        self.caster.current_actions -= self.action_cost
+
+    def on_cast(self, target):
         pass
 
     def on_init(self):
-        pass
+        self.recovery_turns_left = self.recovery_time
+        self.current_charges = self.max_charges
 
     def get_targetable_tiles(self):
-        pass
+        targetable_tiles = []
+        for tile in self.caster.world.active_floor.keys():
+            if self.can_target_tile(tile):
+                targetable_tiles.append(tile)
+        return targetable_tiles
+
+
+    def get_impacted_tiles(self, target):
+        return [target]
 
     def can_target_tile(self, target):
         if self.caster.position == target and not self.can_target_self:
+            print("Can't target yourself with that one, Jim.")
             return False
-        if self.must_target_entity and self.world.active_entities[target] is None:
+        if self.must_target_entity and self.caster.world.active_entities[target] is None:
+            print("That one needs to target an entity, Jimmy.")
             return False
-        if (not self.can_target_ground) and self.world.active_entities[target] is None and self.world.active_floor[target].type == "solid":
+        if (not self.can_target_ground) and self.caster.world.active_entities[target] is None and self.world.active_floor[target].type == "solid":
+            print("This one can't just target empty ground, Jimmy boy.")
             return False
-        if (not self.can_target_water) and self.world.active_entities[target] is None and self.world.active_floor[target].type == "liquid":
+        if (not self.can_target_water) and self.caster.world.active_entities[target] is None and self.world.active_floor[target].type == "liquid":
+            print("Can't target the ocean with this one, Caligula.")
             return False
-        if (not self.can_target_void) and self.world.active_entities[target] is None and self.world.active_floor[target].type == "void":
+        if (not self.can_target_void) and self.caster.world.active_entities[target] is None and self.world.active_floor[target].type == "void":
+            print("Literally throwing spells into the void now? Ain't gonna fly, Jimbo.")
             return False
-        if self.cannot_target_entity and self.world.active_entities[target] is not None:
+        if self.cannot_target_entity and self.caster.world.active_entities[target] is not None:
+            print("This spell does not target entities. Please select another target.... Jimzo.")
+            return False
+        if self.range < self.caster.world.euclidean_distance(self.caster.position, target):
+            print(f"Can't use a {self.range} spell at a distance of {self.caster.world.euclidean_distance(self.caster.position, target)} tiles, that should be obvious, Jimmy old sport.")
+            return False
+        if self.requires_line_of_sight and not(self.caster.can_see(target)):
+            print("Can't target what you can't see, Jimpers.")
+            return False
+        return True
+
+    def can_cast(self, target):
+        if not self.can_target_tile(target):
+            #print(f"Can't cast that there.")
+            return False
+        if self.caster.current_actions < self.action_cost:
+            print(f"Can't cast a {self.action_cost} action spell with only {self.caster.current_actions} actions!")
+            return False
+        if self.current_charges <= 0:
+            print(f"Can't cast - no charges!")
             return False
 
-        if self.range < self.world.euclidean_distance(self.caster.position, target):
-            return False
-        if self.requires_line_of_sight and not(self.caster.canSee(target)):
-            return False
+        return True
+
+class IronNeedle(Spell):
+    def __init__(self, caster):
+        super().__init__(caster)
+
+        self.power = 5
+        self.range = 6
+        self.action_cost = 1
+        self.max_charges = 15
+        self.name = "Iron Needle"
+        self.level = 1
+        self.schools = [SCHOOLS.METAL, SCHOOLS.SORCERY]
+        self.upgrades = []
+        self.recovery_time = 5
+
+        self.should_target_allies = False
+        self.should_target_empty = False
+
+        self.on_init()
+
+    def on_cast(self, target):
+        if not self.caster.world.active_entities[target] is None:
+            subject = self.caster.world.active_entities[target]
+            deal_damage(self, subject, self.power, DAMAGE_TYPES.PIERCING)
+
+class Heal(Spell):
+    def __init__(self, caster):
+        super().__init__(caster)
+
+        self.power = 10
+        self.range = 6
+        self.action_cost = 2
+        self.max_charges = 3
+        self.name = "Word of Healing"
+        self.level = 1
+        self.schools = [SCHOOLS.HOLY, SCHOOLS.NATURE]
+        self.upgrades = []
+        self.recovery_time = 15
+
+        self.can_target_self = False
+        self.must_target_entity = False
+
+        self.should_target_allies = True
+        self.should_target_empty = False
+
+        self.on_init()
+
+    def cast(self, target):
+        if not self.caster.world.active_entities[target] is None:
+            subject = self.caster.world.active_entities[target]
+            heal(self, subject, self.power)
 
 
-
-class MeleeAttack(Spell):
-    def __init__(self):
-        super().__init__()
+class BluntMeleeAttack(Spell):
+    def __init__(self, caster):
+        super().__init__(caster)
         self.name = "Strike"
+
+        self.power = 1
+        self.range = 1
+        self.action_cost = 1
+        self.max_charges = 1000
+        self.level = 0
+        self.schools = []
+        self.recovery_time = 1
+
+        self.on_init()
+
+    def cast(self, target):
+        if not self.caster.world.active_entities[target] is None:
+            subject = self.caster.world.active_entities[target]
+            deal_damage(self, subject, self.power, DAMAGE_TYPES.BLUDGEONING)
+
+class SlashingMeleeAttack(BluntMeleeAttack):
+    def cast(self, target):
+        if not self.caster.world.active_entities[target] is None:
+            subject = self.caster.world.active_entities[target]
+            deal_damage(self, subject, self.power, DAMAGE_TYPES.SLASHING)
+
+class PiercingMeleeAttack(BluntMeleeAttack):
+    def cast(self, target):
+        if not self.caster.world.active_entities[target] is None:
+            subject = self.caster.world.active_entities[target]
+            deal_damage(self, subject, self.power, DAMAGE_TYPES.PIERCING)
 

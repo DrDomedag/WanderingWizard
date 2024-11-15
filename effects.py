@@ -1,45 +1,38 @@
 from entities.entities import *
+from util import *
 import math
 
-# Damage types
-BLUDGEONING = 0
-PIERCING = 1
-SLASHING = 2
-FIRE = 3
-COLD = 4
-LIGHTNING = 5
-POISON = 6
-DARK = 7
-LIGHT = 8
-PSYCHIC = 9
-MYSTIC = 10
-# Acid
-# Sonic/Thunder
-# Abrasive
-# Bleed
-# Chaos
 
 
-class Spell:
-    def __init__(self):
-        self.power = 0
-        self.range = 0
-        self.area = 0
-        self.duration = 0
-        self.owner = None
 
+def deal_damage(source, target, amount, type):
+    effective_damage = math.floor(amount * (1-target.resistances[type]))
+    dealt_damage = min(effective_damage, target.hp)
+    target.hp -= effective_damage
+    target.on_suffer_damage(source, amount, type)
+    return dealt_damage
 
+'''
 class DamageInstance:
-    def __init__(self, malefactor, origin, sufferer):
+    def __init__(self, malefactor, sufferer):
         self.amount = 0
-        self.type = BLUDGEONING
-        self.malefactor = None
-        self.origin = None
+        self.type = DAMAGE_TYPES.BLUDGEONING
+        self.malefactor = malefactor
+        self.sufferer = sufferer
 
-    def apply(self, target):
-        target.hp -= math.floor(self.amount * (1-target.resistances[self.type]))
+    def apply(self):
+        self.sufferer.hp -= math.floor(self.amount * (1-self.sufferer.resistances[self.type]))
+'''
 
+def heal(source, target, amount):
+    if target.hp == target.max_hp:
+        pass
+    elif target.hp + amount >= target.max_hp:
+        target.hp = target.max_hp
+    else:
+        target.hp += amount
 
+'''
 class HealingInstance:
     def __init__(self, origin, benefactor):
         self.amount = 0
@@ -54,4 +47,4 @@ class HealingInstance:
             self.benefactor.hp = self.benefactor.max_hp
         else:
             self.benefactor.hp += self.amount
-
+'''

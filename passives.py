@@ -6,15 +6,15 @@ CURSE = 2
 
 
 class Passive:
-    def __init__(self):
+    def __init__(self, source, subject):
         self.duration = None
         self.name = "Unnamed buff"
         self.nature = BLESSING
-        self.object = None
-        self.subject = None
+        self.source = source
+        self.subject = subject
         self.status_modifiers = []
 
-    def incrementDuration(self):
+    def increment_duration(self):
         if self.duration is None:
             pass
         elif self.duration > 0:
@@ -23,25 +23,25 @@ class Passive:
             # Remove from owner, delete self
             self.subject.passives.remove(self)
 
-    def applyStatusModifiers(self):
+    def apply_status_modifiers(self):
         pass
 
-    def startOfTurnEffect(self):
+    def start_of_turn_effect(self):
         pass
 
-    def endOfTurnEffect(self):
+    def end_of_turn_effect(self):
         pass
 
-    def onSufferHitEffect(self):
+    def on_suffer_damage_effect(self):
         pass
 
-    def onSufferDamageEffect(self):
+    def on_deal_hit_effect(self):
         pass
 
-    def onDealHitEffect(self):
+    def on_suffer_hit_effect(self):
         pass
 
-    def onSufferHitEffect(self):
+    def on_death_effect(self):
         pass
 
 
@@ -49,13 +49,12 @@ class Passive:
 
 
 class TrollRegen(Passive):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, source, subject):
+        super().__init__(source, subject)
         self.nature = INHERENT
         self.power = 5
 
-    def startOfTurnEffect(self):
-        healingInstance = HealingInstance(self, self)
-        healingInstance.amount = self.power
-        healingInstance.apply()
+    def start_of_turn_effect(self):
+        heal(self.source, self.subject, self.power)
+
 

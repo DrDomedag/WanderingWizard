@@ -66,8 +66,9 @@ class World:
                     #self[(x, y)] = StoneWall()
 
 
+
     def euclidean_distance(self, a, b):
-        return math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2))
+        return math.floor(math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2)))
 
     def manhattan_distance(self, a, b):
         return(abs(a[0] - b[0]) + abs(a[1] - b[1]))
@@ -77,22 +78,22 @@ class World:
 
     def check_can_move(self, entity, target):
         if self.active_entities[target] is not None:
-            print(f"{entity.name} could not move because {self.active_entities[target].name} blocked the way.")
+            #print(f"{entity.name} could not move because {self.active_entities[target].name} blocked the way.")
             return False # Change down the line to allow PC to walk into ally spaces.
         if self.active_walls[target] is not None and not entity.intangible:
-            print(f"Could not move because a wall blocked the way and {entity.name} is not intangible.")
+            #print(f"Could not move because a wall blocked the way and {entity.name} is not intangible.")
             return False
         if self.active_floor[target].walkable and entity.walking:
-            print(f"{entity.name} could move because it can walk and the target tile is walkable.")
+            #print(f"{entity.name} could move because it can walk and the target tile is walkable.")
             return True
         if self.active_floor[target].flyable and entity.flying:
-            print(f"{entity.name} could move because it can fly and the target tile is flyable.")
+            #print(f"{entity.name} could move because it can fly and the target tile is flyable.")
             return True
         if self.active_floor[target].swimmable and entity.swimming:
-            print(f"{entity.name} could move because it can swim and the target tile is swimmable.")
+            #print(f"{entity.name} could move because it can swim and the target tile is swimmable.")
             return True
 
-        print(f"{entity.name} could not because it has no movement type appropriate for the tile.")
+        #print(f"{entity.name} could not because it has no movement type appropriate for the tile.")
         return False
 
     def player_step(self, direction):
@@ -115,7 +116,7 @@ class World:
 
 
     def move_player(self, target):
-        print(f"Attempting to move from {self.current_coordinates} to {target}")
+        #print(f"Attempting to move from {self.current_coordinates} to {target}")
         if self.move_entity(self.pc, target):
             self.current_coordinates = target
             self.set_current_active_tiles()
@@ -145,7 +146,7 @@ class World:
                         if wall is not None:
                             self.total_walls[coords] = wall
                             wall.position = coords
-                    if self.total_entities[coords] is None:
+                    if self.total_entities[coords] is None and self.total_walls[coords] is None:
                         enemy = self.generate_enemy()
                         if enemy is not None:
                             self.total_entities[coords] = enemy
@@ -187,17 +188,19 @@ class World:
 
     def can_see(self, x, y):
         line_tiles = util.bresenham(x, y)
+        if x == y:
+            return True
         for coords in line_tiles:
             if self.active_walls[coords] is not None and coords != y:
                 return False
         return True
+
     def get_visible_tiles(self, target):
         visible_tiles = []
         for tile in self.active_floor.keys():
             if self.can_see(target, tile):
                 visible_tiles.append(tile)
         return visible_tiles
-
 
 class Tile:
     def __init__(self):
@@ -264,17 +267,17 @@ class StoneWall(Wall):
         self.hp = 100
         self.asset = "stone_wall"
         self.flammable = False
-        self.resistances[BLUDGEONING] = 75
-        self.resistances[PIERCING] = 90
-        self.resistances[SLASHING] = 90
-        self.resistances[FIRE] = 100
-        self.resistances[COLD] = 100
-        self.resistances[LIGHTNING] = 80
-        self.resistances[POISON] = 100
-        self.resistances[DARK] = 80
-        self.resistances[LIGHT] = 80
-        self.resistances[PSYCHIC] = 100
-        self.resistances[MYSTIC] = 50
+        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
+        self.resistances[DAMAGE_TYPES.PIERCING] = 90
+        self.resistances[DAMAGE_TYPES.SLASHING] = 90
+        self.resistances[DAMAGE_TYPES.FIRE] = 100
+        self.resistances[DAMAGE_TYPES.COLD] = 100
+        self.resistances[DAMAGE_TYPES.LIGHTNING] = 80
+        self.resistances[DAMAGE_TYPES.POISON] = 100
+        self.resistances[DAMAGE_TYPES.DARK] = 80
+        self.resistances[DAMAGE_TYPES.LIGHT] = 80
+        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
+        self.resistances[DAMAGE_TYPES.ARCANE] = 50
 
 
 class WoodWall(Wall):
@@ -283,16 +286,16 @@ class WoodWall(Wall):
         self.name = "Wooden Wall"
         self.hp = 50
         self.asset = "wood_wall"
-        self.resistances[BLUDGEONING] = 75
-        self.resistances[PIERCING] = 90
-        self.resistances[SLASHING] = 50
-        self.resistances[FIRE] = 0
-        self.resistances[COLD] = 100
-        self.resistances[LIGHTNING] = 50
-        self.resistances[POISON] = 100
-        self.resistances[DARK] = 50
-        self.resistances[LIGHT] = 80
-        self.resistances[PSYCHIC] = 100
-        self.resistances[MYSTIC] = 50
+        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
+        self.resistances[DAMAGE_TYPES.PIERCING] = 90
+        self.resistances[DAMAGE_TYPES.SLASHING] = 50
+        self.resistances[DAMAGE_TYPES.FIRE] = 0
+        self.resistances[DAMAGE_TYPES.COLD] = 100
+        self.resistances[DAMAGE_TYPES.LIGHTNING] = 50
+        self.resistances[DAMAGE_TYPES.POISON] = 100
+        self.resistances[DAMAGE_TYPES.DARK] = 50
+        self.resistances[DAMAGE_TYPES.LIGHT] = 80
+        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
+        self.resistances[DAMAGE_TYPES.ARCANE] = 50
 
 
