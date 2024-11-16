@@ -30,6 +30,7 @@ class World:
         self.active_tile_effects = defaultdict(lambda: None)
         self.active_items = defaultdict(lambda: None)
         self.pc = None
+        self.assets = None
         self.active_tile_range = 30 # Consider changing
         self.current_coordinates = (0, 0)
 

@@ -14,6 +14,18 @@ class Game:
         #print(f"current_display_size: {current_display_size}")
         pygame.display.set_caption('Wandering Wizard')
 
+        self.root_directory = "assets"
+        #self.asset_dict = defaultdict(lambda: "assets/unknown.png")
+        self.asset_dict = defaultdict(lambda: None)
+        #self.asset_dict = {"unknown": "assets/unknown.png"}
+        #self.assets = {"unknown": pygame.image.load("assets/unknown.png").convert_alpha()}
+        #self.assets = defaultdict(lambda: self.assets["unknown"])
+        self.assets = defaultdict(lambda: None)
+
+        # Hardcoding this to ensure it's loaded by the time anything needs to access this:
+
+        self.load_graphics()
+
         self.states = defaultdict(lambda : False)
 
         self.pc = None
@@ -32,6 +44,7 @@ class Game:
 
     def new_game(self):
         world = World()
+        world.assets = self.assets
         self.pc = PC(world)
         world.pc = self.pc
         world.createDefaultMap()
@@ -101,7 +114,24 @@ class Game:
                             self.pc.current_actions -= 1
                 if self.pc.current_actions <= 0:
                     player_turn_ended = True
-                self.ui.render_everything()
+            self.ui.render_everything()
 
     def enemy_turn(self):
         print("The enemy does nothing during their turn.")
+
+    def load_graphics(self):
+        for dirpath, _, filenames in os.walk(self.root_directory):
+            for filename in filenames:
+                # Full path of the file
+                file_path = os.path.join(dirpath, filename)
+                # File name without the extension
+                name_without_extension = os.path.splitext(filename)[0]
+                extension = os.path.splitext(filename)[1]
+                if extension == ".png":
+                    self.asset_dict[name_without_extension] = file_path
+
+        #print(f"Found {len(self.asset_dict.keys())} image files.")
+        for key in self.asset_dict.keys():
+            self.assets[key] = pygame.image.load(self.asset_dict[key]).convert_alpha()
+
+        #print(f"Loaded {len(self.assets.keys())} images as sprites.")

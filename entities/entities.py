@@ -1,3 +1,4 @@
+import ui
 import util
 from passives import *
 from spells import *
@@ -12,7 +13,17 @@ from collections import defaultdict
 class Entity:
     def __init__(self, world):
         self.world = world
+
+        self.asset_name = "unknown"
+        self.asset = world.assets[self.asset_name]
+        self.idle_asset = [self.asset]
+        self.acting_asset = [self.asset]
+        self.current_frame = 0
+        self.animation_frames = 30
+        self.asset_index = 0
+
         self.layer = "entity"
+
         self.name = "Nameless Entity"
         self.max_hp = 10
         self.hp = self.max_hp
@@ -23,7 +34,7 @@ class Entity:
         self.stationary = False
         self.allegiance = ALLEGIANCES.NEUTRAL
         self.resistances = defaultdict(lambda: 0)
-        self.asset = "unknown"
+
         self.flammable = True
         self.walking = True
         self.flying = False
@@ -32,6 +43,34 @@ class Entity:
         self.position = None
         self.owner = None
 
+
+
+    def load_assets(self):
+        i = 1
+        if self.world.assets[f"{self.asset_name}_idle_{i}"]:
+            self.idle_asset = []
+            while self.world.assets[f"{self.asset_name}_idle_{i}"]:
+                self.idle_asset.append(self.world.assets[f"{self.asset_name}_idle_{i}"])
+                i += 1
+        i = 1
+        if self.world.assets[f"{self.asset_name}_acting_{i}"]:
+            self.acting_asset = []
+            while self.world.assets[f"{self.asset_name}_acting_{i}"]:
+                self.acting_asset.append(self.world.assets[f"{self.asset_name}_acting_{i}"])
+                i += 1
+
+
+    def draw(self, display, screen_x, screen_y):
+
+        self.current_frame += 1
+        # If idle. Similar logic for if acted later.
+        if self.current_frame >= self.animation_frames:
+            self.current_frame = 0
+            self.asset_index = (self.asset_index + 1) % len(self.idle_asset)
+            self.asset = self.idle_asset[self.asset_index]
+
+        # print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
+        display.blit(self.asset, (screen_x, screen_y))
 
     def start_of_turn(self):
         self.current_actions = self.actions_per_round
@@ -50,6 +89,12 @@ class Entity:
             if self.world.active_walls[coords] is not None and coords != target:
                 return False
         return True
+
+    def can_move(self, target):
+        return self.world.check_can_move(self, target)
+
+    def move(self, target):
+        return self.world.move_entity(self, target)
 
     def on_suffer_damage(self, source, amount, type):
         print(f"{self.name} took {amount} damage from {source.name}.")
@@ -77,9 +122,13 @@ class PC(Entity):
         self.max_hp = 50
         self.hp = self.max_hp
         self.allegiance = ALLEGIANCES.PLAYER_TEAM
-        self.asset = "wizard"
+        self.asset_name = "wizard"
+        self.load_assets()
         # TEMP
         self.actives.append(IronNeedle(self))
+
+    def move(self, target):
+        return self.world.move_player(target)
 
 class Troll(Entity):
     def __init__(self, world):
@@ -88,7 +137,8 @@ class Troll(Entity):
         self.max_hp = 30
         self.hp = self.max_hp
         self.passives.append(TrollRegen())
-        self.asset = "troll"
+        self.asset_name = "troll"
+        self.load_assets()
         self.actives.append(BluntMeleeAttack(world))
 
 class Goblin(Entity):
@@ -97,5 +147,6 @@ class Goblin(Entity):
         self.name = "Goblin"
         self.max_hp = 5
         self.hp = self.max_hp
-        self.asset = "goblin"
+        self.asset_name = "goblin"
+        self.load_assets()
         self.actives.append(PiercingMeleeAttack(world))

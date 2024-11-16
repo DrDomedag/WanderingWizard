@@ -3,6 +3,7 @@ import os
 import math
 from collections import defaultdict
 import entities.entities
+import util
 from util import *
 
 SIDE_MENU_WIDTH = 400
@@ -15,16 +16,13 @@ class UI:
     def __init__(self, display, world):
         self.display = display
         self.world = world
-        self.root_directory = "assets"
-        self.asset_dict = defaultdict(lambda : "assets/unknown.png")
-        self.assets = defaultdict(lambda : self.assets["unknown"])
+
 
         # This is real ugly, but it's the best I can think of right now.
         self.left_click = False
         self.right_click = False
 
-        # Hardcoding this to ensure it's loaded by the time anything needs to access this:
-        self.assets["unknown"] = pygame.image.load("assets/unknown.png").convert_alpha()
+
 
 
         self.VISUAL_RANGE = 10 # Think about this later. Probably do Manhattan and just let it be what's on screen.
@@ -35,8 +33,6 @@ class UI:
 
         self.centre_x = int(self.display.get_size()[0] / 2)
         self.centre_y = int(self.display.get_size()[1] / 2)
-
-        self.load_graphics()
 
         # Common denominators for 1920 and 1080:
         # 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 120
@@ -54,22 +50,7 @@ class UI:
 
 
 
-    def load_graphics(self):
-        for dirpath, _, filenames in os.walk(self.root_directory):
-            for filename in filenames:
-                # Full path of the file
-                file_path = os.path.join(dirpath, filename)
-                # File name without the extension
-                name_without_extension = os.path.splitext(filename)[0]
-                extension = os.path.splitext(filename)[1]
-                if extension == ".png":
-                    self.asset_dict[name_without_extension] = file_path
 
-        #print(f"Found {len(self.asset_dict.keys())} image files.")
-        for key in self.asset_dict.keys():
-            self.assets[key] = pygame.image.load(self.asset_dict[key]).convert_alpha()
-
-        #print(f"Loaded {len(self.assets.keys())} images as sprites.")
 
 
 
@@ -83,7 +64,7 @@ class UI:
         for tile_coords in self.world.active_floor.keys():
             #if world.calculate_distance(tile_coords, world.current_coordinates) < VISUAL_RANGE:
             tile = self.world.total_floor[tile_coords]
-            self.display.blit(self.assets[tile.asset], (self.SPRITE_SIZE * (tile_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (tile_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+            self.display.blit(self.world.assets[tile.asset], (self.SPRITE_SIZE * (tile_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (tile_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
 
         # Render items
 
@@ -93,15 +74,16 @@ class UI:
                 wall = self.world.total_walls[entity_coords]
                 if wall.layer == "wall":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    self.display.blit(self.assets[wall.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+                    self.display.blit(self.world.assets[wall.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
 
         # Render entities
         for entity_coords in self.world.active_entities.keys():
             if self.world.total_entities[entity_coords] is not None:
                 entity = self.world.total_entities[entity_coords]
                 if entity.layer == "entity":
+                    entity.draw(self.display, (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x), (self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    self.display.blit(self.assets[entity.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+                    #self.display.blit(self.assets[entity.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
 
         # Render effects
 
@@ -113,7 +95,7 @@ class UI:
 
         # Just always highlight mouseover'd tile
 
-        self.display.blit(self.assets["target_tile"], (
+        self.display.blit(self.world.assets["target_tile"], (
             self.SPRITE_SIZE * (hovered_tile[0] - self.world.current_coordinates[0]) + self.centre_x,
             self.SPRITE_SIZE * (hovered_tile[1] - self.world.current_coordinates[1]) + self.centre_y))
 
@@ -121,7 +103,13 @@ class UI:
 
         if pygame.mouse.get_pressed(num_buttons=3)[2] and self.selected_spell is not None:
             #print(f"Holding down right mouse button.")
-            tile_sprite = self.assets["impacted_tile"]
+
+            tile_sprite = self.world.assets["targetable_tile"]
+            for tile in self.selected_spell.get_targetable_tiles():
+                self.display.blit(tile_sprite, (
+                    self.SPRITE_SIZE * (tile[0] - self.world.current_coordinates[0]) + self.centre_x,
+                    self.SPRITE_SIZE * (tile[1] - self.world.current_coordinates[1]) + self.centre_y))
+            tile_sprite = self.world.assets["impacted_tile"]
             for tile in self.selected_spell.get_impacted_tiles(hovered_tile):
                 self.display.blit(tile_sprite, (
                     self.SPRITE_SIZE * (tile[0] - self.world.current_coordinates[0]) + self.centre_x,
@@ -130,6 +118,14 @@ class UI:
             if self.left_click:
                 if self.selected_spell.can_cast(hovered_tile):
                     self.selected_spell.cast(hovered_tile)
+
+        if self.left_click and self.world.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
+            self.world.pc.move(hovered_tile)
+
+        if self.left_click and self.world.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
+            path = util.find_path(self.world.pc, hovered_tile)
+            print(path)
+            #self.world.pc.move(path[1])
 
         # Draw menus
 
@@ -161,7 +157,7 @@ class UI:
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
         tiles_to_highlight = self.world.get_visible_tiles(origin_tile)
         #print(tiles_to_highlight)
-        tile_sprite = self.assets["visible_tile"]
+        tile_sprite = self.world.assets["visible_tile"]
         for tile in tiles_to_highlight:
             self.display.blit(tile_sprite, (
             self.SPRITE_SIZE * (tile[0] - self.world.current_coordinates[0]) + self.centre_x,
