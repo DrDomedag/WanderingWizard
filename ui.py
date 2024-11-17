@@ -122,10 +122,12 @@ class UI:
         if self.left_click and self.world.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
             self.world.pc.move(hovered_tile)
 
-        if self.left_click and self.world.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
-            path = util.find_path(self.world.pc, hovered_tile)
-            print(path)
-            #self.world.pc.move(path[1])
+        # Get back to pathfinding here at some point
+        #if self.left_click and self.world.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
+            #path = util.find_path(self.world.pc, hovered_tile)
+            #print(path)
+            #if len(path) > 0:
+                #self.world.pc.move(path[1])
 
         # Draw menus
 
@@ -141,7 +143,30 @@ class UI:
     def draw_left_side_menu(self):
         bg_rect = pygame.Rect(0, 0, SIDE_MENU_WIDTH, self.display.get_size()[1])
         pygame.draw.rect(self.display, COLOURS.BLACK, bg_rect)
-        button_offset = 20
+        font = pygame.font.Font('PixelatedEleganceRegular.ttf', 32) # Should probably go for a non-pixel font, no matter what the art style suggests. Or at least a better one.
+        #font = pygame.font.Font('PublicPixel.ttf', 32)
+        if self.world.pc.hp < 25:
+            text = font.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
+        elif self.world.pc.hp < 50:
+            text = font.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
+        else:
+            text = font.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+        textRect = text.get_rect()
+        textRect.center = (120, 25)
+        self.display.blit(text, textRect)
+
+        # Action crystals
+        full_crystal = self.world.assets["action_crystal_full"]
+        empty_crystal = self.world.assets["action_crystal_empty"]
+        for i in range(self.world.pc.actions_per_round):
+            if i >= self.world.pc.current_actions:
+                # Render empty action crystal
+                self.display.blit(empty_crystal, (5 + i * 30, 60))
+            else:
+                # Render full action crystal
+                self.display.blit(full_crystal, (5 + i * 30, 60))
+
+        button_offset = 120
         buttons = 0
         button_height = 20
         button_width = SIDE_MENU_WIDTH - 10
@@ -191,6 +216,7 @@ class Button:
         self.selected = False
         self.rect = pygame.Rect(pos, size)
         self.font = pygame.font.Font(None, 36)
+        #self.font = pygame.font.Font('PixelatedEleganceRegular.ttf', 32)
 
 
     def draw(self, screen):

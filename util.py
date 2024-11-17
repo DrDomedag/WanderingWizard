@@ -60,6 +60,7 @@ COLOURS = Tags(
     WHITE=(255, 255, 255),
     BLACK=(0, 0, 0),
     GRAY=(200, 200, 200),
+    DARK_GRAY=(100,100,100),
     RED=(255, 0, 0),
     GREEN=(0, 255, 0),
     BLUE=(0, 0, 255),
@@ -124,7 +125,10 @@ ALLEGIANCES = Tags(
     ENEMY_TEAM=2
 )
 
-
+# Event types
+EVENT_TYPES = Tags(
+    ENEMY_TURN_START = 0
+)
 
 
 '''
@@ -180,30 +184,47 @@ def find_path(entity, target):
     grid_size = entity.world.active_tile_range - 1
     grid, centre_x, centre_y = generate_grid_centered(entity, grid_size)
 
+    print(f"Grid shape: {len(grid)}x{len(grid[0])}")
+    #print(grid[24:38])
+
+
+    # Rotate clockwise - did not do well.
+    #grid = [list(row) for row in zip(*grid[::-1])]
+    # Rotate counterclockwise - also did not do well.
+    #grid = [list(row) for row in zip(*grid)][::-1]
+    # Transpose grid:
+    #grid = list(map(list, zip(*grid)))
+    # Flip horizontally:
+    #grid = [row[::-1] for row in grid]
+    # Flip vertically:
+    #grid = grid[::-1]
+
+    print(grid)
+
+    # These are clearly correct.
     translated_start = translate_coordinates(entity.position, centre_x, centre_y, grid_size)
     translated_target = translate_coordinates(target, centre_x, centre_y, grid_size)
 
 
+
     path = a_star_search(grid, translated_start, translated_target)
 
-    # Adjust path to map coordinates before returning?
+    # Adjust path to map coordinates before returning
 
-    '''
-        adjusted_path = []
-        tr = entity.world.active_tile_range - 1
-        print("Unadjusted path")
-        print(path)
-        for coord in path:
-            adjusted_path.append((coord[0] + entity.world.current_coordinates[0] - tr, coord[1] + entity.world.current_coordinates[1] - tr))
-        print("Adjusted path")
-        print(adjusted_path)
-        return adjusted_path
-    '''
+    adjusted_path = []
 
-    return path
+    print("Unadjusted path")
+    print(path)
+    for coord in path:
+        adjusted_path.append(backtranslate_coordinates(coord, centre_x, centre_y, grid_size))
+    print("Adjusted path")
+    print(adjusted_path)
+    return adjusted_path
 
 
-
+def flip_coordinates(coordinates):
+    flipped = (coordinates[1], coordinates[0])
+    return flipped
 
 def generate_grid_centered(entity, grid_size=29):
     """
@@ -214,7 +235,17 @@ def generate_grid_centered(entity, grid_size=29):
     :return: A 2D list of tiles (0 for walkable, 1 for blocked).
     """
     # Center point
+    #center_x, center_y = flip_coordinates(entity.world.current_coordinates)
     center_x, center_y = entity.world.current_coordinates
+
+    #in the expected grid, the left coordinate is the x
+    #it corresponds to the row, so it's
+    #x = r, y = c
+
+    #could be because it starts with checking the own tile which always counts as a 0
+
+
+
 
     # Define grid bounds
     min_x = center_x - grid_size
@@ -227,15 +258,20 @@ def generate_grid_centered(entity, grid_size=29):
     for y in range(min_y, max_y + 1):
         row = []
         for x in range(min_x, max_x + 1):
+            if entity.world.active_floor[(y, x)] == None:
+                print(f"No floor at {x}, {y}")
             # Fetch the tile value from the game world (replace this logic with your game's logic)
             #tile_value = entity.world.get_tile(x, y)  # Replace with your world tile-fetching function
             #print(f"Seeing if entity can move to {(x, y)}")
             tile_value = 1 if entity.can_move((x, y)) else 0
+            #tile_value = 1 if entity.position
             #print(tile_value)
             # grid[y][x] = 1 if entity.can_move((world_x_to_check, world_y_to_check)) else 0
 
             row.append(tile_value)
         grid.append(row)
+
+
 
     return grid, center_x, center_y
 

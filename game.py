@@ -54,10 +54,10 @@ class Game:
 
     def main_loop(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+            #for event in pygame.event.get():
+            #    if event.type == pygame.QUIT:
+            #        pygame.quit()
+            #        sys.exit()
 
             print(f"Start of player turn. Player at coordinates {self.world.current_coordinates}")
             self.player_turn()
@@ -70,7 +70,6 @@ class Game:
             if entity is not None:
                 if entity.allegiance == ALLEGIANCES.PLAYER_TEAM:
                     entity.start_of_turn()
-        self.pc.current_actions = self.pc.actions_per_round
         while not player_turn_ended:
             #self.graphics.find_tile_at_screen_coords(pygame.mouse.get_pos())
             for event in pygame.event.get():
@@ -117,7 +116,38 @@ class Game:
             self.ui.render_everything()
 
     def enemy_turn(self):
-        print("The enemy does nothing during their turn.")
+        print("Enemy turn starts.")
+        pygame.time.set_timer(EVENT_TYPES.ENEMY_TURN_START, 20)
+
+        initiative_queue = []
+
+        for entity in self.world.active_entities.values():
+            if entity is not None:
+                #print(f"Acting entity: {entity.name}")
+                #pygame.time.delay(10)
+                if entity.allegiance == ALLEGIANCES.ENEMY_TEAM:
+                    initiative_queue.append(entity)
+
+        random.shuffle(initiative_queue) # Possible to do stuff like "always acts immediately after Wizard" and stuff like that with this.
+
+        print(len(initiative_queue))
+        while len(initiative_queue) > 0:
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == EVENT_TYPES.ENEMY_TURN_START:
+                    active_enemy = initiative_queue.pop()
+                    print(f"{active_enemy.name}'s turn")
+                    active_enemy.start_of_turn()
+                    active_enemy.act()
+        pygame.time.set_timer(EVENT_TYPES.ENEMY_TURN_START, 0)
+
+        self.ui.render_everything()
+        print("Enemy turn ended.")
+
 
     def load_graphics(self):
         for dirpath, _, filenames in os.walk(self.root_directory):

@@ -65,6 +65,8 @@ class World:
                 self[(x, y)] = FloorTile()
                 #if random.random() > 0.9:
                     #self[(x, y)] = StoneWall()
+        #self.total_entities[self.current_coordinates] = self.pc
+        #self.active_entities[(0, 0)] = self.pc
 
 
 
@@ -182,10 +184,12 @@ class World:
             return StoneWall(self)
 
     def generate_enemy(self):
-        if random.random() < 0.95:
+        if random.random() < 0.98:
             return None
         else:
-            return Goblin(self)
+            enemy = Goblin(self)
+            enemy.allegiance = ALLEGIANCES.ENEMY_TEAM
+            return enemy
 
     def can_see(self, x, y):
         line_tiles = util.bresenham(x, y)

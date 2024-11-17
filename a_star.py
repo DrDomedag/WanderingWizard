@@ -83,17 +83,17 @@ def a_star_search(grid, src, dest):
 
     # Check if the source and destination are valid
     if not is_valid(src[0], src[1], ROW, COL) or not is_valid(dest[0], dest[1], ROW, COL):
-        #print("Source or destination is invalid")
+        print("Source or destination is invalid")
         return []
 
     # Check if the source and destination are unblocked
     if not is_unblocked(grid, src[0], src[1]) or not is_unblocked(grid, dest[0], dest[1]):
-        #print("Source or the destination is blocked")
+        print("Source or the destination is blocked")
         return []
 
     # Check if we are already at the destination
     if is_destination(src[0], src[1], dest):
-        #print("We are already at the destination")
+        print("We are already at the destination")
         return []
 
     # Initialize the closed list (visited cells)

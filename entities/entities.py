@@ -1,12 +1,11 @@
 import ui
 import util
+import random
+from collections import defaultdict
+
 from passives import *
 from spells import *
 from effects import *
-
-from collections import defaultdict
-
-
 
 
 
@@ -115,6 +114,13 @@ class Entity:
         del self
 
 
+    def act(self):
+        #print(self.actives)
+        actives = random.sample(self.actives, len(self.actives))
+        actives.sort(key=lambda spell: Spell.level)
+        #print(actives)
+
+
 class PC(Entity):
     def __init__(self, world):
         super().__init__(world)
@@ -136,10 +142,10 @@ class Troll(Entity):
         self.name = "Troll"
         self.max_hp = 30
         self.hp = self.max_hp
-        self.passives.append(TrollRegen())
+        self.passives.append(TrollRegen(self, self))
         self.asset_name = "troll"
         self.load_assets()
-        self.actives.append(BluntMeleeAttack(world))
+        self.actives.append(BluntMeleeAttack(self))
 
 class Goblin(Entity):
     def __init__(self, world):
@@ -149,4 +155,4 @@ class Goblin(Entity):
         self.hp = self.max_hp
         self.asset_name = "goblin"
         self.load_assets()
-        self.actives.append(PiercingMeleeAttack(world))
+        self.actives.append(PiercingMeleeAttack(self))

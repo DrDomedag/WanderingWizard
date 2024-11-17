@@ -34,10 +34,21 @@ Instantly unmake a summoned creature.
 Flickerstep
 Move two squares per step, ignoring intervening walls/entities.
 
+Haste
+Air + Enchantment
+Target gets an additional action crystal each turn for X turns.
+
+Metabolic Overdrive
+Blood + Nature + Transmutation
+Target gets an additional action crystal each turn for X turns.
+
 '''
 
 
 class Spell:
+    range = 1
+    level = 1
+
     def __init__(self, caster):
         self.caster = caster
 
@@ -102,13 +113,13 @@ class Spell:
         if self.must_target_entity and self.caster.world.active_entities[target] is None:
             print("That one needs to target an entity, Jimmy.")
             return False
-        if (not self.can_target_ground) and self.caster.world.active_entities[target] is None and self.world.active_floor[target].type == "solid":
+        if (not self.can_target_ground) and self.caster.world.active_entities[target] is None and self.caster.world.active_floor[target].type == "solid":
             print("This one can't just target empty ground, Jimmy boy.")
             return False
-        if (not self.can_target_water) and self.caster.world.active_entities[target] is None and self.world.active_floor[target].type == "liquid":
+        if (not self.can_target_water) and self.caster.world.active_entities[target] is None and self.caster.world.active_floor[target].type == "liquid":
             print("Can't target the ocean with this one, Caligula.")
             return False
-        if (not self.can_target_void) and self.caster.world.active_entities[target] is None and self.world.active_floor[target].type == "void":
+        if (not self.can_target_void) and self.caster.world.active_entities[target] is None and self.caster.world.active_floor[target].type == "void":
             print("Literally throwing spells into the void now? Ain't gonna fly, Jimbo.")
             return False
         if self.cannot_target_entity and self.caster.world.active_entities[target] is not None:
