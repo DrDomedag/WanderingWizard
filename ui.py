@@ -17,12 +17,20 @@ class UI:
         self.display = display
         self.world = world
 
+        self.ongoing_effects = pygame.sprite.Group()
+        self.clock = pygame.time.Clock()
 
         # This is real ugly, but it's the best I can think of right now.
         self.left_click = False
         self.right_click = False
+        self.scroll_down = False
+        self.scroll_up = False
 
-
+        # CHANGE THIS for sure
+        self.font_32 = pygame.font.Font('PixelatedEleganceRegular.ttf', 32)
+        self.font_20 = pygame.font.Font('PixelatedEleganceRegular.ttf', 20)
+        self.font_14 = pygame.font.Font('PixelatedEleganceRegular.ttf', 14)
+        # font = pygame.font.Font('PublicPixel.ttf', 32)
 
 
         self.VISUAL_RANGE = 10 # Think about this later. Probably do Manhattan and just let it be what's on screen.
@@ -48,23 +56,25 @@ class UI:
 
         self.selected_spell = None
 
-
-
-
-
-
-
     def render_everything(self):
         #print(f"Floor tile count: {len(self.world.total_floor.keys())}")
         #print(f"Entity count: {len(self.world.total_entities.keys())}")
         #print(self.centre_x)
         #print(self.centre_y)
 
+        # Create new effects
+        while len(self.world.effect_queue) > 0:
+            effect_info = self.world.effect_queue.pop()
+            if effect_info[1] == SCHOOLS.FIRE:
+                new_sprite = ExplosionEffect(self.world, "fire", effect_info[0], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+
         # Render tiles:
         for tile_coords in self.world.active_floor.keys():
             #if world.calculate_distance(tile_coords, world.current_coordinates) < VISUAL_RANGE:
-            tile = self.world.total_floor[tile_coords]
-            self.display.blit(self.world.assets[tile.asset], (self.SPRITE_SIZE * (tile_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (tile_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+            tile = self.world.active_floor[tile_coords]
+            self.display.blit(self.world.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
 
         # Render items
 
@@ -74,18 +84,21 @@ class UI:
                 wall = self.world.total_walls[entity_coords]
                 if wall.layer == "wall":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    self.display.blit(self.world.assets[wall.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+                    self.display.blit(self.world.assets[wall.asset], self.tile_to_screen_coords(entity_coords))
 
         # Render entities
         for entity_coords in self.world.active_entities.keys():
             if self.world.total_entities[entity_coords] is not None:
                 entity = self.world.total_entities[entity_coords]
                 if entity.layer == "entity":
-                    entity.draw(self.display, (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x), (self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+                    entity.draw(self.display, self.tile_to_screen_coords(entity_coords))
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
                     #self.display.blit(self.assets[entity.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
 
-        # Render effects
+        # Update and render effects
+        self.ongoing_effects.update()
+        self.ongoing_effects.draw(self.display)
+        #print(f"len(self.ongoing_effects): {len(self.ongoing_effects)}")
 
         hovered_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
 
@@ -95,35 +108,56 @@ class UI:
 
         # Just always highlight mouseover'd tile
 
-        self.display.blit(self.world.assets["target_tile"], (
-            self.SPRITE_SIZE * (hovered_tile[0] - self.world.current_coordinates[0]) + self.centre_x,
-            self.SPRITE_SIZE * (hovered_tile[1] - self.world.current_coordinates[1]) + self.centre_y))
+        self.display.blit(self.world.assets["target_tile"], self.tile_to_screen_coords(hovered_tile))
 
         # Highlight affected tiles if holding down right mouse button
 
         if pygame.mouse.get_pressed(num_buttons=3)[2] and self.selected_spell is not None:
-            #print(f"Holding down right mouse button.")
-
             tile_sprite = self.world.assets["targetable_tile"]
             for tile in self.selected_spell.get_targetable_tiles():
-                self.display.blit(tile_sprite, (
-                    self.SPRITE_SIZE * (tile[0] - self.world.current_coordinates[0]) + self.centre_x,
-                    self.SPRITE_SIZE * (tile[1] - self.world.current_coordinates[1]) + self.centre_y))
+                self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
             tile_sprite = self.world.assets["impacted_tile"]
             for tile in self.selected_spell.get_impacted_tiles(hovered_tile):
-                self.display.blit(tile_sprite, (
-                    self.SPRITE_SIZE * (tile[0] - self.world.current_coordinates[0]) + self.centre_x,
-                    self.SPRITE_SIZE * (tile[1] - self.world.current_coordinates[1]) + self.centre_y))
+                self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
+
 
             if self.left_click:
                 if self.selected_spell.can_cast(hovered_tile):
                     self.selected_spell.cast(hovered_tile)
 
-        if self.left_click and self.world.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
-            self.world.pc.move(hovered_tile)
+        elif self.left_click and util.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
+            if self.world.pc.move(hovered_tile):
+                self.world.pc.current_actions -= 1
+
+
+        if self.scroll_down and len(self.world.pc.actives) > 0:
+            if self.selected_spell == None:
+                self.selected_spell = self.world.pc.actives[0]
+            elif self.world.pc.actives.index(self.selected_spell) + 1 >= len(self.world.pc.actives):
+                self.selected_spell = self.world.pc.actives[0]
+            else:
+                self.selected_spell = self.world.pc.actives[self.world.pc.actives.index(self.selected_spell) + 1]
+        if self.scroll_up:
+            if self.selected_spell == None:
+                self.selected_spell = self.world.pc.actives[-1]
+            else:
+                self.selected_spell = self.world.pc.actives[self.world.pc.actives.index(self.selected_spell) - 1]
+
+
 
         # Get back to pathfinding here at some point
-        #if self.left_click and self.world.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
+        if self.left_click and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
+            pass
+            # For some reason, this causes tile (-29, -30) to be added to the active tiles for the next frame rendering,
+            # but that doesn't have a sprite because it hasn't been generated yet so everything crashes.
+            # But we don't move..!
+            # That's because we *access* that tile as part of the entity.can_move(target) function, making the
+            # defaultdict set it to None
+            # Options:
+            # 1. Make it not a defaultdict
+            # 2. Make it generate the tile as its lambda function (or not lambda, but whatever)
+            # 3. Shrink the grid to be the right size (rather: ensure the grid is correct)
+            # Correct answer: 3, then 2.
             #path = util.find_path(self.world.pc, hovered_tile)
             #print(path)
             #if len(path) > 0:
@@ -132,25 +166,33 @@ class UI:
         # Draw menus
 
         self.draw_left_side_menu()
-        self.draw_right_side_menu()
+        self.draw_right_side_menu(hovered_tile)
 
         self.left_click = False
         self.right_click = False
+        self.scroll_down = False
+        self.scroll_up = False
 
         pygame.display.flip()
 
+        self.clock.tick(60)
+
+
+    def tile_to_screen_coords(self, coords):
+        x = self.SPRITE_SIZE * (coords[0] - self.world.current_coordinates[0]) + self.centre_x
+        y = self.SPRITE_SIZE * (coords[1] - self.world.current_coordinates[1]) + self.centre_y
+        coords = (x, y)
+        return coords
 
     def draw_left_side_menu(self):
         bg_rect = pygame.Rect(0, 0, SIDE_MENU_WIDTH, self.display.get_size()[1])
         pygame.draw.rect(self.display, COLOURS.BLACK, bg_rect)
-        font = pygame.font.Font('PixelatedEleganceRegular.ttf', 32) # Should probably go for a non-pixel font, no matter what the art style suggests. Or at least a better one.
-        #font = pygame.font.Font('PublicPixel.ttf', 32)
         if self.world.pc.hp < 25:
-            text = font.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
+            text = self.font_32.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
         elif self.world.pc.hp < 50:
-            text = font.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
+            text = self.font_32.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
         else:
-            text = font.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+            text = self.font_32.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
         textRect = text.get_rect()
         textRect.center = (120, 25)
         self.display.blit(text, textRect)
@@ -166,17 +208,61 @@ class UI:
                 # Render full action crystal
                 self.display.blit(full_crystal, (5 + i * 30, 60))
 
+
+
         button_offset = 120
-        buttons = 0
+        #buttons = 0
         button_height = 20
         button_width = SIDE_MENU_WIDTH - 10
-        for spell in self.world.pc.actives:
-            spellButton = Button(self, f"{spell.name} - {spell.current_charges}/{spell.max_charges}", (5, button_offset + (buttons * button_height)), (button_width, button_height), COLOURS.RED, COLOURS.MAGENTA, COLOURS.YELLOW, self.select_spell, spell)
+        for i, spell in enumerate(self.world.pc.actives):
+            spellButton = Button(self, f"{spell.name} - {spell.current_charges}/{spell.max_charges}", (5, button_offset + (i * button_height)), (button_width, button_height), COLOURS.RED, COLOURS.MAGENTA, COLOURS.YELLOW, self.select_spell, spell)
             spellButton.draw(self.display)
 
-    def draw_right_side_menu(self):
-        bg_rect = pygame.Rect(self.display.get_size()[0] - SIDE_MENU_WIDTH, 0, 400, self.display.get_size()[1])
+    def draw_right_side_menu(self, hovered_tile):
+        left_end = self.display.get_size()[0] - SIDE_MENU_WIDTH
+        width = 400
+        height = self.display.get_size()[1]
+        bg_rect = pygame.Rect(left_end, 0, width, self.display.get_size()[1])
         pygame.draw.rect(self.display, COLOURS.BLACK, bg_rect)
+        entity = self.world.active_entities[hovered_tile]
+        if entity is None:
+            entity = self.world.active_walls[hovered_tile]
+        if entity is not None:
+            name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+            nameRect = name.get_rect()
+            nameRect.center = (left_end + width // 2, 30)
+            self.display.blit(name, nameRect)
+            if entity.hp < 25:
+                hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
+            elif entity.hp < 50:
+                hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
+            else:
+                hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+            hpRect = hp.get_rect()
+            hpRect.center = (left_end + width // 2, 60)
+            self.display.blit(hp, hpRect)
+
+            # Action crystals
+            full_crystal = self.world.assets["action_crystal_full"]
+            empty_crystal = self.world.assets["action_crystal_empty"]
+            for i in range(entity.actions_per_round):
+                if i >= entity.current_actions:
+                    # Render empty action crystal
+                    self.display.blit(empty_crystal, (left_end + i * 30, 90))
+                else:
+                    # Render full action crystal
+                    self.display.blit(full_crystal, (left_end + i * 30, 90))
+        if entity is None:
+            entity = self.world.active_floor[hovered_tile]
+            name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+            nameRect = name.get_rect()
+            nameRect.center = (left_end + width // 2, 30)
+            self.display.blit(name, nameRect)
+            type = self.font_32.render(f"{entity.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+            typeRect = type.get_rect()
+            typeRect.center = (left_end + width // 2, 60)
+            self.display.blit(type, typeRect)
+            # Would be cool with boots/fins/wings icons here to show passability using these different types of movement.
 
     def show_LoS_at_cursor(self):
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
@@ -195,6 +281,8 @@ class UI:
         world_x = math.floor(((coords[0] - self.centre_x) // self.SPRITE_SIZE) + self.world.current_coordinates[0])
         world_y = math.floor(((coords[1] - self.centre_y) // self.SPRITE_SIZE) + self.world.current_coordinates[1])
         return (world_x, world_y)
+
+
 
     def select_spell(self, spell):
         print(f"Selected spell: {spell.name}")
@@ -222,12 +310,18 @@ class Button:
     def draw(self, screen):
         # Change colour when hovering
         mouse_pos = pygame.mouse.get_pos()
-        if self.rect.collidepoint(mouse_pos):
-            pygame.draw.rect(screen, self.hover_colour, self.rect)
-        elif self.selected:
-            pygame.draw.rect(screen, self.selected_colour, self.rect)
+        if self.ui.selected_spell is not None:
+            if self.rect.collidepoint(mouse_pos):
+                pygame.draw.rect(screen, self.hover_colour, self.rect)
+            elif self.selected_object.name == self.ui.selected_spell.name:
+                pygame.draw.rect(screen, self.selected_colour, self.rect)
+            else:
+                pygame.draw.rect(screen, self.colour, self.rect)
         else:
-            pygame.draw.rect(screen, self.colour, self.rect)
+            if self.rect.collidepoint(mouse_pos):
+                pygame.draw.rect(screen, self.hover_colour, self.rect)
+            else:
+                pygame.draw.rect(screen, self.colour, self.rect)
         # Draw text on the button
         text_surface = self.font.render(self.text, True, COLOURS.BLACK)
         text_rect = text_surface.get_rect(center=self.rect.center)
@@ -243,4 +337,64 @@ class Button:
                         self.action(self.selected_object)
                     else:
                         self.action()
+
+
+class ExplosionEffect(pygame.sprite.Sprite):
+    def __init__(self, world, asset_name, position, *groups):
+        """
+        Creates an explosion effect that animates through a list of sprites and deletes itself.
+
+        :param sprites: List of PyGame surfaces or sprite frames.
+        :param position: Tuple (x, y) for the position of the effect.
+        :param delay: Time in milliseconds between frames.
+        :param groups: PyGame sprite groups to which this effect belongs.
+        """
+        super().__init__(*groups)
+        self.world = world
+        self.asset_name = asset_name
+        self.sprite = self.get_sprites()
+        self.position = position
+        self.delay = 100
+        self.current_frame = 0
+        self.last_update_time = pygame.time.get_ticks()
+        self.image = self.sprite[self.current_frame]
+        self.rect = self.image.get_rect(center=self.position)
+
+    def get_sprites(self):
+        i = 0
+        '''
+        print(self.world.assets.keys())
+        print(self.asset_name)
+        print(f"{self.asset_name}_0")
+        print(self.world.assets["fire_0"])
+        print(self.world.assets[f"{self.asset_name}_{i}"])
+        '''
+        sprite_list = []
+        if self.world.assets[f"{self.asset_name}_{i}"]:
+            #print(f"Determined that there is a frame {i}")
+            while self.world.assets[f"{self.asset_name}_{i}"]:
+                #print(f"Found sprite frame {i}")
+                sprite_list.append(self.world.assets[f"{self.asset_name}_{i}"])
+                i += 1
+        else:
+            sprite_list.append(self.world.assets[f"{self.asset_name}"])
+        return sprite_list
+
+    def update(self):
+        """
+        Updates the explosion animation by switching frames and removing itself when done.
+        """
+        now = pygame.time.get_ticks()
+
+        if now - self.last_update_time >= self.delay:
+            self.last_update_time = now
+            self.current_frame += 1
+
+            # Check if the animation is complete
+            if self.current_frame >= len(self.sprite):
+                self.kill()  # Remove itself from all sprite groups
+            else:
+                # Update to the next frame
+                self.image = self.sprite[self.current_frame]
+                self.rect = self.image.get_rect(center=self.position)
 

@@ -49,6 +49,12 @@ class Game:
         world.pc = self.pc
         world.createDefaultMap()
 
+
+        # TEMP
+        self.pc.actives.append(IronNeedle(self.pc))
+        self.pc.actives.append(FireBreath(self.pc))
+        self.pc.actives.append(SeismicJolt(self.pc))
+
         world.active_floor = world.total_floor
         return world
 
@@ -85,6 +91,12 @@ class Game:
                         pass
                     if event.button == 3:
                         self.ui.right_click = True
+                    if event.button == 4:
+                        print("Button 4")
+                        self.ui.scroll_up = True
+                    if event.button == 5:
+                        print("Button 5")
+                        self.ui.scroll_down = True
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a or event.key == pygame.K_KP_4:
@@ -140,7 +152,7 @@ class Game:
 
                 if event.type == EVENT_TYPES.ENEMY_TURN_START:
                     active_enemy = initiative_queue.pop()
-                    print(f"{active_enemy.name}'s turn")
+                    #print(f"{active_enemy.name}'s turn")
                     active_enemy.start_of_turn()
                     active_enemy.act()
         pygame.time.set_timer(EVENT_TYPES.ENEMY_TURN_START, 0)

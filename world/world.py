@@ -33,7 +33,10 @@ class World:
         self.assets = None
         self.active_tile_range = 30 # Consider changing
         self.current_coordinates = (0, 0)
+        self.effect_queue = []
 
+    def show_effect(self, target, effect_type):
+        self.effect_queue.append((target, effect_type))
 
     def __setitem__(self, key, value):
         #base_class = util.get_top_parent(value)
@@ -70,14 +73,7 @@ class World:
 
 
 
-    def euclidean_distance(self, a, b):
-        return math.floor(math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2)))
 
-    def manhattan_distance(self, a, b):
-        return(abs(a[0] - b[0]) + abs(a[1] - b[1]))
-
-    def chebyshev_distance(self, a, b):
-        return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
     def check_can_move(self, entity, target):
         if self.active_entities[target] is not None:
@@ -98,6 +94,13 @@ class World:
 
         #print(f"{entity.name} could not because it has no movement type appropriate for the tile.")
         return False
+
+    def check_can_be_pushed(self, entity, target):
+        if self.active_entities[target] is not None:
+            return False
+        if self.active_walls[target] is not None and not entity.intangible:
+            return False
+        return True
 
     def player_step(self, direction):
         if direction == UP_LEFT:
@@ -127,34 +130,39 @@ class World:
         return False
 
 
+    def generate_tile(self, coords):
+        floor = None
+        wall = None
+        entity = None
+        if self.total_floor[coords] is None:
+            floor = self.generate_floor_tile()
+            self.total_floor[coords] = floor
+        if self.total_walls[coords] is None:
+            wall = self.generate_wall_tile()
+            if wall is not None:
+                self.total_walls[coords] = wall
+                wall.position = coords
+        if self.total_entities[coords] is None and self.total_walls[coords] is None:
+            enemy = self.generate_enemy()
+            if enemy is not None:
+                self.total_entities[coords] = enemy
+                enemy.position = coords
+        return floor, wall, entity
+
+
     def set_current_active_tiles(self):
         self.active_walls = defaultdict(lambda: None)
         self.active_floor = defaultdict(lambda: None)
         self.active_entities = defaultdict(lambda: None)
-
-        generated_tiles = 0
 
         for x in range(self.current_coordinates[0] - self.active_tile_range,
                        self.current_coordinates[0] + self.active_tile_range):
             for y in range(self.current_coordinates[1] - self.active_tile_range,
                            self.current_coordinates[1] + self.active_tile_range):
                 coords = (x, y)
-                if coords not in self.total_floor.keys():
-                    if self.total_floor[coords] is None:
-                        generated_tiles += 1
-                        floor = self.generate_floor_tile()
-                        self.total_floor[coords] = floor
-                    if self.total_walls[coords] is None:
-                        wall = self.generate_wall_tile()
-                        if wall is not None:
-                            self.total_walls[coords] = wall
-                            wall.position = coords
-                    if self.total_entities[coords] is None and self.total_walls[coords] is None:
-                        enemy = self.generate_enemy()
-                        if enemy is not None:
-                            self.total_entities[coords] = enemy
-                            enemy.position = coords
-                if self.chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
+                if self.total_floor[coords] is None:
+                    floor, wall, entity = self.generate_tile(coords)
+                if util.chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
                     self.active_floor[coords] = self.total_floor[coords]
                     self.active_walls[coords] = self.total_walls[coords]
                     self.active_entities[coords] = self.total_entities[coords]
@@ -162,6 +170,17 @@ class World:
 
     def move_entity(self, entity, target):
         if self.check_can_move(entity, target):
+            self.active_entities[entity.position] = None
+            self.total_entities[entity.position] = None
+            self.active_entities[target] = entity
+            self.total_entities[target] = entity
+            entity.position = target
+            return True
+        else:
+            return False
+
+    def push_entity(self, entity, target):
+        if self.check_can_be_pushed(entity, target):
             self.active_entities[entity.position] = None
             self.total_entities[entity.position] = None
             self.active_entities[target] = entity
@@ -259,7 +278,8 @@ class Wall(Entity):
         self.layer = "wall"
         self.name = "Wall"
         self.walkable = False
-        self.hp = 50
+        self.max_hp = 50
+        self.hp = self.max_hp
         self.actionsPerRound = 0
         self.stationary = True
 
@@ -269,7 +289,8 @@ class StoneWall(Wall):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Stone Wall"
-        self.hp = 100
+        self.max_hp = 100
+        self.hp = self.max_hp
         self.asset = "stone_wall"
         self.flammable = False
         self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
@@ -289,7 +310,8 @@ class WoodWall(Wall):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Wooden Wall"
-        self.hp = 50
+        self.max_hp = 50
+        self.hp = self.max_hp
         self.asset = "wood_wall"
         self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
         self.resistances[DAMAGE_TYPES.PIERCING] = 90

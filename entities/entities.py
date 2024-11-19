@@ -30,10 +30,10 @@ class Entity:
         self.passives = []
         self.actions_per_round = 3
         self.current_actions = 0
-        self.stationary = False
         self.allegiance = ALLEGIANCES.NEUTRAL
         self.resistances = defaultdict(lambda: 0)
 
+        self.stationary = False
         self.flammable = True
         self.walking = True
         self.flying = False
@@ -59,7 +59,7 @@ class Entity:
                 i += 1
 
 
-    def draw(self, display, screen_x, screen_y):
+    def draw(self, display, screen_coords):
 
         self.current_frame += 1
         # If idle. Similar logic for if acted later.
@@ -69,9 +69,10 @@ class Entity:
             self.asset = self.idle_asset[self.asset_index]
 
         # print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-        display.blit(self.asset, (screen_x, screen_y))
+        display.blit(self.asset, screen_coords)
 
     def start_of_turn(self):
+        #print(f"{self.name}'s turn started.")
         self.current_actions = self.actions_per_round
         for active in self.actives:
             if active.current_charges < active.max_charges:
@@ -92,11 +93,14 @@ class Entity:
     def can_move(self, target):
         return self.world.check_can_move(self, target)
 
+    def can_be_pushed(self, target):
+        return self.world.check_can_be_pushed(self, target)
+
     def move(self, target):
         return self.world.move_entity(self, target)
 
     def on_suffer_damage(self, source, amount, type):
-        print(f"{self.name} took {amount} damage from {source.name}.")
+        #print(f"{self.name} took {amount} damage from {source.name}.")
         for passive in self.passives:
             passive.on_suffer_damage_effect(source, amount, type)
         if self.hp <= 0:
@@ -130,8 +134,7 @@ class PC(Entity):
         self.allegiance = ALLEGIANCES.PLAYER_TEAM
         self.asset_name = "wizard"
         self.load_assets()
-        # TEMP
-        self.actives.append(IronNeedle(self))
+        self.current_actions = self.actions_per_round
 
     def move(self, target):
         return self.world.move_player(target)

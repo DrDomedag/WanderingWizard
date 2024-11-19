@@ -1,5 +1,7 @@
+import skimage.draw
 from skimage.draw import line
-#import numpy as np
+import numpy as np
+import math
 import heapq
 from a_star import a_star_search
 
@@ -131,40 +133,21 @@ EVENT_TYPES = Tags(
 )
 
 
-'''
-# function for line generation
-def bresenham(a, b):
-    x1 = a[0]
-    y1 = a[1]
-    x2 = b[0]
-    y2 = b[1]
-    # This code is contributed by ash264
-    # https://www.geeksforgeeks.org/bresenhams-line-generation-algorithm/
-    m_new = 2 * (y2 - y1)
-    slope_error_new = m_new - (x2 - x1)
-
-    y = y1
-    for x in range(x1, x2 + 1):
-
-        print("(", x, ",", y, ")\n")
-
-        # Add slope to increment angle formed
-        slope_error_new = slope_error_new + m_new
-
-        # Slope error reached limit, time to
-        # increment y and update slope error.
-        if (slope_error_new >= 0):
-            y = y + 1
-            slope_error_new = slope_error_new - 2 * (x2 - x1)
-
-        # Driver code
-'''
-
-
 
 def get_top_parent(obj):
     return obj.__class__.mro()[-2]
 
+def euclidean_distance(a, b):
+    return math.floor(math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2)))
+
+def euclidean_distance_rounded_up(a, b):
+    return math.ceil(math.sqrt(math.pow(a[0] - b[0], 2) + math.pow(a[1] - b[1], 2)))
+
+def manhattan_distance(a, b):
+    return(abs(a[0] - b[0]) + abs(a[1] - b[1]))
+
+def chebyshev_distance(a, b):
+    return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 def bresenham(a, b):
     r0 = a[0]
@@ -179,6 +162,80 @@ def bresenham(a, b):
     paired_coordinates = list(zip(xs, ys))
 
     return paired_coordinates
+
+def disk(target, radius, include_origin_tile=False):
+    xs, ys = skimage.draw.disk(target, radius + 1)
+    tiles = list(zip(xs, ys))
+    if not include_origin_tile:
+        tiles.remove(target)
+    return tiles
+
+#def compute_cone_tiles(grid_size, origin, target, radius, angle=45):
+def compute_cone_tiles(origin, target, radius, angle=45, include_origin_tile=False):
+    """
+    Compute tiles affected by a cone on an infinite grid, including negative coordinates.
+
+    :param origin: Tuple (x, y) of the cone's starting point.
+    :param target: Tuple (x, y) indicating the direction of the cone.
+    :param radius: Radius (length) of the cone.
+    :param angle: Angle (in degrees) of the cone's width.
+    :return: A set of (x, y) tuples representing affected tiles.
+    """
+
+    # Works, as long as you're in positive coordinates. Also somewhat weirdly shaped.
+
+    #radius = euclidean_distance_rounded_up(origin, target)
+
+    # Compute the direction vector and angle of the cone
+    direction = (target[0] - origin[0], target[1] - origin[1])
+    angle_rad = np.deg2rad(angle)
+
+    # Normalize the direction vector
+    direction_length = np.hypot(*direction)
+    if direction_length == 0:
+        return []
+        #raise ValueError("Target cannot be the same as the origin.")
+    unit_direction = (direction[0] / direction_length, direction[1] / direction_length)
+
+    # Compute the cone boundary vectors
+    cos_half_angle = np.cos(angle_rad / 2)
+    sin_half_angle = np.sin(angle_rad / 2)
+    left_boundary = (
+        unit_direction[0] * cos_half_angle - unit_direction[1] * sin_half_angle,
+        unit_direction[0] * sin_half_angle + unit_direction[1] * cos_half_angle,
+    )
+    right_boundary = (
+        unit_direction[0] * cos_half_angle + unit_direction[1] * sin_half_angle,
+        -unit_direction[0] * sin_half_angle + unit_direction[1] * cos_half_angle,
+    )
+
+    # Compute cone vertices
+    cone_vertices = [origin]
+    for boundary in (left_boundary, right_boundary):
+        vertex = (
+            origin[0] + boundary[0] * radius,
+            origin[1] + boundary[1] * radius,
+        )
+        cone_vertices.append(vertex)
+
+    # Convert vertices to grid coordinates (rounding for discrete tiles)
+    cone_vertices_px = np.array(cone_vertices, dtype=float)
+    cone_vertices_px = cone_vertices_px.round().astype(int)
+
+    # Use skimage.draw.polygon to compute affected tiles
+    rr, cc = skimage.draw.polygon(
+        [v[1] for v in cone_vertices_px],  # Row coordinates (y-axis)
+        [v[0] for v in cone_vertices_px],  # Column coordinates (x-axis)
+    )
+
+    # Convert results to a set of tiles with (x, y) coordinates
+    affected_tiles = set(zip(cc, rr))
+
+    # Remove the origin tile if we intend to do so.
+    if origin in affected_tiles and not include_origin_tile:
+        affected_tiles.remove(origin)
+
+    return affected_tiles
 
 def find_path(entity, target):
     grid_size = entity.world.active_tile_range - 1
@@ -205,7 +262,7 @@ def find_path(entity, target):
     translated_start = translate_coordinates(entity.position, centre_x, centre_y, grid_size)
     translated_target = translate_coordinates(target, centre_x, centre_y, grid_size)
 
-
+    '''
 
     path = a_star_search(grid, translated_start, translated_target)
 
@@ -220,6 +277,8 @@ def find_path(entity, target):
     print("Adjusted path")
     print(adjusted_path)
     return adjusted_path
+    '''
+    return []
 
 
 def flip_coordinates(coordinates):
