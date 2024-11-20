@@ -1,0 +1,4 @@
+Things that are 'implemented' but do not currently work:
+
+Pushing entities still doesn't work.
+Visual effects still do not work.

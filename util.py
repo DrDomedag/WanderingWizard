@@ -282,10 +282,10 @@ def rasterize_polygon(vertices, fill=True):
 
 
 def find_path(entity, target):
-    grid_size = entity.world.active_tile_range - 1
+    grid_size = entity.world.active_tile_range - 1 # Need this -1, but no more
     grid, centre_x, centre_y = generate_grid_centered(entity, grid_size)
 
-    print(f"Grid shape: {len(grid)}x{len(grid[0])}")
+    #print(f"Grid shape: {len(grid)}x{len(grid[0])}")
     #print(grid[24:38])
 
 
@@ -294,19 +294,23 @@ def find_path(entity, target):
     # Rotate counterclockwise - also did not do well.
     #grid = [list(row) for row in zip(*grid)][::-1]
     # Transpose grid:
-    #grid = list(map(list, zip(*grid)))
+    grid = list(map(list, zip(*grid)))
     # Flip horizontally:
     #grid = [row[::-1] for row in grid]
     # Flip vertically:
     #grid = grid[::-1]
 
-    print(grid)
 
     # These are clearly correct.
     translated_start = translate_coordinates(entity.position, centre_x, centre_y, grid_size)
     translated_target = translate_coordinates(target, centre_x, centre_y, grid_size)
 
-    '''
+    #print(translated_start)
+    #print(translated_target)
+
+    # Mark starting point as passable
+    grid[translated_start[0]][translated_start[1]] = 1
+    #print(grid)
 
     path = a_star_search(grid, translated_start, translated_target)
 
@@ -314,15 +318,15 @@ def find_path(entity, target):
 
     adjusted_path = []
 
-    print("Unadjusted path")
-    print(path)
+    #print("Unadjusted path")
+    #print(path)
     for coord in path:
         adjusted_path.append(backtranslate_coordinates(coord, centre_x, centre_y, grid_size))
-    print("Adjusted path")
-    print(adjusted_path)
+    #print("Adjusted path")
+    #print(adjusted_path)
     return adjusted_path
-    '''
-    return []
+
+    #return []
 
 
 def flip_coordinates(coordinates):
@@ -356,12 +360,14 @@ def generate_grid_centered(entity, grid_size=29):
     min_y = center_y - grid_size
     max_y = center_y + grid_size
 
+    print(f"min_x: {min_x}, max_x: {max_x}, min_y: {min_y}, max_y: {max_y}")
+
     # Generate the grid
     grid = []
     for y in range(min_y, max_y + 1):
         row = []
         for x in range(min_x, max_x + 1):
-            if entity.world.active_floor[(y, x)] == None:
+            if entity.world.active_floor[(y, x)] is None:
                 print(f"No floor at {x}, {y}")
             # Fetch the tile value from the game world (replace this logic with your game's logic)
             #tile_value = entity.world.get_tile(x, y)  # Replace with your world tile-fetching function

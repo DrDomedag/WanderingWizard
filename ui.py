@@ -161,8 +161,8 @@ class UI:
             # Correct answer: 3, then 2.
             path = util.find_path(self.world.pc, hovered_tile)
             print(path)
-            #if len(path) > 0:
-                #self.world.pc.move(path[1])
+            if len(path) > 0:
+                self.world.pc.move(path[1])
 
         # Draw menus
 
