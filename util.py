@@ -145,8 +145,7 @@ ALLEGIANCES = Tags(
 
 # Event types
 EVENT_TYPES = Tags(
-    ENEMY_TURN_START=0,
-    ALLY_TURN_START=1
+    NPC_TURN_START=0,
 )
 
 def get_top_parent(obj):
