@@ -226,6 +226,32 @@ class World:
                 visible_tiles.append(tile)
         return visible_tiles
 
+    def summon_entity(self, entity_class, count, target, allegiance):
+        summoned_entities = 0
+        max_range = 5
+        current_range = 1
+        entities = []
+        while summoned_entities < count and current_range <= max_range:
+            entity = entity_class(self)
+            entity.allegiance = allegiance
+            proposed_tiles = util.disk(target, current_range, True)
+            random.shuffle(proposed_tiles)
+            placed = False
+            while not placed and len(proposed_tiles) > 0:
+                tile = proposed_tiles.pop()
+                if self.total_entities[tile] is None and entity.can_move(tile):
+                    entity.position = tile
+                    self.total_entities[tile] = entity
+                    self.active_entities[tile] = entity
+                    summoned_entities += 1
+                    placed = True
+                    entities.append(entity)
+            current_range += 1
+
+            summoned_entities += 1
+        return entities
+
+
 class Tile:
     def __init__(self):
         self.layer = "floor"

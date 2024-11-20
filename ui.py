@@ -126,7 +126,7 @@ class UI:
                 if self.selected_spell.can_cast(hovered_tile):
                     self.selected_spell.cast(hovered_tile)
 
-        elif self.left_click and util.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
+        elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
             if self.world.pc.move(hovered_tile):
                 self.world.pc.current_actions -= 1
 
@@ -148,7 +148,9 @@ class UI:
             path = util.find_path(self.world.pc, hovered_tile)
             #print(path)
             if len(path) > 0:
-                self.world.pc.move(path[1])
+                if self.world.pc.move(path[1]):
+                    self.world.pc.current_actions -= 1
+
 
         # Draw menus
 

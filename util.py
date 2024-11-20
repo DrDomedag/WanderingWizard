@@ -74,6 +74,18 @@ COLOURS = Tags(
     MAGENTA=(255, 0, 255)
 )
 
+ENTITY_TAGS = Tags(
+    LIVING=0,
+    UNDEAD=1,
+    CONSTRUCT=2,
+    EXTRAPLANAR=3,
+    DEMONIC=4,
+    ANGELIC=5,
+    DRACONIC=6,
+    MAGICAL=7,
+    VOID=8
+)
+
 # Theme ideas:
 '''
 Keep:
@@ -133,7 +145,8 @@ ALLEGIANCES = Tags(
 
 # Event types
 EVENT_TYPES = Tags(
-    ENEMY_TURN_START = 0
+    ENEMY_TURN_START=0,
+    ALLY_TURN_START=1
 )
 
 def get_top_parent(obj):
@@ -302,6 +315,7 @@ def find_and_sort_enemies_by_distance(start_entity):
                 enemies.append(entity)
     if len(enemies) > 0:
         enemies.sort(key=lambda entity: euclidean_distance(start_entity.position, entity.position))
+    enemies.reverse()
     return enemies
 
 

@@ -54,6 +54,7 @@ class Game:
         self.pc.actives.append(IronNeedle(self.pc))
         self.pc.actives.append(FireBreath(self.pc))
         self.pc.actives.append(SeismicJolt(self.pc))
+        self.pc.actives.append(RaiseLongdead(self.pc))
 
         world.active_floor = world.total_floor
         return world
@@ -67,6 +68,7 @@ class Game:
 
             print(f"Start of player turn. Player at coordinates {self.world.current_coordinates}")
             self.player_turn()
+            self.ally_turn()
             self.enemy_turn()
 
 
@@ -127,6 +129,43 @@ class Game:
                     player_turn_ended = True
             self.ui.render_everything()
 
+    def ally_turn(self):
+        print("Ally turn starts.")
+        pygame.time.set_timer(EVENT_TYPES.ALLY_TURN_START, 20)
+
+        initiative_queue = []
+
+        for entity in self.world.active_entities.values():
+            if entity is not None:
+                #print(f"Acting entity: {entity.name}")
+                #pygame.time.delay(10)
+                if entity.allegiance == ALLEGIANCES.PLAYER_TEAM and entity is not self.world.pc:
+                    initiative_queue.append(entity)
+
+        random.shuffle(initiative_queue) # Possible to do stuff like "always acts immediately after Wizard" and stuff like that with this.
+
+        while len(initiative_queue) > 0:
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == EVENT_TYPES.ALLY_TURN_START and len(initiative_queue) > 0:
+                    active_entity = initiative_queue.pop()
+                    #print(f"{active_enemy.name}'s turn")
+                    active_entity.start_of_turn()
+                    while active_entity.current_actions > 0:
+                        active_entity.act()
+                        self.ui.render_everything()
+                        pygame.time.delay(5)
+
+            self.ui.render_everything()
+        pygame.time.set_timer(EVENT_TYPES.ALLY_TURN_START, 0)
+
+        self.ui.render_everything()
+        print("Ally turn ended.")
+
     def enemy_turn(self):
         print("Enemy turn starts.")
         pygame.time.set_timer(EVENT_TYPES.ENEMY_TURN_START, 20)
@@ -157,6 +196,7 @@ class Game:
                         active_enemy.act()
                         self.ui.render_everything()
                         pygame.time.delay(5)
+                    active_enemy.end_of_turn()
 
             self.ui.render_everything()
         pygame.time.set_timer(EVENT_TYPES.ENEMY_TURN_START, 0)

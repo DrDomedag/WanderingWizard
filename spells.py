@@ -1,6 +1,6 @@
 from effects import *
 from util import *
-
+import entities.entities as entities
 
 
 '''
@@ -55,6 +55,22 @@ Creates a cloud that blocks line of sight. Immune to most damage, but is by fire
 
 Lightning Bond
 Form a bond with up to 3 nearby allies. Lightning shoots between you each turn, damaging enemies in between.
+
+Electrify the Chain of Command
+Lightning + Astral
+Deal lightning damage to target creature's master if it has one, and the master's master if it has one, and so on.
+
+Purify
+Holy + Astral
+Remove all debuffs from allies in an area.
+
+Defile
+Dark + Astral
+Remove all buffs from enemies in an area.
+
+Dispel
+Astral
+Remove all buffs and debuffs in an area.
 '''
 
 
@@ -81,6 +97,9 @@ class Spell:
         self.upgrades = []
         self.recovery_time = 5
 
+        self.minion_damage = 1
+        self.minion_health = 1
+        self.minion_count = 1
 
         self.requires_line_of_sight = True
         self.can_target_self = False
@@ -277,6 +296,45 @@ class SeismicJolt(Spell):
 
     def get_impacted_tiles(self, target):
         return disk(self.caster.position, self.radius, include_origin_tile=False)
+
+
+
+class RaiseLongdead(Spell):
+    def __init__(self, caster):
+        super().__init__(caster)
+
+        self.power = 5
+        self.range = 1
+        self.radius = 1
+        self.num_targets = 1
+        self.action_cost = 2
+        self.max_charges = 3
+        self.current_charges = self.max_charges
+        self.duration = 20
+        self.name = "Raise Longdead"
+        self.description = "Within the earth rests the bones of countless generations. Long dead, these skeletal servants are not very powerful, but they are always available."
+        self.level = 1
+        self.schools = [SCHOOLS.CONJURATION, SCHOOLS.DEATH]
+        self.upgrades = []
+        self.recovery_time = 10
+
+        self.minion_damage = 2
+        self.minion_health = 5
+        self.minion_count = 1
+
+        self.cannot_target_entity = True
+        self.can_target_ground = True
+        self.can_target_water = False
+        self.can_target_void = False
+        self.can_target_wall = False
+
+        self.should_target_empty = True
+
+        self.on_init()
+
+    def on_cast(self, target):
+        summon_minions(self, entities.Longdead, self.minion_count, target, duration=self.duration)
+
 
 
 

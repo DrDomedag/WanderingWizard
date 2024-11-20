@@ -32,6 +32,8 @@ class Entity:
         self.allegiance = ALLEGIANCES.NEUTRAL
         self.resistances = defaultdict(lambda: 0)
 
+        self.tags = []
+
         self.stationary = False
         self.flammable = True
         self.walking = True
@@ -41,7 +43,8 @@ class Entity:
         self.position = None
         self.owner = None
 
-
+        self.expires = False
+        self.duration = 0
 
     def load_assets(self):
         i = 1
@@ -110,12 +113,16 @@ class Entity:
             passive.on_death_effect()
 
     def die(self):
-        print(f"{self.name} died!")
         self.world.total_entities[self.position] = None
         self.world.active_entities[self.position] = None
         self.on_death()
         del self
 
+    def expire(self):
+        self.world.total_entities[self.position] = None
+        self.world.active_entities[self.position] = None
+        self.on_expire()
+        del self
 
     def act(self):
         acted = False
@@ -123,21 +130,13 @@ class Entity:
         actives = random.sample(self.actives, len(self.actives))
         actives.sort(key=lambda spell: Spell.level)
         for active in actives:
-            if active.should_cast():
-                print(f"Should cast {active.name}.")
-            else:
-                print(f"Shouldn't cast {active.name}")
+            if not active.should_cast():
                 actives.remove(active)
         if len(actives) > 0:
             self.use_active(actives[0])
-            '''
-            # TEMP
-            acted = True
-            self.current_actions -= 1
-            pass
-            '''
         # If we can't meaningfully use any of our abilities, we move towards the closest enemy.
         enemies = find_and_sort_enemies_by_distance(self)
+
         while len(enemies) > 0 and not acted:
             # Move
             target = enemies.pop()
@@ -148,10 +147,8 @@ class Entity:
                 acted = True
 
         if acted == False:
-            # If we can't use any abilities and we can't move towards our closest enemy, we just freeze.
-            # We should really improve this by going down the list of enemies instead.
+            # If we can't use any abilities and we can't find a path towards any enemy, we just freeze.
             self.current_actions -= 1
-
 
     def use_active(self, active):
         if active.should_target_self:
@@ -189,6 +186,15 @@ class Entity:
         active.cast(target)
         return
 
+    def on_expire(self):
+        pass
+    def end_of_turn(self):
+        if self.expires:
+            self.duration -= 1
+            if self.duration <= 0:
+                self.expire()
+
+
 
 class PC(Entity):
     def __init__(self, world):
@@ -198,6 +204,7 @@ class PC(Entity):
         self.hp = self.max_hp
         self.allegiance = ALLEGIANCES.PLAYER_TEAM
         self.asset_name = "wizard"
+        self.tags = [ENTITY_TAGS.LIVING]
         self.load_assets()
         self.current_actions = self.actions_per_round
 
@@ -210,6 +217,7 @@ class Troll(Entity):
         self.name = "Troll"
         self.max_hp = 30
         self.hp = self.max_hp
+        self.tags = [ENTITY_TAGS.LIVING]
         self.passives.append(TrollRegen(self, self))
         self.asset_name = "troll"
         self.load_assets()
@@ -221,6 +229,29 @@ class Goblin(Entity):
         self.name = "Goblin"
         self.max_hp = 5
         self.hp = self.max_hp
+        self.tags = [ENTITY_TAGS.LIVING]
         self.asset_name = "goblin"
         self.load_assets()
         self.actives.append(PiercingMeleeAttack(self))
+
+class Longdead(Entity):
+    def __init__(self, world):
+        super().__init__(world)
+        self.name = "Longdead"
+        self.max_hp = 5
+        self.hp = self.max_hp
+        self.tags = [ENTITY_TAGS.UNDEAD]
+
+        self.resistances[DAMAGE_TYPES.BLUDGEONING] = -100
+        self.resistances[DAMAGE_TYPES.PIERCING] = 75
+        self.resistances[DAMAGE_TYPES.FIRE] = 50
+        self.resistances[DAMAGE_TYPES.COLD] = 100
+        self.resistances[DAMAGE_TYPES.POISON] = 100
+        self.resistances[DAMAGE_TYPES.DARK] = 50
+        self.resistances[DAMAGE_TYPES.LIGHT] = -100
+        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
+
+        self.asset_name = "longdead"
+        self.load_assets()
+        self.actives.append(SlashingMeleeAttack(self))
+
