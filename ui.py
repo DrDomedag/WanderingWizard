@@ -74,7 +74,8 @@ class UI:
         for tile_coords in self.world.active_floor.keys():
             #if world.calculate_distance(tile_coords, world.current_coordinates) < VISUAL_RANGE:
             tile = self.world.active_floor[tile_coords]
-            self.display.blit(self.world.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
+            if tile is not None:
+                self.display.blit(self.world.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
 
         # Render items
 
@@ -155,11 +156,11 @@ class UI:
             # defaultdict set it to None
             # Options:
             # 1. Make it not a defaultdict
-            # 2. Make it generate the tile as its lambda function (or not lambda, but whatever)
+            # 2. Make it generate the tile as its lambda function (or not lambda, but whatever) - this is probably not a good idea on second thought.
             # 3. Shrink the grid to be the right size (rather: ensure the grid is correct)
             # Correct answer: 3, then 2.
-            #path = util.find_path(self.world.pc, hovered_tile)
-            #print(path)
+            path = util.find_path(self.world.pc, hovered_tile)
+            print(path)
             #if len(path) > 0:
                 #self.world.pc.move(path[1])
 
@@ -254,15 +255,16 @@ class UI:
                     self.display.blit(full_crystal, (left_end + i * 30, 90))
         if entity is None:
             entity = self.world.active_floor[hovered_tile]
-            name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-            nameRect = name.get_rect()
-            nameRect.center = (left_end + width // 2, 30)
-            self.display.blit(name, nameRect)
-            type = self.font_32.render(f"{entity.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-            typeRect = type.get_rect()
-            typeRect.center = (left_end + width // 2, 60)
-            self.display.blit(type, typeRect)
-            # Would be cool with boots/fins/wings icons here to show passability using these different types of movement.
+            if entity is not None:
+                name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                nameRect = name.get_rect()
+                nameRect.center = (left_end + width // 2, 30)
+                self.display.blit(name, nameRect)
+                type = self.font_32.render(f"{entity.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                typeRect = type.get_rect()
+                typeRect.center = (left_end + width // 2, 60)
+                self.display.blit(type, typeRect)
+                # Would be cool with boots/fins/wings icons here to show passability using these different types of movement.
 
     def show_LoS_at_cursor(self):
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())

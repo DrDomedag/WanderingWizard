@@ -1,9 +1,12 @@
+from collections import defaultdict
+
 import skimage.draw
 from skimage.draw import line
 import numpy as np
 import math
 import heapq
 from a_star import a_star_search
+
 
 
 
@@ -132,8 +135,6 @@ EVENT_TYPES = Tags(
     ENEMY_TURN_START = 0
 )
 
-
-
 def get_top_parent(obj):
     return obj.__class__.mro()[-2]
 
@@ -171,7 +172,7 @@ def disk(target, radius, include_origin_tile=False):
     return tiles
 
 #def compute_cone_tiles(grid_size, origin, target, radius, angle=45):
-def compute_cone_tiles(origin, target, radius, angle=45, include_origin_tile=False):
+def compute_cone_tiles(origin, target, radius, angle=45, include_origin_tile=False, fill=True):
     """
     Compute tiles affected by a cone on an infinite grid, including negative coordinates.
 
@@ -222,20 +223,63 @@ def compute_cone_tiles(origin, target, radius, angle=45, include_origin_tile=Fal
     cone_vertices_px = np.array(cone_vertices, dtype=float)
     cone_vertices_px = cone_vertices_px.round().astype(int)
 
+    '''
+    # Good so far
     # Use skimage.draw.polygon to compute affected tiles
     rr, cc = skimage.draw.polygon(
         [v[1] for v in cone_vertices_px],  # Row coordinates (y-axis)
         [v[0] for v in cone_vertices_px],  # Column coordinates (x-axis)
     )
-
+    # Bad here
     # Convert results to a set of tiles with (x, y) coordinates
     affected_tiles = set(zip(cc, rr))
+    '''
+
+    affected_tiles = rasterize_polygon(cone_vertices_px, fill=fill)
+
 
     # Remove the origin tile if we intend to do so.
     if origin in affected_tiles and not include_origin_tile:
         affected_tiles.remove(origin)
 
     return affected_tiles
+
+def rasterize_polygon(vertices, fill=True):
+    """
+    Generate a list of (x, y) coordinate pairs that make up the polygon defined by vertices.
+    :param vertices: List of (x, y) tuples defining the vertices of the polygon.
+    :return: List of (x, y) tuples for the filled polygon.
+    """
+    # Generate edge points
+    edge_points = set()
+    for i in range(len(vertices)):
+        #x0, y0 = vertices[i]
+        #x1, y1 = vertices[(i + 1) % len(vertices)]  # Wrap to the first vertex
+        edge_points.update(bresenham(vertices[i], vertices[(i+1) % len(vertices)]))
+
+    if not fill:
+        return list(edge_points)
+
+    # Find bounds of the polygon
+    min_y = min(y for _, y in vertices)
+    max_y = max(y for _, y in vertices)
+
+    # Fill the polygon
+    filled_points = set()
+    for y in range(min_y, max_y + 1):
+        # Find all x-coordinates where an edge crosses this y-value
+        intersections = sorted(x for x, edge_y in edge_points if edge_y == y)
+        # Pair up intersections and fill between them
+        for i in range(0, len(intersections), 1): # This was 2 for some reason, making it skip every other row. Works now.
+            if i + 1 < len(intersections):
+                x_start, x_end = intersections[i], intersections[i + 1]
+                for x in range(x_start, x_end + 1):
+                    filled_points.add((x, y))
+
+    # Combine edge points and filled points
+    return list(edge_points.union(filled_points))
+
+
 
 def find_path(entity, target):
     grid_size = entity.world.active_tile_range - 1

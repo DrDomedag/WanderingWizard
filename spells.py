@@ -49,7 +49,14 @@ Revive a recently dead enemy as a zombie.
 
 Call Spirit (Death + Holy)
 Revive a recently dead enemy as a ghost. 
+
+Mist (Air + Water)
+Creates a cloud that blocks line of sight. Immune to most damage, but is by fire.
+
+Lightning Bond
+Form a bond with up to 3 nearby allies. Lightning shoots between you each turn, damaging enemies in between.
 '''
+
 
 
 class Spell:
