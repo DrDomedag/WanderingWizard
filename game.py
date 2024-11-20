@@ -1,8 +1,10 @@
 import pygame
 import sys
+
+from spells import *
 from world.world import *
 from ui import *
-from entities import *
+import entities.entities as entities
 
 
 class Game:
@@ -30,7 +32,16 @@ class Game:
 
         self.pc = None
 
+        #self.available_spell_list = AvailableSpellList()
+
         self.world = self.new_game()
+
+        self.available_entities = {
+            "Longdead": entities.Longdead,
+            "Goblin": entities.Goblin,
+            "Troll": entities.Troll,
+            "Kindling": entities.Kindling
+        }
 
         self.ui = UI(display, self.world)
 
@@ -43,18 +54,19 @@ class Game:
 
 
     def new_game(self):
-        world = World()
+        world = World(self)
         world.assets = self.assets
         self.pc = PC(world)
         world.pc = self.pc
+        self.pc_available_spell_list = PCAvailableSpellList(self.pc)
         world.createDefaultMap()
 
 
         # TEMP
-        self.pc.actives.append(IronNeedle(self.pc))
-        self.pc.actives.append(FireBreath(self.pc))
-        self.pc.actives.append(SeismicJolt(self.pc))
-        self.pc.actives.append(RaiseLongdead(self.pc))
+        #self.pc.actives.append(IronNeedle(self.pc))
+        #self.pc.actives.append(FireBreath(self.pc))
+        #self.pc.actives.append(SeismicJolt(self.pc))
+        #self.pc.actives.append(RaiseLongdead(self.pc))
 
         world.active_floor = world.total_floor
         return world
@@ -94,10 +106,8 @@ class Game:
                     if event.button == 3:
                         self.ui.right_click = True
                     if event.button == 4:
-                        print("Button 4")
                         self.ui.scroll_up = True
                     if event.button == 5:
-                        print("Button 5")
                         self.ui.scroll_down = True
 
                 if event.type == pygame.KEYDOWN:
@@ -130,7 +140,7 @@ class Game:
             self.ui.render_everything()
 
     def side_turn(self, allegiance):
-        print(f"{allegiance} turn starts.")
+        #print(f"{allegiance} turn starts.")
         pygame.time.set_timer(EVENT_TYPES.NPC_TURN_START, 20)
 
         initiative_queue = []
@@ -165,7 +175,7 @@ class Game:
         pygame.time.set_timer(EVENT_TYPES.NPC_TURN_START, 0)
 
         self.ui.render_everything()
-        print(f"{allegiance} turn ended.")
+        #print(f"{allegiance} turn ended.")
 
 
 

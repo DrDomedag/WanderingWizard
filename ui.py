@@ -26,6 +26,8 @@ class UI:
         self.scroll_down = False
         self.scroll_up = False
 
+        self.mouse_over_game_area = False
+
         # CHANGE THIS for sure
         self.font_32 = pygame.font.Font('PixelatedEleganceRegular.ttf', 32)
         self.font_20 = pygame.font.Font('PixelatedEleganceRegular.ttf', 20)
@@ -78,6 +80,12 @@ class UI:
                 self.display.blit(self.world.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
 
         # Render items
+        for item_coords in self.world.active_walls.keys():
+            if self.world.total_items[item_coords] is not None:
+                item = self.world.total_items[item_coords]
+                if item.layer == "item":
+                    #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
+                    self.display.blit(self.world.assets[item.asset], self.tile_to_screen_coords(item_coords))
 
         # Render walls:
         for entity_coords in self.world.active_walls.keys():
@@ -103,17 +111,21 @@ class UI:
 
         hovered_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
 
+        self.mouse_over_game_area = False
+        if SIDE_MENU_WIDTH < pygame.mouse.get_pos()[0] < self.display.get_size()[0] - SIDE_MENU_WIDTH:
+            self.mouse_over_game_area = True
+
         # Highlight LoS tiles if holding L key
-        if pygame.key.get_pressed()[pygame.K_l]:
+        if pygame.key.get_pressed()[pygame.K_l] and self.mouse_over_game_area:
             self.show_LoS_at_cursor()
 
         # Just always highlight mouseover'd tile
-
-        self.display.blit(self.world.assets["target_tile"], self.tile_to_screen_coords(hovered_tile))
+        if self.mouse_over_game_area:
+            self.display.blit(self.world.assets["target_tile"], self.tile_to_screen_coords(hovered_tile))
 
         # Highlight affected tiles if holding down right mouse button
 
-        if pygame.mouse.get_pressed(num_buttons=3)[2] and self.selected_spell is not None:
+        if pygame.mouse.get_pressed(num_buttons=3)[2] and self.selected_spell is not None and self.mouse_over_game_area:
             tile_sprite = self.world.assets["targetable_tile"]
             for tile in self.selected_spell.get_targetable_tiles():
                 self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
@@ -126,10 +138,18 @@ class UI:
                 if self.selected_spell.can_cast(hovered_tile):
                     self.selected_spell.cast(hovered_tile)
 
+        # Walk on clicking adjacent tile:
         elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
             if self.world.pc.move(hovered_tile):
                 self.world.pc.current_actions -= 1
 
+        # Walk on clicking distant tile
+        if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
+            path = util.find_path(self.world.pc, hovered_tile)
+            #print(path)
+            if len(path) > 0:
+                if self.world.pc.move(path[1]):
+                    self.world.pc.current_actions -= 1
 
         if self.scroll_down and len(self.world.pc.actives) > 0:
             if self.selected_spell == None:
@@ -143,13 +163,6 @@ class UI:
                 self.selected_spell = self.world.pc.actives[-1]
             else:
                 self.selected_spell = self.world.pc.actives[self.world.pc.actives.index(self.selected_spell) - 1]
-
-        if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
-            path = util.find_path(self.world.pc, hovered_tile)
-            #print(path)
-            if len(path) > 0:
-                if self.world.pc.move(path[1]):
-                    self.world.pc.current_actions -= 1
 
 
         # Draw menus
@@ -198,9 +211,7 @@ class UI:
                 self.display.blit(full_crystal, (5 + i * 30, 60))
 
 
-
         button_offset = 120
-        #buttons = 0
         button_height = 20
         button_width = SIDE_MENU_WIDTH - 10
         for i, spell in enumerate(self.world.pc.actives):
@@ -213,46 +224,47 @@ class UI:
         height = self.display.get_size()[1]
         bg_rect = pygame.Rect(left_end, 0, width, self.display.get_size()[1])
         pygame.draw.rect(self.display, COLOURS.BLACK, bg_rect)
-        entity = self.world.active_entities[hovered_tile]
-        if entity is None:
-            entity = self.world.active_walls[hovered_tile]
-        if entity is not None:
-            name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-            nameRect = name.get_rect()
-            nameRect.center = (left_end + width // 2, 30)
-            self.display.blit(name, nameRect)
-            if entity.hp < 25:
-                hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
-            elif entity.hp < 50:
-                hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
-            else:
-                hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-            hpRect = hp.get_rect()
-            hpRect.center = (left_end + width // 2, 60)
-            self.display.blit(hp, hpRect)
-
-            # Action crystals
-            full_crystal = self.world.assets["action_crystal_full"]
-            empty_crystal = self.world.assets["action_crystal_empty"]
-            for i in range(entity.actions_per_round):
-                if i >= entity.current_actions:
-                    # Render empty action crystal
-                    self.display.blit(empty_crystal, (left_end + i * 30, 90))
-                else:
-                    # Render full action crystal
-                    self.display.blit(full_crystal, (left_end + i * 30, 90))
-        if entity is None:
-            entity = self.world.active_floor[hovered_tile]
+        if self.mouse_over_game_area:
+            entity = self.world.active_entities[hovered_tile]
+            if entity is None:
+                entity = self.world.active_walls[hovered_tile]
             if entity is not None:
                 name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                 nameRect = name.get_rect()
                 nameRect.center = (left_end + width // 2, 30)
                 self.display.blit(name, nameRect)
-                type = self.font_32.render(f"{entity.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-                typeRect = type.get_rect()
-                typeRect.center = (left_end + width // 2, 60)
-                self.display.blit(type, typeRect)
-                # Would be cool with boots/fins/wings icons here to show passability using these different types of movement.
+                if entity.hp < 25:
+                    hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
+                elif entity.hp < 50:
+                    hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
+                else:
+                    hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                hpRect = hp.get_rect()
+                hpRect.center = (left_end + width // 2, 60)
+                self.display.blit(hp, hpRect)
+
+                # Action crystals
+                full_crystal = self.world.assets["action_crystal_full"]
+                empty_crystal = self.world.assets["action_crystal_empty"]
+                for i in range(entity.actions_per_round):
+                    if i >= entity.current_actions:
+                        # Render empty action crystal
+                        self.display.blit(empty_crystal, (left_end + i * 30, 90))
+                    else:
+                        # Render full action crystal
+                        self.display.blit(full_crystal, (left_end + i * 30, 90))
+            if entity is None:
+                entity = self.world.active_floor[hovered_tile]
+                if entity is not None:
+                    name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                    nameRect = name.get_rect()
+                    nameRect.center = (left_end + width // 2, 30)
+                    self.display.blit(name, nameRect)
+                    type = self.font_32.render(f"{entity.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                    typeRect = type.get_rect()
+                    typeRect.center = (left_end + width // 2, 60)
+                    self.display.blit(type, typeRect)
+                    # Would be cool with boots/fins/wings icons here to show passability using these different types of movement.
 
     def show_LoS_at_cursor(self):
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())

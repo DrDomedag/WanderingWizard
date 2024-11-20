@@ -1,84 +1,28 @@
 from effects import *
 from util import *
-import entities.entities as entities
+#import entities.entities as entities
+import random
 
 
-'''
-Spell ideas:
+class PCAvailableSpellList:
+    def __init__(self, pc):
+        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath]
 
-Bloody Sacrament
-Blood + Holy
-Expend life to gain a charge of another random spell. Channelable, or upgrade to channel. 
+    def get_random_spells_of_tier(self, level, count):
+        candidates = []
+        for candidate in self.spells:
+            if candidate.level == level:
+                candidates.append(candidate)
+        if len(candidates) > 0:
+            return random.choices(candidates, k=count)
+        return []
 
-Summon Longdead
-t1 Necro
-Create a skeletal servant.
-Upgrade to summon more per casting or to enable channeling.
-
-Summon Longdead Beast
-t3 necro
-Like Longdead but it's a random animal.
-
-Iron Needle
-Fire a metallic needle.
-Only costs one action.
-Upgrade to fire more needles, or (hear me out) to fire *even more needles*.
-
-Bone Spike
-Pay health to fire one of your own bones. Short range.
-
-Banish
-Instantly unmake a summoned creature.
-
-Flickerstep
-Move two squares per step, ignoring intervening walls/entities.
-
-Haste
-Air + Enchantment
-Target gets an additional action crystal each turn for X turns.
-
-Metabolic Overdrive
-Blood + Nature + Transmutation
-Target gets an additional action crystal each turn for X turns.
-
-Resurrect (Holy)
-Revive a recently killed ally.
-
-Reanimate (Death)
-Revive a recently dead enemy as a zombie.
-
-Call Spirit (Death + Holy)
-Revive a recently dead enemy as a ghost. 
-
-Mist (Air + Water)
-Creates a cloud that blocks line of sight. Immune to most damage, but is by fire.
-
-Lightning Bond
-Form a bond with up to 3 nearby allies. Lightning shoots between you each turn, damaging enemies in between.
-
-Electrify the Chain of Command
-Lightning + Astral
-Deal lightning damage to target creature's master if it has one, and the master's master if it has one, and so on.
-
-Purify
-Holy + Astral
-Remove all debuffs from allies in an area.
-
-Defile
-Dark + Astral
-Remove all buffs from enemies in an area.
-
-Dispel
-Astral
-Remove all buffs and debuffs in an area.
-'''
-
+    def remove(self, spell):
+        self.spells.remove(spell)
 
 
 class Spell:
-    range = 1
     level = 1
-
     def __init__(self, caster):
         self.caster = caster
 
@@ -160,7 +104,7 @@ class Spell:
         if self.cannot_target_entity and self.caster.world.active_entities[target] is not None:
             #print("This spell does not target entities. Please select another target.... Jimzo.")
             return False
-        if self.range < util.euclidean_distance(self.caster.position, target):
+        if self.range < euclidean_distance(self.caster.position, target):
             #print(f"Can't use a {self.range} spell at a distance of {self.caster.world.euclidean_distance(self.caster.position, target)} tiles, that should be obvious, Jimmy old sport.")
             return False
         if self.requires_line_of_sight and not(self.caster.can_see(target)):
@@ -333,7 +277,8 @@ class RaiseLongdead(Spell):
         self.on_init()
 
     def on_cast(self, target):
-        summon_minions(self, entities.Longdead, self.minion_count, target, duration=self.duration)
+        entity_class = self.caster.world.game.available_entities["Longdead"]
+        summon_minions(self, entity_class, self.minion_count, target, duration=self.duration)
 
 
 
@@ -367,34 +312,51 @@ class Heal(Spell):
 
 
 class BluntMeleeAttack(Spell):
-    def __init__(self, caster):
+    def __init__(self, caster, power=2):
         super().__init__(caster)
         self.name = "Strike"
 
-        self.power = 1
+        self.power = power
         self.range = 1
         self.action_cost = 1
-        self.max_charges = 1000
+        self.max_charges = 100
         self.level = 0
         self.schools = []
         self.recovery_time = 1
 
         self.on_init()
 
-    def cast(self, target):
+    def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.BLUDGEONING)
 
 class SlashingMeleeAttack(BluntMeleeAttack):
-    def cast(self, target):
+    def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.SLASHING)
 
 class PiercingMeleeAttack(BluntMeleeAttack):
-    def cast(self, target):
+    def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)
 
+class FireSpit(Spell):
+    def __init__(self, caster, power=3, range=3):
+        super().__init__(caster)
+
+        self.power = power
+        self.range = range
+        self.name = "Fire Spit"
+        self.description = "A small spittle of fire that burns a single target at range."
+        self.max_charges = 100
+        self.recovery_time = 1
+
+        self.on_init()
+
+
+    def on_cast(self, target):
+        subject = self.caster.world.active_entities[target]
+        damage_entity(self, subject, self.power, DAMAGE_TYPES.FIRE)

@@ -83,57 +83,11 @@ ENTITY_TAGS = Tags(
     ANGELIC=5,
     DRACONIC=6,
     MAGICAL=7,
-    VOID=8
+    VOID=8,
+    ELEMENTAL=9
 )
 
-# Theme ideas:
-'''
-Keep:
-Blood (includes Demons)
-Illusion (includes mind control)
-Astral (Arcane, aether...)
-Metal (summon dancing swords, walls of swords, robots, armour etc.)
-Water
-Ice
-Air
-Lightning
-Fire
-Nature
-Holy
-Dark / Unholy / Shadow
-Death / Bone
-Earth / Stone
 
-Minor:
-Draconic
-Transmutation
-
-
-Cut:
-Light
-Psionic
-Spirit
-Rune
-Entropy
-Emotion
-Martial - Cool, but save it for the expansion.
-
-Combo themes:
-Fungus (Nature + Earth)
-Steam (Fire + Water)
-Rainbow (Nature + Light (or Illusion))
-Robots (Lightning + Metal)
-Blood Sacrifice (Blood + Holy)
-Crystal (Ice + Stone or Arcane)
-Fairies (Nature + Arcane)
-Decay (Nature + Dark)
-Poison (Nature + Blood)
-Acid (Nature + Water)
-Storm/Mist (Air + Water)
-Rune (Arcane + Earth)
-Extraterresterial (meteors etc.) (Astral + Earth)
-Void beings (Astral + Dark) 
-'''
 
 
 # Allegiances
@@ -178,7 +132,7 @@ def bresenham(a, b):
     return paired_coordinates
 
 def disk(target, radius, include_origin_tile=False):
-    xs, ys = skimage.draw.disk(target, radius + 1)
+    xs, ys = skimage.draw.disk(target, radius + 0.5)
     tiles = list(zip(xs, ys))
     if not include_origin_tile:
         tiles.remove(target)

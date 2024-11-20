@@ -1,9 +1,9 @@
-import util
+from util import *
 import random
 from collections import defaultdict
 
 from passives import *
-from spells import *
+import spells
 from effects import *
 
 
@@ -23,6 +23,7 @@ class Entity:
         self.layer = "entity"
 
         self.name = "Nameless Entity"
+        self.description = "This entity cannot be described."
         self.max_hp = 10
         self.hp = self.max_hp
         self.actives = []
@@ -86,7 +87,7 @@ class Entity:
             p.start_of_turn_effect()
 
     def can_see(self, target):
-        line_tiles = util.bresenham(self.position, target)
+        line_tiles = bresenham(self.position, target)
         for coords in line_tiles:
             if self.world.active_walls[coords] is not None and coords != target:
                 return False
@@ -128,7 +129,7 @@ class Entity:
         acted = False
         #print(self.actives)
         actives = random.sample(self.actives, len(self.actives))
-        actives.sort(key=lambda spell: Spell.level)
+        actives.sort(key=lambda spell: spells.Spell.level)
         for active in actives:
             if not active.should_cast():
                 actives.remove(active)
@@ -140,7 +141,7 @@ class Entity:
         while len(enemies) > 0 and not acted:
             # Move
             target = enemies.pop()
-            path = util.find_path(self, target.position)
+            path = find_path(self, target.position)
             if len(path) > 0:
                 self.move(path[1])
                 self.current_actions -= 1
@@ -204,6 +205,7 @@ class PC(Entity):
         self.hp = self.max_hp
         self.allegiance = ALLEGIANCES.PLAYER_TEAM
         self.asset_name = "wizard"
+        self.description = "The Wandering Wizard."
         self.tags = [ENTITY_TAGS.LIVING]
         self.load_assets()
         self.current_actions = self.actions_per_round
@@ -215,29 +217,32 @@ class Troll(Entity):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Troll"
+        self.description = "Trolls are cunning beings whose wounds regenerate."
         self.max_hp = 30
         self.hp = self.max_hp
         self.tags = [ENTITY_TAGS.LIVING]
         self.passives.append(TrollRegen(self, self))
         self.asset_name = "troll"
         self.load_assets()
-        self.actives.append(BluntMeleeAttack(self))
+        self.actives.append(spells.BluntMeleeAttack(self, power=5))
 
 class Goblin(Entity):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Goblin"
+        self.description = "Goblins are barely sentient - the humanoid equivalent of an amoeba."
         self.max_hp = 5
         self.hp = self.max_hp
         self.tags = [ENTITY_TAGS.LIVING]
         self.asset_name = "goblin"
         self.load_assets()
-        self.actives.append(PiercingMeleeAttack(self))
+        self.actives.append(spells.PiercingMeleeAttack(self, power=1))
 
 class Longdead(Entity):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Longdead"
+        self.description = "This is a person who died long ago, and whose bones were swallowed by the earth, now called to serve a necromancer."
         self.max_hp = 5
         self.hp = self.max_hp
         self.tags = [ENTITY_TAGS.UNDEAD]
@@ -253,5 +258,25 @@ class Longdead(Entity):
 
         self.asset_name = "longdead"
         self.load_assets()
-        self.actives.append(SlashingMeleeAttack(self))
+        self.actives.append(spells.SlashingMeleeAttack(self, power=2))
+
+
+class Kindling(Entity):
+    def __init__(self, world):
+        super().__init__(world)
+        self.name = "Kindling"
+        self.description = "Curious goblinoid creatures touched by the element of fire, the Kindling live in small packs and often worship flames at crude stone shrines."
+        self.max_hp = 5
+        self.hp = self.max_hp
+        self.tags = [ENTITY_TAGS.LIVING, ENTITY_TAGS.ELEMENTAL]
+
+        self.resistances[DAMAGE_TYPES.FIRE] = 100
+        self.resistances[DAMAGE_TYPES.COLD] = -100
+        self.resistances[DAMAGE_TYPES.POISON] = 50
+
+
+        self.asset_name = "kindling"
+        self.load_assets()
+        self.actives.append(spells.BluntMeleeAttack(self, power=2))
+        self.actives.append(spells.FireSpit(self, power=3, range=4))
 

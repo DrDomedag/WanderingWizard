@@ -1,11 +1,11 @@
-from entities.entities import *
-from entities.entities import PC
+import entities.entities as entities
 from collections import defaultdict
-from effects import *
+import effects
 import random
-#import util
+from util import *
 import math
 #from main import *
+import items
 
 UP_LEFT = 7
 UP = 8
@@ -18,7 +18,8 @@ DOWN = 2
 DOWN_RIGHT = 3
 
 class World:
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
         self.total_floor = defaultdict(lambda: None)
         self.total_walls = defaultdict(lambda: None)
         self.total_entities = defaultdict(lambda: None)
@@ -57,9 +58,13 @@ class World:
             self.total_tile_effects[key] = value
             if key in self.active_tile_effects.keys():
                 self.active_tile_effects[key] = value
+        elif value.layer == "item":
+            self.total_items[key] = value
+            if key in self.active_items.keys():
+                self.active_items[key] = value
         else:
             print(value.__class__.mro())
-            print("Trying to assign a non-tile, non-entity, non-tile-effect to map.")
+            print("Trying to assign a non-tile, non-entity, non-item, non-tile-effect to map.")
             raise RuntimeError
 
     def createDefaultMap(self):
@@ -70,6 +75,10 @@ class World:
                     #self[(x, y)] = StoneWall()
         #self.total_entities[self.current_coordinates] = self.pc
         #self.active_entities[(0, 0)] = self.pc
+        self[(0, -2)] = items.Spellbook(self, 2, (0, -2))
+        self[(0, 2)] = items.Spellbook(self, 2, (0, 2))
+        self[(2, 2)] = items.Spellbook(self, 1, (2, 2))
+        self[(-2, -2)] = items.Spellbook(self, 1, (-2, -2))
 
 
 
@@ -126,6 +135,9 @@ class World:
         if self.move_entity(self.pc, target):
             self.current_coordinates = target
             self.set_current_active_tiles()
+            if self.total_items[self.current_coordinates] is not None:
+                item = self.total_items[self.current_coordinates]
+                item.on_pickup()
             return True
         return False
 
@@ -162,7 +174,7 @@ class World:
                 coords = (x, y)
                 if self.total_floor[coords] is None:
                     floor, wall, entity = self.generate_tile(coords)
-                if util.chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
+                if chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
                     self.active_floor[coords] = self.total_floor[coords]
                     self.active_walls[coords] = self.total_walls[coords]
                     self.active_entities[coords] = self.total_entities[coords]
@@ -206,12 +218,12 @@ class World:
         if random.random() < 0.98:
             return None
         else:
-            enemy = Goblin(self)
+            enemy = entities.Goblin(self)
             enemy.allegiance = ALLEGIANCES.ENEMY_TEAM
             return enemy
 
     def can_see(self, x, y):
-        line_tiles = util.bresenham(x, y)
+        line_tiles = bresenham(x, y)
         if x == y:
             return True
         for coords in line_tiles:
@@ -234,7 +246,7 @@ class World:
         while summoned_entities < count and current_range <= max_range:
             entity = entity_class(self)
             entity.allegiance = allegiance
-            proposed_tiles = util.disk(target, current_range, True)
+            proposed_tiles = disk(target, current_range, True)
             random.shuffle(proposed_tiles)
             placed = False
             while not placed and len(proposed_tiles) > 0:
@@ -298,7 +310,7 @@ class ChasmTile(Tile):
         self.walkable = False
         self.swimmable = False
 
-class Wall(Entity):
+class Wall(entities.Entity):
     def __init__(self, world):
         super().__init__(world)
         self.layer = "wall"

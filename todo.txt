@@ -1,4 +1,139 @@
+General things to do:
+Fix hover so that you get info on spells and not tiles when hovering over menu items (left side in particular).
+Add more entity info (like remaining duration, attributes, passive and active abilities with mouseovers) to right side menu.
+
+Verify bug level of spellbook pickups. Seemed like they didn't give the right tier.
+See if +0.5 radius for disks is good.
+Figure out why disks (Seismic Jolt) are so laggy.
+
+...sound
+
 Things that are 'implemented' but do not currently work:
 
+Spellbook needs to not teach already known spells.
+
 Pushing entities still doesn't work.
-Visual effects still do not work.
+Visual effects still do not work.   <---- IMPORTANT
+
+
+
+
+
+
+
+Spell ideas:
+
+Bloody Sacrament
+Blood + Holy
+Expend life to gain a charge of another random spell. Channelable, or upgrade to channel.
+
+Summon Longdead
+t1 Necro
+Create a skeletal servant.
+Upgrade to summon more per casting or to enable channeling.
+
+Summon Longdead Beast
+t3 necro
+Like Longdead but it's a random animal.
+
+Iron Needle
+Fire a metallic needle.
+Only costs one action.
+Upgrade to fire more needles, or (hear me out) to fire *even more needles*.
+
+Bone Spike
+Pay health to fire one of your own bones. Short range.
+
+Banish
+Instantly unmake a summoned creature.
+
+Flickerstep
+Move two squares per step, ignoring intervening walls/entities.
+
+Haste
+Air + Enchantment
+Target gets an additional action crystal each turn for X turns.
+
+Metabolic Overdrive
+Blood + Nature + Transmutation
+Target gets an additional action crystal each turn for X turns.
+
+Resurrect (Holy)
+Revive a recently killed ally.
+
+Reanimate (Death)
+Revive a recently dead enemy as a zombie.
+
+Call Spirit (Death + Holy)
+Revive a recently dead enemy as a ghost.
+
+Mist (Air + Water)
+Creates a cloud that blocks line of sight. Immune to most damage, but is by fire.
+
+Lightning Bond
+Form a bond with up to 3 nearby allies. Lightning shoots between you each turn, damaging enemies in between.
+
+Electrify the Chain of Command
+Lightning + Astral
+Deal lightning damage to target creature's master if it has one, and the master's master if it has one, and so on.
+
+Purify
+Holy + Astral
+Remove all debuffs from allies in an area.
+
+Defile
+Dark + Astral
+Remove all buffs from enemies in an area.
+
+Dispel
+Astral
+Remove all buffs and debuffs in an area.
+
+
+
+# Theme ideas:
+Keep:
+Blood (includes Demons)
+Illusion (includes mind control)
+Astral (Arcane, aether...)
+Metal (summon dancing swords, walls of swords, robots, armour etc.)
+Water
+Ice
+Air
+Lightning
+Fire
+Nature
+Holy
+Dark / Unholy / Shadow
+Death / Bone
+Earth / Stone
+
+Minor:
+Draconic
+Transmutation
+
+
+Cut:
+Light
+Psionic
+Spirit
+Rune
+Entropy
+Emotion
+Martial - Cool, but save it for the expansion.
+
+Combo themes:
+Fungus (Nature + Earth)
+Steam (Fire + Water)
+Rainbow (Nature + Light (or Illusion))
+Robots (Lightning + Metal)
+Blood Sacrifice (Blood + Holy)
+Crystal (Ice + Stone or Arcane)
+Fairies (Nature + Arcane)
+Decay (Nature + Dark)
+Poison (Nature + Blood)
+Acid (Nature + Water)
+Storm/Mist (Air + Water)
+Rune (Arcane + Earth)
+Extraterresterial (meteors etc.) (Astral + Earth)
+Void beings (Astral + Dark)
