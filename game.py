@@ -142,7 +142,6 @@ class Game:
 
         random.shuffle(initiative_queue) # Possible to do stuff like "always acts immediately after Wizard" and stuff like that with this.
 
-        print(len(initiative_queue))
         while len(initiative_queue) > 0:
 
             for event in pygame.event.get():
@@ -150,11 +149,16 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-                if event.type == EVENT_TYPES.ENEMY_TURN_START:
+                if event.type == EVENT_TYPES.ENEMY_TURN_START and len(initiative_queue) > 0:
                     active_enemy = initiative_queue.pop()
                     #print(f"{active_enemy.name}'s turn")
                     active_enemy.start_of_turn()
-                    active_enemy.act()
+                    while active_enemy.current_actions > 0:
+                        active_enemy.act()
+                        self.ui.render_everything()
+                        pygame.time.delay(5)
+
+            self.ui.render_everything()
         pygame.time.set_timer(EVENT_TYPES.ENEMY_TURN_START, 0)
 
         self.ui.render_everything()

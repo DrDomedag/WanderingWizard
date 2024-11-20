@@ -144,23 +144,9 @@ class UI:
             else:
                 self.selected_spell = self.world.pc.actives[self.world.pc.actives.index(self.selected_spell) - 1]
 
-
-
-        # Get back to pathfinding here at some point
-        if self.left_click and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
-            pass
-            # For some reason, this causes tile (-29, -30) to be added to the active tiles for the next frame rendering,
-            # but that doesn't have a sprite because it hasn't been generated yet so everything crashes.
-            # But we don't move..!
-            # That's because we *access* that tile as part of the entity.can_move(target) function, making the
-            # defaultdict set it to None
-            # Options:
-            # 1. Make it not a defaultdict
-            # 2. Make it generate the tile as its lambda function (or not lambda, but whatever) - this is probably not a good idea on second thought.
-            # 3. Shrink the grid to be the right size (rather: ensure the grid is correct)
-            # Correct answer: 3, then 2.
+        if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
             path = util.find_path(self.world.pc, hovered_tile)
-            print(path)
+            #print(path)
             if len(path) > 0:
                 self.world.pc.move(path[1])
 

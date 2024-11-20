@@ -104,6 +104,7 @@ Spirit
 Rune
 Entropy
 Emotion
+Martial - Cool, but save it for the expansion.
 
 Combo themes:
 Fungus (Nature + Earth)
@@ -280,6 +281,29 @@ def rasterize_polygon(vertices, fill=True):
     return list(edge_points.union(filled_points))
 
 
+def find_closest_enemy(start_entity):
+    possible_targets = []
+    for entity in start_entity.world.active_entities.values:
+        if entity is not None:
+            if entity.allegiance != ALLEGIANCES.NEUTRAL and entity.allegiance != start_entity.allegiance:
+                possible_targets.append(entity)
+
+    if len(possible_targets) > 0:
+        possible_targets.sort(key=euclidean_distance(start_entity, entity))
+        return possible_targets[0]
+
+    return None
+
+def find_and_sort_enemies_by_distance(start_entity):
+    enemies = []
+    for entity in start_entity.world.active_entities.values():
+        if entity is not None:
+            if entity.allegiance != ALLEGIANCES.NEUTRAL and entity.allegiance != start_entity.allegiance:
+                enemies.append(entity)
+    if len(enemies) > 0:
+        enemies.sort(key=lambda entity: euclidean_distance(start_entity.position, entity.position))
+    return enemies
+
 
 def find_path(entity, target):
     grid_size = entity.world.active_tile_range - 1 # Need this -1, but no more
@@ -310,6 +334,8 @@ def find_path(entity, target):
 
     # Mark starting point as passable
     grid[translated_start[0]][translated_start[1]] = 1
+    # Also mark ending point as passable. Otherwise we won't be able to use this to find the path to an entity.
+    grid[translated_target[0]][translated_target[1]] = 1
     #print(grid)
 
     path = a_star_search(grid, translated_start, translated_target)
@@ -360,15 +386,15 @@ def generate_grid_centered(entity, grid_size=29):
     min_y = center_y - grid_size
     max_y = center_y + grid_size
 
-    print(f"min_x: {min_x}, max_x: {max_x}, min_y: {min_y}, max_y: {max_y}")
+    #print(f"min_x: {min_x}, max_x: {max_x}, min_y: {min_y}, max_y: {max_y}")
 
     # Generate the grid
     grid = []
     for y in range(min_y, max_y + 1):
         row = []
         for x in range(min_x, max_x + 1):
-            if entity.world.active_floor[(y, x)] is None:
-                print(f"No floor at {x}, {y}")
+            #if entity.world.active_floor[(y, x)] is None:
+                #print(f"No floor at {x}, {y}")
             # Fetch the tile value from the game world (replace this logic with your game's logic)
             #tile_value = entity.world.get_tile(x, y)  # Replace with your world tile-fetching function
             #print(f"Seeing if entity can move to {(x, y)}")

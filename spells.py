@@ -162,6 +162,28 @@ class Spell:
 
         return True
 
+    def should_cast(self):
+        if self.should_target_self:
+            return True
+        if self.should_target_allies:
+            for entity in self.caster.world.active_entities.values:
+                if entity is not None:
+                    if entity.allegiance == self.caster.allegiance:
+                        if self.can_cast(entity.position):
+                            return True
+        if self.should_target_empty:
+            for target in self.caster.world.active_floor.keys():
+                if self.caster.world.active_entities[target] is None:
+                    if self.can_cast(target):
+                        return True
+        for entity in self.caster.world.active_entities.values():
+            if entity is not None:
+                if entity.allegiance != self.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
+                    if self.can_cast(entity.position):
+                        return True
+        return False
+
+
 class IronNeedle(Spell):
     def __init__(self, caster):
         super().__init__(caster)

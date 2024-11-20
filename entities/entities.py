@@ -1,4 +1,3 @@
-import ui
 import util
 import random
 from collections import defaultdict
@@ -119,10 +118,76 @@ class Entity:
 
 
     def act(self):
+        acted = False
         #print(self.actives)
         actives = random.sample(self.actives, len(self.actives))
         actives.sort(key=lambda spell: Spell.level)
-        #print(actives)
+        for active in actives:
+            if active.should_cast():
+                print(f"Should cast {active.name}.")
+            else:
+                print(f"Shouldn't cast {active.name}")
+                actives.remove(active)
+        if len(actives) > 0:
+            self.use_active(actives[0])
+            '''
+            # TEMP
+            acted = True
+            self.current_actions -= 1
+            pass
+            '''
+        # If we can't meaningfully use any of our abilities, we move towards the closest enemy.
+        enemies = find_and_sort_enemies_by_distance(self)
+        while len(enemies) > 0 and not acted:
+            # Move
+            target = enemies.pop()
+            path = util.find_path(self, target.position)
+            if len(path) > 0:
+                self.move(path[1])
+                self.current_actions -= 1
+                acted = True
+
+        if acted == False:
+            # If we can't use any abilities and we can't move towards our closest enemy, we just freeze.
+            # We should really improve this by going down the list of enemies instead.
+            self.current_actions -= 1
+
+
+    def use_active(self, active):
+        if active.should_target_self:
+            active.cast(self.position)
+            return
+        if active.should_target_allies:
+            targets = []
+            for entity in active.caster.world.active_entities.values:
+                if entity is not None:
+                    if entity.allegiance == active.caster.allegiance:
+                        if active.can_cast(entity.position):
+                            targets.append(entity.position)
+            if len(targets) > 0:
+                target = random.choice(targets)
+                active.cast(target)
+                return
+        if active.should_target_empty:
+            targets = []
+            for target in active.caster.world.active_floor.keys():
+                if active.caster.world.active_entities[target] is None:
+                    if active.can_cast(target):
+                        targets.append(target)
+            if len(targets) > 0:
+                target = random.choice(targets)
+                active.cast(target)
+                return
+
+        targets = []
+        for entity in active.caster.world.active_entities.values():
+            if entity is not None:
+                if entity.allegiance != active.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
+                    if active.can_cast(entity.position):
+                        targets.append(entity.position)
+        target = random.choice(targets)
+        active.cast(target)
+        return
 
 
 class PC(Entity):
