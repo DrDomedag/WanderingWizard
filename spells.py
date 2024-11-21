@@ -178,7 +178,7 @@ class FireBreath(Spell):
         super().__init__(caster)
 
         self.power = 6
-        self.range = 4
+        self.range = 3
         self.action_cost = 2
         self.max_charges = 10
         self.name = "Fire Breath"
@@ -208,7 +208,7 @@ class SeismicJolt(Spell):
 
         self.power = 9
         self.range = 0
-        self.radius = 2
+        self.radius = 1
 
         self.action_cost = 2
         self.max_charges = 7

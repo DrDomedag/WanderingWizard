@@ -61,6 +61,51 @@ SCHOOLS = Tags(
     DRAGON=18
 )
 
+SCHOOL_NAMES = [
+    "Sorcery",
+    "Enchantment",
+    "Conjuration",
+    "Transmutation",
+    "Blood",
+    "Illusion",
+    "Astral",
+    "Metal",
+    "Water",
+    "Ice",
+    "Wind",
+    "Lightning",
+    "Fire",
+    "Nature",
+    "Holy",
+    "Dark",
+    "Death",
+    "Earth",
+    "Dragon"
+]
+
+SCHOOL_COLOURS = [
+    (140, 25, 255), #Sorcery
+    (77,255,255), #Enchantment
+    (204,153,255),#Conjuration
+    (0,153,102),#Transmutation
+    (179,0,30),#BLOOD=4,
+    (227,197,230),#ILLUSION=5,
+    (153,255,255), #ASTRAL=6,
+    (169,184,204),#METAL=7,
+    (51,51,255),#WATER=8,
+    (77,166,255), #ICE=9,
+    (191,255,179),#WIND=10,
+    (255,255,25),#LIGHTNING=11,
+    (230,115,0),#FIRE=12,
+    (0,179,0),#NATURE=13,
+    (255,234,128),#HOLY=14,
+    (51,0,102),#DARK=15,
+    (153,0,153),#DEATH=16,
+    (153,77,0),#EARTH=17,
+    (204,136,0)#DRAGON=18
+]
+
+
 COLOURS = Tags(
     WHITE=(255, 255, 255),
     BLACK=(0, 0, 0),

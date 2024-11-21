@@ -25,6 +25,7 @@ class UI:
         self.right_click = False
         self.scroll_down = False
         self.scroll_up = False
+        self.hovered_spell = None
 
         self.mouse_over_game_area = False
 
@@ -115,41 +116,42 @@ class UI:
         if SIDE_MENU_WIDTH < pygame.mouse.get_pos()[0] < self.display.get_size()[0] - SIDE_MENU_WIDTH:
             self.mouse_over_game_area = True
 
-        # Highlight LoS tiles if holding L key
-        if pygame.key.get_pressed()[pygame.K_l] and self.mouse_over_game_area:
-            self.show_LoS_at_cursor()
-
-        # Just always highlight mouseover'd tile
         if self.mouse_over_game_area:
+
+            # Highlight LoS tiles if holding L key
+            if pygame.key.get_pressed()[pygame.K_l]:
+                self.show_LoS_at_cursor()
+
+            # Just always highlight mouseover'd tile
             self.display.blit(self.world.assets["target_tile"], self.tile_to_screen_coords(hovered_tile))
 
-        # Highlight affected tiles if holding down right mouse button
+            # Highlight affected tiles if holding down right mouse button
 
-        if pygame.mouse.get_pressed(num_buttons=3)[2] and self.selected_spell is not None and self.mouse_over_game_area:
-            tile_sprite = self.world.assets["targetable_tile"]
-            for tile in self.selected_spell.get_targetable_tiles():
-                self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
-            tile_sprite = self.world.assets["impacted_tile"]
-            for tile in self.selected_spell.get_impacted_tiles(hovered_tile):
-                self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
+            if pygame.mouse.get_pressed(num_buttons=3)[2] and self.selected_spell is not None:
+                tile_sprite = self.world.assets["targetable_tile"]
+                for tile in self.selected_spell.get_targetable_tiles():
+                    self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
+                tile_sprite = self.world.assets["impacted_tile"]
+                for tile in self.selected_spell.get_impacted_tiles(hovered_tile):
+                    self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
 
 
-            if self.left_click:
-                if self.selected_spell.can_cast(hovered_tile):
-                    self.selected_spell.cast(hovered_tile)
+                if self.left_click:
+                    if self.selected_spell.can_cast(hovered_tile):
+                        self.selected_spell.cast(hovered_tile)
 
-        # Walk on clicking adjacent tile:
-        elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
-            if self.world.pc.move(hovered_tile):
-                self.world.pc.current_actions -= 1
-
-        # Walk on clicking distant tile
-        if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
-            path = util.find_path(self.world.pc, hovered_tile)
-            #print(path)
-            if len(path) > 0:
-                if self.world.pc.move(path[1]):
+            # Walk on clicking adjacent tile:
+            elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
+                if self.world.pc.move(hovered_tile):
                     self.world.pc.current_actions -= 1
+
+            # Walk on clicking distant tile
+            if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
+                path = util.find_path(self.world.pc, hovered_tile)
+                #print(path)
+                if len(path) > 0:
+                    if self.world.pc.move(path[1]):
+                        self.world.pc.current_actions -= 1
 
         if self.scroll_down and len(self.world.pc.actives) > 0:
             if self.selected_spell == None:
@@ -166,7 +168,7 @@ class UI:
 
 
         # Draw menus
-
+        self.hovered_spell = None
         self.draw_left_side_menu()
         self.draw_right_side_menu(hovered_tile)
 
@@ -215,7 +217,7 @@ class UI:
         button_height = 20
         button_width = SIDE_MENU_WIDTH - 10
         for i, spell in enumerate(self.world.pc.actives):
-            spellButton = Button(self, f"{spell.name} - {spell.current_charges}/{spell.max_charges}", (5, button_offset + (i * button_height)), (button_width, button_height), COLOURS.RED, COLOURS.MAGENTA, COLOURS.YELLOW, self.select_spell, spell)
+            spellButton = SpellSelectorButton(self, f"{spell.name} - {spell.current_charges}/{spell.max_charges}", (5, button_offset + (i * button_height)), (button_width, button_height), COLOURS.RED, COLOURS.MAGENTA, COLOURS.YELLOW, self.select_spell, spell)
             spellButton.draw(self.display)
 
     def draw_right_side_menu(self, hovered_tile):
@@ -265,6 +267,29 @@ class UI:
                     typeRect.center = (left_end + width // 2, 60)
                     self.display.blit(type, typeRect)
                     # Would be cool with boots/fins/wings icons here to show passability using these different types of movement.
+        else:
+            if self.hovered_spell is not None:
+                vertical_offset = 30
+                name = self.font_32.render(f"{self.hovered_spell.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                nameRect = name.get_rect()
+                nameRect.center = (left_end + width // 2, vertical_offset)
+                vertical_offset += 30
+                self.display.blit(name, nameRect)
+                for i in range(len(self.hovered_spell.schools)):
+                    name = self.font_20.render(f"{SCHOOL_NAMES[self.hovered_spell.schools[i]]}", True, SCHOOL_COLOURS[self.hovered_spell.schools[i]], COLOURS.BLACK)
+                    nameRect = name.get_rect()
+                    nameRect.center = (left_end + width // 2, vertical_offset)
+                    vertical_offset += 20
+                    self.display.blit(name, nameRect)
+                '''
+                descr = self.font_14.render(f"{self.hovered_spell.description}", True, COLOURS.WHITE, COLOURS.BLACK)
+                descrRect = descr.get_rect()
+                descrRect.center = (left_end + width // 2, vertical_offset)
+                vertical_offset += 40
+                self.display.blit(descr, descrRect)
+                '''
+                pos = (left_end + width // 2, vertical_offset)
+                blit_text(self.display, self.hovered_spell.description, pos, self.font_14, color=COLOURS.GRAY)
 
     def show_LoS_at_cursor(self):
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
@@ -292,7 +317,7 @@ class UI:
 
 
 
-class Button:
+class SpellSelectorButton:
     def __init__(self, ui, text, pos, size, colour, hover_colour, selected_colour, action=None, selected_object=None):
         self.ui = ui
         self.selected_object = selected_object
@@ -324,6 +349,10 @@ class Button:
                 pygame.draw.rect(screen, self.hover_colour, self.rect)
             else:
                 pygame.draw.rect(screen, self.colour, self.rect)
+
+        if self.rect.collidepoint(mouse_pos):
+            self.ui.hovered_spell = self.selected_object
+
         # Draw text on the button
         text_surface = self.font.render(self.text, True, COLOURS.BLACK)
         text_rect = text_surface.get_rect(center=self.rect.center)
@@ -400,3 +429,19 @@ class ExplosionEffect(pygame.sprite.Sprite):
                 self.image = self.sprite[self.current_frame]
                 self.rect = self.image.get_rect(center=self.position)
 
+def blit_text(surface, text, pos, font, color=pygame.Color('black')):
+    words = [word.split(' ') for word in text.splitlines()]  # 2D array where each row is a list of words.
+    space = font.size(' ')[0]  # The width of a space.
+    max_width, max_height = surface.get_size()
+    x, y = pos
+    for line in words:
+        for word in line:
+            word_surface = font.render(word, 0, color)
+            word_width, word_height = word_surface.get_size()
+            if x + word_width >= max_width:
+                x = pos[0]  # Reset the x.
+                y += word_height  # Start on new row.
+            surface.blit(word_surface, (x, y))
+            x += word_width + space
+        x = pos[0]  # Reset the x.
+        y += word_height  # Start on new row.
