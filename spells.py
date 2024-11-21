@@ -372,7 +372,10 @@ class LightningBolt(Spell):
         self.level = 1
         self.schools = [SCHOOLS.LIGHTNING, SCHOOLS.SORCERY]
         self.upgrades = []
-        self.recovery_time = 5
+        self.recovery_time = \
+        self.max_charges = 14
+
+        self.on_init()
 
     def on_cast(self, target):
         affected_tiles = bresenham(self.caster.position, target)
