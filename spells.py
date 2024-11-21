@@ -6,7 +6,7 @@ import random
 
 class PCAvailableSpellList:
     def __init__(self, pc):
-        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath]
+        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath, LightningBolt]
 
     def get_random_spells_of_tier(self, level, count):
         candidates = []
@@ -360,3 +360,31 @@ class FireSpit(Spell):
     def on_cast(self, target):
         subject = self.caster.world.active_entities[target]
         damage_entity(self, subject, self.power, DAMAGE_TYPES.FIRE)
+
+class LightningBolt(Spell):
+    def __init__(self, caster):
+        super().__init__(caster)
+        self.power = 8
+        self.range = 9
+
+        self.name = "Lightning Bolt"
+        self.description = f"Fire a bolt of lightning that deals {self.power} Lightning damage to all targets it passes through."
+        self.level = 1
+        self.schools = [SCHOOLS.LIGHTNING, SCHOOLS.SORCERY]
+        self.upgrades = []
+        self.recovery_time = 5
+
+    def on_cast(self, target):
+        affected_tiles = bresenham(self.caster.position, target)
+        affected_tiles.remove(self.caster.position)
+        for tile in affected_tiles:
+            damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.LIGHTNING)
+
+    def can_target_tile(self, target):
+        return self.caster.world.can_see(self.caster.position, target) and euclidean_distance(self.caster.position, target) < self.range
+
+    def get_impacted_tiles(self, target):
+        affected_tiles = bresenham(self.caster.position, target)
+        affected_tiles.remove(self.caster.position)
+        return affected_tiles
+

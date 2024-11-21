@@ -140,31 +140,35 @@ class UI:
                     if self.selected_spell.can_cast(hovered_tile):
                         self.selected_spell.cast(hovered_tile)
 
+            # End turn if pressing own tile:
+            elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and self.world.game.pc.position == hovered_tile:
+                self.world.game.pc.current_actions = 0
+
             # Walk on clicking adjacent tile:
-            elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) == 1:
-                if self.world.pc.move(hovered_tile):
-                    self.world.pc.current_actions -= 1
+            elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.game.pc.position, hovered_tile) == 1:
+                if self.world.game.pc.move(hovered_tile):
+                    self.world.game.pc.current_actions -= 1
 
             # Walk on clicking distant tile
-            if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.pc.position, hovered_tile) > 1:
-                path = util.find_path(self.world.pc, hovered_tile)
+            if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.game.pc.position, hovered_tile) > 1:
+                path = util.find_path(self.world.game.pc, hovered_tile)
                 #print(path)
                 if len(path) > 0:
-                    if self.world.pc.move(path[1]):
-                        self.world.pc.current_actions -= 1
+                    if self.world.game.pc.move(path[1]):
+                        self.world.game.pc.current_actions -= 1
 
-        if self.scroll_down and len(self.world.pc.actives) > 0:
+        if self.scroll_down and len(self.world.game.pc.actives) > 0:
             if self.selected_spell == None:
-                self.selected_spell = self.world.pc.actives[0]
-            elif self.world.pc.actives.index(self.selected_spell) + 1 >= len(self.world.pc.actives):
-                self.selected_spell = self.world.pc.actives[0]
+                self.selected_spell = self.world.game.pc.actives[0]
+            elif self.world.game.pc.actives.index(self.selected_spell) + 1 >= len(self.world.game.pc.actives):
+                self.selected_spell = self.world.game.pc.actives[0]
             else:
-                self.selected_spell = self.world.pc.actives[self.world.pc.actives.index(self.selected_spell) + 1]
+                self.selected_spell = self.world.game.pc.actives[self.world.game.pc.actives.index(self.selected_spell) + 1]
         if self.scroll_up:
             if self.selected_spell == None:
-                self.selected_spell = self.world.pc.actives[-1]
+                self.selected_spell = self.world.game.pc.actives[-1]
             else:
-                self.selected_spell = self.world.pc.actives[self.world.pc.actives.index(self.selected_spell) - 1]
+                self.selected_spell = self.world.game.pc.actives[self.world.game.pc.actives.index(self.selected_spell) - 1]
 
 
         # Draw menus
@@ -191,12 +195,12 @@ class UI:
     def draw_left_side_menu(self):
         bg_rect = pygame.Rect(0, 0, SIDE_MENU_WIDTH, self.display.get_size()[1])
         pygame.draw.rect(self.display, COLOURS.BLACK, bg_rect)
-        if self.world.pc.hp < 25:
-            text = self.font_32.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
-        elif self.world.pc.hp < 50:
-            text = self.font_32.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
+        if self.world.game.pc.hp < 25:
+            text = self.font_32.render(f"HP: {self.world.game.pc.hp}/{self.world.game.pc.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
+        elif self.world.game.pc.hp < 50:
+            text = self.font_32.render(f"HP: {self.world.game.pc.hp}/{self.world.game.pc.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
         else:
-            text = self.font_32.render(f"HP: {self.world.pc.hp}/{self.world.pc.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+            text = self.font_32.render(f"HP: {self.world.game.pc.hp}/{self.world.game.pc.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
         textRect = text.get_rect()
         textRect.center = (120, 25)
         self.display.blit(text, textRect)
@@ -204,8 +208,8 @@ class UI:
         # Action crystals
         full_crystal = self.world.assets["action_crystal_full"]
         empty_crystal = self.world.assets["action_crystal_empty"]
-        for i in range(self.world.pc.actions_per_round):
-            if i >= self.world.pc.current_actions:
+        for i in range(self.world.game.pc.actions_per_round):
+            if i >= self.world.game.pc.current_actions:
                 # Render empty action crystal
                 self.display.blit(empty_crystal, (5 + i * 30, 60))
             else:
@@ -216,7 +220,7 @@ class UI:
         button_offset = 120
         button_height = 20
         button_width = SIDE_MENU_WIDTH - 10
-        for i, spell in enumerate(self.world.pc.actives):
+        for i, spell in enumerate(self.world.game.pc.actives):
             spellButton = SpellSelectorButton(self, f"{spell.name} - {spell.current_charges}/{spell.max_charges}", (5, button_offset + (i * button_height)), (button_width, button_height), COLOURS.RED, COLOURS.MAGENTA, COLOURS.YELLOW, self.select_spell, spell)
             spellButton.draw(self.display)
 

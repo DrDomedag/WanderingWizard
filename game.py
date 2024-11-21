@@ -57,16 +57,19 @@ class Game:
         world = World(self)
         world.assets = self.assets
         self.pc = PC(world)
-        world.pc = self.pc
+        self.pc.position = (0, 0)
         self.pc_available_spell_list = PCAvailableSpellList(self.pc)
         world.createDefaultMap()
 
-
         # TEMP
-        #self.pc.actives.append(IronNeedle(self.pc))
-        #self.pc.actives.append(FireBreath(self.pc))
-        #self.pc.actives.append(SeismicJolt(self.pc))
-        #self.pc.actives.append(RaiseLongdead(self.pc))
+        self.pc.actives.append(IronNeedle(self.pc))
+        self.pc.actives.append(FireBreath(self.pc))
+        self.pc.actives.append(SeismicJolt(self.pc))
+        self.pc.actives.append(RaiseLongdead(self.pc))
+        self.pc.actives.append(LightningBolt(self.pc))
+
+
+        #world.active_entities = world.total_entities
 
         world.active_floor = world.total_floor
         return world
@@ -123,6 +126,8 @@ class Game:
                     if event.key == pygame.K_s or event.key == pygame.K_KP_2:
                         if self.world.player_step(DOWN):
                             self.pc.current_actions -= 1
+                    if event.key == pygame.K_KP_5:
+                            self.pc.current_actions = 0
                     if event.key == pygame.K_KP_7:
                         if self.world.player_step(UP_LEFT):
                             self.pc.current_actions -= 1
@@ -149,7 +154,7 @@ class Game:
             if entity is not None:
                 #print(f"Acting entity: {entity.name}")
                 #pygame.time.delay(10)
-                if entity.allegiance == allegiance and entity is not self.world.pc:
+                if entity.allegiance == allegiance and entity is not self.pc:
                     initiative_queue.append(entity)
 
         random.shuffle(initiative_queue) # Possible to do stuff like "always acts immediately after Wizard" and stuff like that with this.

@@ -3,14 +3,15 @@ Fix hover so that you get info on spells and not tiles when hovering over menu i
 Add more entity info (like remaining duration, attributes, passive and active abilities with mouseovers) to right side menu.
 
 Verify bug level of spellbook pickups. Seemed like they didn't give the right tier.
-See if +0.5 radius for disks is good.
 Figure out why disks (Seismic Jolt) are so laggy.
 
 ...sound
 
+Doors!
+
+
 Things that are 'implemented' but do not currently work:
 
-Spellbook needs to not teach already known spells.
 
 Pushing entities still doesn't work.
 Visual effects still do not work.   <---- IMPORTANT

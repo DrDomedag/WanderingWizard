@@ -25,7 +25,7 @@ class Spellbook(Item):
             spell = self.world.game.pc_available_spell_list.get_random_spells_of_tier(target_level, 1)
             if len(spell) > 0:
                 spell = spell[0]
-                self.world.pc.actives.append(spell(self.world.pc))
+                self.world.game.pc.actives.append(spell(self.world.game.pc))
                 self.world.active_items[self.position] = None
                 self.world.total_items[self.position] = None
                 self.world.game.pc_available_spell_list.remove(spell)

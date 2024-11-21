@@ -30,8 +30,6 @@ class World:
         self.active_entities = defaultdict(lambda: None)
         self.active_tile_effects = defaultdict(lambda: None)
         self.active_items = defaultdict(lambda: None)
-        self.pc = None
-        self.assets = None
         self.active_tile_range = 30 # Consider changing
         self.current_coordinates = (0, 0)
         self.effect_queue = []
@@ -75,10 +73,11 @@ class World:
                     #self[(x, y)] = StoneWall()
         #self.total_entities[self.current_coordinates] = self.pc
         #self.active_entities[(0, 0)] = self.pc
-        self[(0, -2)] = items.Spellbook(self, 2, (0, -2))
-        self[(0, 2)] = items.Spellbook(self, 2, (0, 2))
-        self[(2, 2)] = items.Spellbook(self, 1, (2, 2))
-        self[(-2, -2)] = items.Spellbook(self, 1, (-2, -2))
+
+        #self[(0, -2)] = items.Spellbook(self, 2, (0, -2))
+        #self[(0, 2)] = items.Spellbook(self, 2, (0, 2))
+        #self[(2, 2)] = items.Spellbook(self, 1, (2, 2))
+        #self[(-2, -2)] = items.Spellbook(self, 1, (-2, -2))
 
 
 
@@ -132,7 +131,7 @@ class World:
 
     def move_player(self, target):
         #print(f"Attempting to move from {self.current_coordinates} to {target}")
-        if self.move_entity(self.pc, target):
+        if self.move_entity(self.game.pc, target):
             self.current_coordinates = target
             self.set_current_active_tiles()
             if self.total_items[self.current_coordinates] is not None:
