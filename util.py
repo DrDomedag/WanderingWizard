@@ -8,15 +8,14 @@ import heapq
 from a_star import a_star_search
 
 
-
-
-
 class Tags:
     def __init__(self, **kwargs):
         # Initialize with key-value pairs
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+
+BIOME_SCALE = 1000
 
 DAMAGE_TYPES = Tags(
     BLUDGEONING=0,

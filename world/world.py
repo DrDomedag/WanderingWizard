@@ -6,6 +6,7 @@ from util import *
 import math
 #from main import *
 import items
+from world_generator import WorldGenerator
 
 UP_LEFT = 7
 UP = 8
@@ -20,6 +21,9 @@ DOWN_RIGHT = 3
 class World:
     def __init__(self, game):
         self.game = game
+        self.world_generator = WorldGenerator(self)
+        #self.total_tiles = defaultdict(lambda: None)
+        #self.active_tiles = defaultdict(lambda: None)
         self.total_floor = defaultdict(lambda: None)
         self.total_walls = defaultdict(lambda: None)
         self.total_entities = defaultdict(lambda: None)
@@ -49,26 +53,27 @@ class World:
             if key in self.active_walls.keys():
                 self.active_walls[key] = value
         elif value.layer == "entity":
-            self.total_entities[key] = value
+            self.active_entities[key] = value
             if key in self.active_entities.keys():
                 self.active_entities[key] = value
         elif value.layer == "tile_effect":
             self.total_tile_effects[key] = value
             if key in self.active_tile_effects.keys():
-                self.active_tile_effects[key] = value
+                self.total_tile_effects[key] = value
         elif value.layer == "item":
             self.total_items[key] = value
-            if key in self.active_items.keys():
+            if key in self.total_items.keys():
                 self.active_items[key] = value
         else:
             print(value.__class__.mro())
             print("Trying to assign a non-tile, non-entity, non-item, non-tile-effect to map.")
             raise RuntimeError
 
+    '''
     def createDefaultMap(self):
         for x in range(-10, 10, 1):
             for y in range(-10, 10, 1):
-                self[(x, y)] = FloorTile()
+                self[(x, y)] = DirtFloorTile()
                 #if random.random() > 0.9:
                     #self[(x, y)] = StoneWall()
         #self.total_entities[self.current_coordinates] = self.pc
@@ -78,10 +83,29 @@ class World:
         #self[(0, 2)] = items.Spellbook(self, 2, (0, 2))
         #self[(2, 2)] = items.Spellbook(self, 1, (2, 2))
         #self[(-2, -2)] = items.Spellbook(self, 1, (-2, -2))
+    '''
 
-
-
-
+    def generate_tile(self, coords):
+        tile = self.world_generator.generate_tile(coords)
+        if self.total_floor[coords] is None:
+            self.total_floor[coords] = tile["floor"]
+        if self.total_walls[coords] is None:
+            if tile["wall"] is not None:
+                self.total_walls[coords] = tile["wall"]
+                tile["wall"].position = coords
+        if self.total_entities[coords] is None and self.total_walls[coords] is None:
+            if tile["entity"] is not None:
+                self.total_entities[coords] = tile["entity"]
+                tile["entity"].position = coords
+        if self.total_tile_effects[coords] is None:
+            if tile["tile_effect"] is not None:
+                self.total_tile_effects[coords] = tile["tile_effect"]
+                tile["tile_effect"].position = coords
+        if self.total_items[coords] is None:
+            if tile["item"] is not None:
+                self.total_items[coords] = tile["item"]
+                tile["item"].position = coords
+        return tile
 
     def check_can_move(self, entity, target):
         if self.active_entities[target] is not None:
@@ -142,23 +166,18 @@ class World:
 
 
     def generate_tile(self, coords):
-        floor = None
-        wall = None
-        entity = None
+        tile = self.world_generator.generate_tile(coords)
         if self.total_floor[coords] is None:
-            floor = self.generate_floor_tile()
-            self.total_floor[coords] = floor
+            self.total_floor[coords] = tile["floor"]
         if self.total_walls[coords] is None:
-            wall = self.generate_wall_tile()
-            if wall is not None:
-                self.total_walls[coords] = wall
-                wall.position = coords
+            if tile["wall"] is not None:
+                self.total_walls[coords] = tile["wall"]
+                tile["wall"].position = coords
         if self.total_entities[coords] is None and self.total_walls[coords] is None:
-            enemy = self.generate_enemy()
-            if enemy is not None:
-                self.total_entities[coords] = enemy
-                enemy.position = coords
-        return floor, wall, entity
+            if tile["entity"] is not None:
+                self.total_entities[coords] = tile["entity"]
+                tile["entity"].position = coords
+        return tile
 
 
     def set_current_active_tiles(self):
@@ -172,7 +191,7 @@ class World:
                            self.current_coordinates[1] + self.active_tile_range):
                 coords = (x, y)
                 if self.total_floor[coords] is None:
-                    floor, wall, entity = self.generate_tile(coords)
+                    tile = self.generate_tile(coords)
                 if chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
                     self.active_floor[coords] = self.total_floor[coords]
                     self.active_walls[coords] = self.total_walls[coords]
@@ -201,25 +220,7 @@ class World:
         else:
             return False
 
-    def generate_floor_tile(self):
-        if random.random() < 0.9:
-            return FloorTile()
-        else:
-            return WaterTile()
 
-    def generate_wall_tile(self):
-        if random.random() < 0.9:
-            return None
-        else:
-            return StoneWall(self)
-
-    def generate_enemy(self):
-        if random.random() < 0.98:
-            return None
-        else:
-            enemy = entities.Goblin(self)
-            enemy.allegiance = ALLEGIANCES.ENEMY_TEAM
-            return enemy
 
     def can_see(self, x, y):
         line_tiles = bresenham(x, y)
@@ -262,104 +263,5 @@ class World:
             summoned_entities += 1
         return entities
 
-
-class Tile:
-    def __init__(self):
-        self.layer = "floor"
-        self.name = "Floor"
-        self.walkable = True
-        self.flyable = True
-        self.swimmable = False
-        self.flammable = False
-        self.onEnterEffects = []
-        self.onTurnStartEffects = []
-        self.onTurnEndEffects = []
-        self.asset = "unknown"
-
-class FloorTile(Tile):
-    def __init__(self):
-        super(FloorTile, self).__init__()
-        self.name = "Floor"
-        self.type = "solid"
-        self.asset = "dirt_tile"
-
-class LavaTile(Tile):
-    def __init__(self):
-        super().__init__()
-        self.name = "Lava"
-        self.type = "liquid"
-        self.walkable = False
-        self.swimmable = True
-        #self.onEnterEffects.append() Deal fire damage
-
-class WaterTile(Tile):
-    def __init__(self):
-        super().__init__()
-        self.name = "Water"
-        self.type = "liquid"
-        self.asset = "water_tile"
-        self.walkable = False
-        self.swimmable = True
-
-class ChasmTile(Tile):
-    def __init__(self):
-        super().__init__()
-        self.name = "Chasm"
-        self.type = "void"
-        self.walkable = False
-        self.swimmable = False
-
-class Wall(entities.Entity):
-    def __init__(self, world):
-        super().__init__(world)
-        self.layer = "wall"
-        self.name = "Wall"
-        self.walkable = False
-        self.max_hp = 50
-        self.hp = self.max_hp
-        self.actionsPerRound = 0
-        self.stationary = True
-
-
-
-class StoneWall(Wall):
-    def __init__(self, world):
-        super().__init__(world)
-        self.name = "Stone Wall"
-        self.max_hp = 100
-        self.hp = self.max_hp
-        self.asset = "stone_wall"
-        self.flammable = False
-        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
-        self.resistances[DAMAGE_TYPES.PIERCING] = 90
-        self.resistances[DAMAGE_TYPES.SLASHING] = 90
-        self.resistances[DAMAGE_TYPES.FIRE] = 100
-        self.resistances[DAMAGE_TYPES.COLD] = 100
-        self.resistances[DAMAGE_TYPES.LIGHTNING] = 80
-        self.resistances[DAMAGE_TYPES.POISON] = 100
-        self.resistances[DAMAGE_TYPES.DARK] = 80
-        self.resistances[DAMAGE_TYPES.LIGHT] = 80
-        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
-        self.resistances[DAMAGE_TYPES.ARCANE] = 50
-
-
-class WoodWall(Wall):
-    def __init__(self, world):
-        super().__init__(world)
-        self.name = "Wooden Wall"
-        self.max_hp = 50
-        self.hp = self.max_hp
-        self.asset = "wood_wall"
-        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
-        self.resistances[DAMAGE_TYPES.PIERCING] = 90
-        self.resistances[DAMAGE_TYPES.SLASHING] = 50
-        self.resistances[DAMAGE_TYPES.FIRE] = 0
-        self.resistances[DAMAGE_TYPES.COLD] = 100
-        self.resistances[DAMAGE_TYPES.LIGHTNING] = 50
-        self.resistances[DAMAGE_TYPES.POISON] = 100
-        self.resistances[DAMAGE_TYPES.DARK] = 50
-        self.resistances[DAMAGE_TYPES.LIGHT] = 80
-        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
-        self.resistances[DAMAGE_TYPES.ARCANE] = 50
 
 

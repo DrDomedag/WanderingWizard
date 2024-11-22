@@ -8,6 +8,9 @@ Figure out why disks (Seismic Jolt) are so laggy.
 ...sound
 
 Doors!
+Teleporter tiles that just bring you somewhere nearby, or to a paired tile.
+
+Implement a goblin shaman or something that casts Raise Longdead.
 
 
 Things that are 'implemented' but do not currently work:
@@ -90,6 +93,21 @@ Dispel
 Astral
 Remove all buffs and debuffs in an area.
 
+Spatial Distortion
+Astral
+Switch places among all tiles in area.
+
+Meteor
+Astral + Earth
+Rock from sky hit earth. Deals bludgeoning damage in an area and turns water tiles in the aoe to stone floor.
+
+Stepping Stones
+Earth
+Turns Chasm tiles in a square area into stone floor.
+
+Form of the Fish
+Water + Transmutation
+Turn into a fish, gaining the ability to swim but losing the ability to walk.
 
 
 # Theme ideas:

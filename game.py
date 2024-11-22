@@ -59,7 +59,6 @@ class Game:
         self.pc = PC(world)
         self.pc.position = (0, 0)
         self.pc_available_spell_list = PCAvailableSpellList(self.pc)
-        world.createDefaultMap()
 
         # TEMP
         self.pc.actives.append(IronNeedle(self.pc))
@@ -69,9 +68,7 @@ class Game:
         self.pc.actives.append(LightningBolt(self.pc))
 
 
-        #world.active_entities = world.total_entities
-
-        world.active_floor = world.total_floor
+        #world.active_floor = world.total_floor
         return world
 
     def main_loop(self):
