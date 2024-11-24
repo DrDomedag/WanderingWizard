@@ -302,7 +302,11 @@ class UI:
 
     def show_LoS_at_cursor(self):
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
-        tiles_to_highlight = self.world.get_visible_tiles(origin_tile)
+        #tiles_visible_from_origin = set(self.world.get_visible_tiles(origin_tile))
+        tiles_to_highlight = self.world.get_visible_tiles(origin_tile, treat_fow_as_wall=True)
+
+        #tiles_to_highlight = tiles_visible_from_origin.intersection(visible_tiles)
+
         #print(tiles_to_highlight)
         tile_sprite = self.world.assets["visible_tile"]
         for tile in tiles_to_highlight:

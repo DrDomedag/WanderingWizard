@@ -12,6 +12,7 @@ Teleporter tiles that just bring you somewhere nearby, or to a paired tile.
 PoIs
 FoW
 The "wait" action should give one "recovery turn" to a random spell per action used.
+Use the 'mazetest.py' algorithm to make a cave biome (good for tunnels) - combine with noise for irregularly shaped chambers.
 
 Implement a goblin shaman or something that casts Raise Longdead.
 

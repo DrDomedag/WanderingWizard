@@ -71,19 +71,18 @@ class PointOfInterest():
         self.world = world
         self.generation_coordinates = generation_coordinates
 
-
+        self.size = (3, 3)
         self.centre_tile = self.compute_centre_tile()
 
 
-    def return_size(self):
-        size = (3, 3)
-        return size
-
-    def draw(self, world, coordinates):
+    def draw(self, world):
         pass
 
 
     def compute_centre_tile(self):
         direction_from_player = compute_direction(self.world.game.pc.position, self.generation_coordinates)
-        centre_x = self.size
+        centre_x = self.generation_coordinates[0] + (self.size[0] // 2) * direction_from_player[0]
+        centre_y = self.generation_coordinates[1] + (self.size[1] // 2) * direction_from_player[1]
+        centre_tile = (centre_x, centre_y)
+        return centre_tile
 

@@ -220,7 +220,16 @@ class World:
         else:
             return False
 
-
+    def can_see_and_no_fow(self, x, y):
+        line_tiles = bresenham(x, y)
+        if x == y:
+            return True
+        for coords in line_tiles:
+            if self.active_walls[coords] is not None and coords != y:
+                return False
+            if not self.game.pc.can_see(coords):
+                return False
+        return True
 
     def can_see(self, x, y):
         line_tiles = bresenham(x, y)
@@ -231,12 +240,18 @@ class World:
                 return False
         return True
 
-    def get_visible_tiles(self, target):
+    def get_visible_tiles(self, target, treat_fow_as_wall=False):
         visible_tiles = []
-        for tile in self.active_floor.keys():
-            if self.can_see(target, tile):
-                visible_tiles.append(tile)
+        if treat_fow_as_wall:
+            for tile in self.active_floor.keys():
+                if self.can_see_and_no_fow(target, tile):
+                    visible_tiles.append(tile)
+        else:
+            for tile in self.active_floor.keys():
+                if self.can_see(target, tile):
+                    visible_tiles.append(tile)
         return visible_tiles
+
 
     def summon_entity(self, entity_class, count, target, allegiance):
         summoned_entities = 0
