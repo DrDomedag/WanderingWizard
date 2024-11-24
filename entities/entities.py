@@ -127,11 +127,10 @@ class Entity:
 
     def act(self):
         acted = False
-        #print(self.actives)
         actives = random.sample(self.actives, len(self.actives))
         actives.sort(key=lambda spell: spells.Spell.level)
         for active in actives:
-            if not active.should_cast():
+            if not active.should_cast() and active.current_charges > 0:
                 actives.remove(active)
         if len(actives) > 0:
             self.use_active(actives[0])
@@ -224,7 +223,9 @@ class Troll(Entity):
         self.passives.append(TrollRegen(self, self))
         self.asset_name = "troll"
         self.load_assets()
-        self.actives.append(spells.BluntMeleeAttack(self, power=5))
+        attack = spells.BluntMeleeAttack(self)
+        attack.power = 5
+        self.actives.append(attack)
 
 class Goblin(Entity):
     def __init__(self, world):
@@ -236,7 +237,9 @@ class Goblin(Entity):
         self.tags = [ENTITY_TAGS.LIVING]
         self.asset_name = "goblin"
         self.load_assets()
-        self.actives.append(spells.PiercingMeleeAttack(self, power=1))
+        attack = spells.PiercingMeleeAttack(self)
+        attack.power = 1
+        self.actives.append(attack)
 
 class Longdead(Entity):
     def __init__(self, world):
@@ -258,7 +261,9 @@ class Longdead(Entity):
 
         self.asset_name = "longdead"
         self.load_assets()
-        self.actives.append(spells.SlashingMeleeAttack(self, power=2))
+        attack = spells.SlashingMeleeAttack(self)
+        attack.power = 2
+        self.actives.append(attack)
 
 
 class Kindling(Entity):
@@ -277,6 +282,13 @@ class Kindling(Entity):
 
         self.asset_name = "kindling"
         self.load_assets()
-        self.actives.append(spells.BluntMeleeAttack(self, power=2))
-        self.actives.append(spells.FireSpit(self, power=3, range=4))
+
+        melee_attack = spells.BluntMeleeAttack(self)
+        melee_attack.power = 2
+        self.actives.append(melee_attack)
+
+        fire_spit = spells.FireSpit(self)
+        fire_spit.power = 3
+        fire_spit.range = 4
+        self.actives.append(fire_spit)
 

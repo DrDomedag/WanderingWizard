@@ -58,7 +58,7 @@ class Game:
         world.assets = self.assets
         self.pc = PC(world)
         self.pc.position = (0, 0)
-        self.pc_available_spell_list = PCAvailableSpellList(self.pc)
+        self.pc_available_spell_list = PCAvailableSpellList()
 
         # TEMP
         self.pc.actives.append(IronNeedle(self.pc))

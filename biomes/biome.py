@@ -64,3 +64,26 @@ class StarterBiome(Biome):
 
     def generate_wall_tile(self, coords):
         return None
+
+class PointOfInterest():
+    def __init__(self, world, generation_coordinates):
+        self.name="Unnamed Point of Interest"
+        self.world = world
+        self.generation_coordinates = generation_coordinates
+
+
+        self.centre_tile = self.compute_centre_tile()
+
+
+    def return_size(self):
+        size = (3, 3)
+        return size
+
+    def draw(self, world, coordinates):
+        pass
+
+
+    def compute_centre_tile(self):
+        direction_from_player = compute_direction(self.world.game.pc.position, self.generation_coordinates)
+        centre_x = self.size
+

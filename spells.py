@@ -5,7 +5,7 @@ import random
 
 
 class PCAvailableSpellList:
-    def __init__(self, pc):
+    def __init__(self):
         self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath, LightningBolt]
 
     def get_random_spells_of_tier(self, level, count):
@@ -32,7 +32,6 @@ class Spell:
         self.num_targets = 1
         self.action_cost = 2
         self.max_charges = 5
-        self.current_charges = self.max_charges
         self.duration = 0
         self.name = "Unnamed Spell"
         self.description = "Undescribed spell."
@@ -54,11 +53,19 @@ class Spell:
         self.can_target_void = True
         self.can_target_wall = True
 
+        self.should_target_enemies = True
         self.should_target_self = False
         self.should_target_allies = False
         self.should_target_empty = False
 
         self.on_init()
+
+        self.current_charges = self.max_charges
+        self.recovery_turns_left = self.recovery_time
+
+
+    def on_init(self):
+        pass
 
 
     def cast(self, target):
@@ -69,10 +76,6 @@ class Spell:
 
     def on_cast(self, target):
         pass
-
-    def on_init(self):
-        self.recovery_turns_left = self.recovery_time
-        self.current_charges = self.max_charges
 
     def get_targetable_tiles(self):
         targetable_tiles = []
@@ -126,6 +129,7 @@ class Spell:
         return True
 
     def should_cast(self):
+        # Since this belongs to the Spell class, weird spells can overwrite it.
         if self.should_target_self:
             return True
         if self.should_target_allies:
@@ -139,11 +143,12 @@ class Spell:
                 if self.caster.world.active_entities[target] is None:
                     if self.can_cast(target):
                         return True
-        for entity in self.caster.world.active_entities.values():
-            if entity is not None:
-                if entity.allegiance != self.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
-                    if self.can_cast(entity.position):
-                        return True
+        if self.should_target_enemies:
+            for entity in self.caster.world.active_entities.values():
+                if entity is not None:
+                    if entity.allegiance != self.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
+                        if self.can_cast(entity.position):
+                            return True
         return False
 
 
@@ -151,6 +156,7 @@ class IronNeedle(Spell):
     def __init__(self, caster):
         super().__init__(caster)
 
+    def on_init(self):
         self.power = 5
         self.range = 6
         self.action_cost = 1
@@ -162,11 +168,6 @@ class IronNeedle(Spell):
         self.upgrades = []
         self.recovery_time = 5
 
-        self.should_target_allies = False
-        self.should_target_empty = False
-
-        self.on_init()
-
     def on_cast(self, target):
         damage_tile(self.caster.world, self, target, self.power, DAMAGE_TYPES.PIERCING)
         if not self.caster.world.active_entities[target] is None:
@@ -177,6 +178,7 @@ class FireBreath(Spell):
     def __init__(self, caster):
         super().__init__(caster)
 
+    def on_init(self):
         self.power = 6
         self.range = 3
         self.action_cost = 2
@@ -187,11 +189,6 @@ class FireBreath(Spell):
         self.schools = [SCHOOLS.FIRE, SCHOOLS.SORCERY]
         self.upgrades = []
         self.recovery_time = 5
-
-        self.should_target_allies = False
-        self.should_target_empty = False
-
-        self.on_init()
 
     def on_cast(self, target):
         affected_tiles = compute_cone_tiles(self.caster.position, target, self.range + 0.5, include_origin_tile=False)
@@ -206,6 +203,7 @@ class SeismicJolt(Spell):
     def __init__(self, caster):
         super().__init__(caster)
 
+    def on_init(self):
         self.power = 9
         self.range = 0
         self.radius = 1
@@ -219,11 +217,9 @@ class SeismicJolt(Spell):
         self.upgrades = []
         self.recovery_time = 10
 
-        self.should_target_self = True
+        self.should_target_self = False
         self.should_target_allies = False
         self.should_target_empty = False
-
-        self.on_init()
 
     def can_target_tile(self, target):
         affected_tiles = disk(self.caster.position, self.radius, include_origin_tile=False)
@@ -247,6 +243,7 @@ class RaiseLongdead(Spell):
     def __init__(self, caster):
         super().__init__(caster)
 
+    def on_init(self):
         self.power = 5
         self.range = 1
         self.radius = 1
@@ -273,8 +270,6 @@ class RaiseLongdead(Spell):
         self.can_target_wall = False
 
         self.should_target_empty = True
-
-        self.on_init()
 
     def on_cast(self, target):
         entity_class = self.caster.world.game.available_entities["Longdead"]
@@ -312,11 +307,13 @@ class Heal(Spell):
 
 
 class BluntMeleeAttack(Spell):
-    def __init__(self, caster, power=2):
+    def __init__(self, caster):
         super().__init__(caster)
-        self.name = "Strike"
 
-        self.power = power
+    def on_init(self):
+        self.name = "Bludgeoning strike"
+        self.description = "Striking with a club, fist or similar implement to deal bludgeoning damage."
+        self.power = 2
         self.range = 1
         self.action_cost = 1
         self.max_charges = 100
@@ -324,37 +321,56 @@ class BluntMeleeAttack(Spell):
         self.schools = []
         self.recovery_time = 1
 
-        self.on_init()
-
     def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.BLUDGEONING)
 
-class SlashingMeleeAttack(BluntMeleeAttack):
+class SlashingMeleeAttack(Spell):
+    def on_init(self):
+        self.name = "Slashing strike"
+        self.description = "Striking with a sword, claw or similar implement to deal slashing damage."
+        self.power = 2
+        self.range = 1
+        self.action_cost = 1
+        self.max_charges = 100
+        self.level = 0
+        self.schools = []
+        self.recovery_time = 1
+
     def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.SLASHING)
 
-class PiercingMeleeAttack(BluntMeleeAttack):
+class PiercingMeleeAttack(Spell):
+    def on_init(self):
+        self.name = "Slashing strike"
+        self.description = "Striking with a dagger, arrow or similar implement to deal piercing damage."
+        self.power = 2
+        self.range = 1
+        self.action_cost = 1
+        self.max_charges = 100
+        self.level = 0
+        self.schools = []
+        self.recovery_time = 1
+
     def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)
 
 class FireSpit(Spell):
-    def __init__(self, caster, power=3, range=3):
+    def __init__(self, caster):
         super().__init__(caster)
 
-        self.power = power
+    def on_init(self):
+        self.power = 3
         self.range = range
         self.name = "Fire Spit"
         self.description = "A small spittle of fire that burns a single target at range."
         self.max_charges = 100
         self.recovery_time = 1
-
-        self.on_init()
 
 
     def on_cast(self, target):
@@ -364,6 +380,8 @@ class FireSpit(Spell):
 class LightningBolt(Spell):
     def __init__(self, caster):
         super().__init__(caster)
+
+    def on_init(self):
         self.power = 8
         self.range = 9
 
@@ -372,10 +390,8 @@ class LightningBolt(Spell):
         self.level = 1
         self.schools = [SCHOOLS.LIGHTNING, SCHOOLS.SORCERY]
         self.upgrades = []
-        self.recovery_time = \
+        self.recovery_time = 8
         self.max_charges = 14
-
-        self.on_init()
 
     def on_cast(self, target):
         affected_tiles = bresenham(self.caster.position, target)

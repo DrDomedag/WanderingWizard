@@ -2,6 +2,8 @@ import pygame
 import os
 import math
 from collections import defaultdict
+
+
 import entities.entities
 import util
 from util import *
@@ -65,6 +67,9 @@ class UI:
         #print(self.centre_x)
         #print(self.centre_y)
 
+        # Fill screen with black. Could change to a nice fog image or something later.
+        self.display.fill(COLOURS.BLACK)
+
         # Create new effects
         while len(self.world.effect_queue) > 0:
             effect_info = self.world.effect_queue.pop()
@@ -77,12 +82,12 @@ class UI:
         for tile_coords in self.world.active_floor.keys():
             #if world.calculate_distance(tile_coords, world.current_coordinates) < VISUAL_RANGE:
             tile = self.world.active_floor[tile_coords]
-            if tile is not None:
+            if tile is not None and self.world.game.pc.can_see(tile_coords):
                 self.display.blit(self.world.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
 
         # Render items
         for item_coords in self.world.active_walls.keys():
-            if self.world.total_items[item_coords] is not None:
+            if self.world.total_items[item_coords] is not None and self.world.game.pc.can_see(item_coords):
                 item = self.world.total_items[item_coords]
                 if item.layer == "item":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
@@ -90,7 +95,7 @@ class UI:
 
         # Render walls:
         for entity_coords in self.world.active_walls.keys():
-            if self.world.total_walls[entity_coords] is not None:
+            if self.world.total_walls[entity_coords] is not None and self.world.game.pc.can_see(entity_coords):
                 wall = self.world.total_walls[entity_coords]
                 if wall.layer == "wall":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
@@ -98,7 +103,7 @@ class UI:
 
         # Render entities
         for entity_coords in self.world.active_entities.keys():
-            if self.world.total_entities[entity_coords] is not None:
+            if self.world.total_entities[entity_coords] is not None and self.world.game.pc.can_see(entity_coords):
                 entity = self.world.total_entities[entity_coords]
                 if entity.layer == "entity":
                     entity.draw(self.display, self.tile_to_screen_coords(entity_coords))
@@ -150,7 +155,7 @@ class UI:
                     self.world.game.pc.current_actions -= 1
 
             # Walk on clicking distant tile
-            if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.game.pc.position, hovered_tile) > 1:
+            if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.game.pc.position, hovered_tile) > 1 and self.world.game.pc.can_see(hovered_tile):
                 path = util.find_path(self.world.game.pc, hovered_tile)
                 #print(path)
                 if len(path) > 0:
@@ -230,7 +235,7 @@ class UI:
         height = self.display.get_size()[1]
         bg_rect = pygame.Rect(left_end, 0, width, self.display.get_size()[1])
         pygame.draw.rect(self.display, COLOURS.BLACK, bg_rect)
-        if self.mouse_over_game_area:
+        if self.mouse_over_game_area and self.world.game.pc.can_see(hovered_tile):
             entity = self.world.active_entities[hovered_tile]
             if entity is None:
                 entity = self.world.active_walls[hovered_tile]

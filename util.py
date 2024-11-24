@@ -442,37 +442,14 @@ def backtranslate_coordinates(grid_coordinates, center_x, center_y, grid_size):
     return (grid_coordinates[0] + (center_x - grid_size),
             grid_coordinates[1] + (center_y - grid_size))
 
-'''
-def active_tiles_to_traversability_grid_old(entity, target):
-    #floor = world.active_floor
-    #walls = world.active_walls
-    #entities = world.active_entities
 
-    tr = entity.world.active_tile_range - 1 # This adjustment seems necessary, but that's probably only because my math is wrong somewhere else. We don't really need to path far beyond what we can see anyway.
-    world_side_length = 2 * tr
-    grid = [[0] * world_side_length] * world_side_length
+def compute_direction(origin, target):
+    direction = (target[0] - origin[0], target[1] - origin[1])
 
-    print(f"player coordinates: {entity.world.current_coordinates}, target: {target}, len(grid): {len(grid)}, len(grid[0]): {len(grid[0])}")
-
-
-    for x in range(len(grid)):
-        for y in range(len(grid)):
-            #print(f"x: {x}, y: {y}, current world coordinates: {entity.world.current_coordinates}")
-            #print(f"Computed coordinates: {(entity.world.current_coordinates[0] - tr + x, entity.world.current_coordinates[0] - tr + y)}")
-            #print(f"x: {x}, y: {y}, checking x: {entity.world.current_coordinates[0] - tr + x}, y: {entity.world.current_coordinates[1] - tr + y}")
-            world_x_to_check = entity.world.current_coordinates[0] - tr + x
-            world_y_to_check = entity.world.current_coordinates[1] - tr + y
-            grid[y][x] = 1 if entity.can_move((world_x_to_check, world_y_to_check)) else 0
-            print(f"Checking x: {world_x_to_check}, y: {world_y_to_check}, result: {grid[y][x]}")
-            #print(f"Can walk: {grid[x][y]}")
-    #print(grid)
-
-    # Pretty sure these are right now.
-    grid_position = (entity.position[0] - entity.world.current_coordinates[0] + tr, entity.position[1] - entity.world.current_coordinates[1] + tr)
-    grid_target = (target[0] - entity.world.current_coordinates[0] + tr, target[1] - entity.world.current_coordinates[1] + tr)
-
-    # Transpose grid?
-    #grid = list(map(list, zip(*grid)))
-
-    return grid, grid_position, grid_target
-'''
+    # Normalize the direction vector
+    direction_length = np.hypot(*direction)
+    if direction_length == 0:
+        return []
+        # raise ValueError("Target cannot be the same as the origin.")
+    unit_direction = (direction[0] / direction_length, direction[1] / direction_length)
+    return unit_direction
