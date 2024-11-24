@@ -36,6 +36,8 @@ class Game:
 
         self.world = self.new_game()
 
+
+
         self.available_entities = {
             "Longdead": entities.Longdead,
             "Goblin": entities.Goblin,
@@ -44,6 +46,7 @@ class Game:
         }
 
         self.ui = UI(display, self.world)
+
 
         self.world.set_current_active_tiles()
 
@@ -58,6 +61,8 @@ class Game:
         world.assets = self.assets
         self.pc = PC(world)
         self.pc.position = (0, 0)
+        world.total_entities[(0, 0)] = self.pc  # Dunno why it was so very wonky when I did this earlier, but i'm not going to complain that it works now.
+
         self.pc_available_spell_list = PCAvailableSpellList()
 
         # TEMP
@@ -66,9 +71,9 @@ class Game:
         self.pc.actives.append(SeismicJolt(self.pc))
         self.pc.actives.append(RaiseLongdead(self.pc))
         self.pc.actives.append(LightningBolt(self.pc))
+        self.pc.actives.append(PoisonMist(self.pc))
 
 
-        #world.active_floor = world.total_floor
         return world
 
     def main_loop(self):
@@ -79,10 +84,16 @@ class Game:
             #        sys.exit()
 
             print(f"Start of player turn. Player at coordinates {self.world.current_coordinates}")
+            self.tile_effects()
             self.player_turn()
             self.side_turn(ALLEGIANCES.PLAYER_TEAM)
             self.side_turn(ALLEGIANCES.ENEMY_TEAM)
 
+
+    def tile_effects(self):
+        for tile_effect in self.world.active_tile_effects:
+            if self.world.active_tile_effects[tile_effect] is not None:
+                self.world.active_tile_effects[tile_effect].start_of_turn()
 
     def player_turn(self):
         player_turn_ended = False

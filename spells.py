@@ -1,3 +1,4 @@
+import tile_effects
 from effects import *
 from util import *
 #import entities.entities as entities
@@ -221,11 +222,16 @@ class SeismicJolt(Spell):
         self.should_target_allies = False
         self.should_target_empty = False
 
+    # Overwriting this makes it so much faster
+    def get_targetable_tiles(self):
+        return disk(self.caster.position, self.radius, include_origin_tile=False)
+
     def can_target_tile(self, target):
         affected_tiles = disk(self.caster.position, self.radius, include_origin_tile=False)
         if target in affected_tiles:
             return True
         return False
+
 
     def on_cast(self, target):
         affected_tiles = disk(self.caster.position, self.radius, include_origin_tile=False)
@@ -378,9 +384,6 @@ class FireSpit(Spell):
         damage_entity(self, subject, self.power, DAMAGE_TYPES.FIRE)
 
 class LightningBolt(Spell):
-    def __init__(self, caster):
-        super().__init__(caster)
-
     def on_init(self):
         self.power = 8
         self.range = 9
@@ -399,11 +402,37 @@ class LightningBolt(Spell):
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.LIGHTNING)
 
-    def can_target_tile(self, target):
-        return self.caster.world.can_see(self.caster.position, target) and euclidean_distance(self.caster.position, target) < self.range
-
     def get_impacted_tiles(self, target):
         affected_tiles = bresenham(self.caster.position, target)
         affected_tiles.remove(self.caster.position)
         return affected_tiles
 
+
+class PoisonMist(Spell):
+    def on_init(self):
+        self.power = 2
+        self.range = 8
+        self.radius = 2
+        self.duration = 10
+
+        self.name = "Poison Mist"
+        self.description = f"Create a poisonous mist in a {self.radius} tile area for {self.duration} turns, dealing {self.power} damage to creatures within each turn."
+        self.level = 2
+        self.schools = [SCHOOLS.NATURE, SCHOOLS.WATER, SCHOOLS.AIR]
+        self.upgrades = []
+
+        self.recovery_time = 8
+        self.max_charges = 4
+
+    def on_cast(self, target):
+        affected_tiles = disk(target, self.radius, include_origin_tile=True)
+        for tile in affected_tiles:
+            tile = (int(tile[0]), int(tile[1]))
+            print(f"Trying to place mist at {tile}")
+            mist = tile_effects.PoisonMist(self.caster.world, self.caster, tile, True, self.duration)
+            print(mist.name)
+            self.caster.world.place_tile_effect(mist, tile)
+
+    def get_impacted_tiles(self, target):
+        affected_tiles = disk(target, self.radius, include_origin_tile=True)
+        return affected_tiles

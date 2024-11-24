@@ -205,6 +205,8 @@ class World:
             self.active_entities[target] = entity
             self.total_entities[target] = entity
             entity.position = target
+            if self.active_tile_effects[target] is not None:
+                self.active_tile_effects[target].on_enter_effect()
             return True
         else:
             return False
@@ -261,7 +263,7 @@ class World:
         while summoned_entities < count and current_range <= max_range:
             entity = entity_class(self)
             entity.allegiance = allegiance
-            proposed_tiles = disk(target, current_range, True)
+            proposed_tiles = disk(target, current_range, include_origin_tile=True)
             random.shuffle(proposed_tiles)
             placed = False
             while not placed and len(proposed_tiles) > 0:
@@ -278,5 +280,12 @@ class World:
             summoned_entities += 1
         return entities
 
-
+    def place_tile_effect(self, tile_effect, coordinates):
+        if self.total_tile_effects[coordinates] is None:
+            self.total_tile_effects[coordinates] = tile_effect
+            self.active_tile_effects[coordinates] = tile_effect
+        else:
+            if random.random() < 0.5:
+                self.total_tile_effects[coordinates] = tile_effect
+                self.active_tile_effects[coordinates] = tile_effect
 

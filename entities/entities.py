@@ -13,9 +13,6 @@ class Entity:
         self.world = world
 
         self.asset_name = "unknown"
-        self.asset = world.assets[self.asset_name]
-        self.idle_asset = [self.asset]
-        self.acting_asset = [self.asset]
         self.current_frame = 0
         self.animation_frames = 30
         self.asset_index = 0
@@ -25,7 +22,6 @@ class Entity:
         self.name = "Nameless Entity"
         self.description = "This entity cannot be described."
         self.max_hp = 10
-        self.hp = self.max_hp
         self.actives = []
         self.passives = []
         self.actions_per_round = 3
@@ -46,6 +42,24 @@ class Entity:
 
         self.expires = False
         self.duration = 0
+
+        self.on_init()
+
+        self.asset = world.assets[self.asset_name]
+        self.idle_asset = [self.asset]
+        self.acting_asset = [self.asset]
+
+        self.load_assets()
+
+        self.hp = self.max_hp
+
+        self.post_init()
+
+    def on_init(self):
+        pass
+
+    def post_init(self):
+        pass
 
     def load_assets(self):
         i = 1
@@ -188,6 +202,7 @@ class Entity:
 
     def on_expire(self):
         pass
+
     def end_of_turn(self):
         if self.expires:
             self.duration -= 1
@@ -199,6 +214,9 @@ class Entity:
 class PC(Entity):
     def __init__(self, world):
         super().__init__(world)
+
+    def on_init(self):
+
         self.name = "Wizard"
         self.max_hp = 50
         self.hp = self.max_hp
@@ -213,41 +231,37 @@ class PC(Entity):
         return self.world.move_player(target)
 
 class Troll(Entity):
-    def __init__(self, world):
-        super().__init__(world)
+
+    def on_init(self):
         self.name = "Troll"
         self.description = "Trolls are cunning beings whose wounds regenerate."
         self.max_hp = 30
-        self.hp = self.max_hp
         self.tags = [ENTITY_TAGS.LIVING]
         self.passives.append(TrollRegen(self, self))
         self.asset_name = "troll"
-        self.load_assets()
         attack = spells.BluntMeleeAttack(self)
         attack.power = 5
+        attack.name = "Fist"
         self.actives.append(attack)
 
 class Goblin(Entity):
-    def __init__(self, world):
-        super().__init__(world)
+    def on_init(self):
         self.name = "Goblin"
         self.description = "Goblins are barely sentient - the humanoid equivalent of an amoeba."
         self.max_hp = 5
-        self.hp = self.max_hp
         self.tags = [ENTITY_TAGS.LIVING]
         self.asset_name = "goblin"
         self.load_assets()
         attack = spells.PiercingMeleeAttack(self)
         attack.power = 1
+        attack.name = "Club"
         self.actives.append(attack)
 
 class Longdead(Entity):
-    def __init__(self, world):
-        super().__init__(world)
+    def on_init(self):
         self.name = "Longdead"
         self.description = "This is a person who died long ago, and whose bones were swallowed by the earth, now called to serve a necromancer."
         self.max_hp = 5
-        self.hp = self.max_hp
         self.tags = [ENTITY_TAGS.UNDEAD]
 
         self.resistances[DAMAGE_TYPES.BLUDGEONING] = -100
@@ -260,35 +274,32 @@ class Longdead(Entity):
         self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
 
         self.asset_name = "longdead"
-        self.load_assets()
         attack = spells.SlashingMeleeAttack(self)
+        attack.name = "Rusted knife"
         attack.power = 2
         self.actives.append(attack)
 
-
 class Kindling(Entity):
-    def __init__(self, world):
-        super().__init__(world)
+    def on_init(self):
         self.name = "Kindling"
         self.description = "Curious goblinoid creatures touched by the element of fire, the Kindling live in small packs and often worship flames at crude stone shrines."
         self.max_hp = 5
-        self.hp = self.max_hp
         self.tags = [ENTITY_TAGS.LIVING, ENTITY_TAGS.ELEMENTAL]
 
         self.resistances[DAMAGE_TYPES.FIRE] = 100
         self.resistances[DAMAGE_TYPES.COLD] = -100
         self.resistances[DAMAGE_TYPES.POISON] = 50
 
-
         self.asset_name = "kindling"
-        self.load_assets()
 
         melee_attack = spells.BluntMeleeAttack(self)
         melee_attack.power = 2
+        melee_attack.name = "Fist"
         self.actives.append(melee_attack)
 
         fire_spit = spells.FireSpit(self)
         fire_spit.power = 3
         fire_spit.range = 4
         self.actives.append(fire_spit)
+
 

@@ -72,9 +72,12 @@ class UI:
 
         # Create new effects
         while len(self.world.effect_queue) > 0:
-            effect_info = self.world.effect_queue.pop()
-            if effect_info[1] == SCHOOLS.FIRE:
-                new_sprite = ExplosionEffect(self.world, "fire", effect_info[0], self.ongoing_effects)
+            target_tile, effect_type = self.world.effect_queue.pop()
+
+            target_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
+
+            if effect_type == SCHOOLS.FIRE:
+                new_sprite = ExplosionEffect(self.world, "fire", target_coords, self.ongoing_effects)
                 self.ongoing_effects.add(new_sprite)
 
 
@@ -109,6 +112,15 @@ class UI:
                     entity.draw(self.display, self.tile_to_screen_coords(entity_coords))
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
                     #self.display.blit(self.assets[entity.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+
+        # Render tile effects:
+        for tile_effect_coords in self.world.active_tile_effects.keys():
+            if self.world.total_tile_effects[tile_effect_coords] is not None and self.world.game.pc.can_see(tile_effect_coords):
+                tile_effect_sprite = self.world.total_tile_effects[tile_effect_coords].sprite
+                screen_coords = self.tile_to_screen_coords(tile_effect_coords)
+                tile_effect_sprite.update()
+                tile_effect_sprite.draw(self.display, screen_coords)
+
 
         # Update and render effects
         self.ongoing_effects.update()
@@ -163,17 +175,9 @@ class UI:
                         self.world.game.pc.current_actions -= 1
 
         if self.scroll_down and len(self.world.game.pc.actives) > 0:
-            if self.selected_spell == None:
-                self.selected_spell = self.world.game.pc.actives[0]
-            elif self.world.game.pc.actives.index(self.selected_spell) + 1 >= len(self.world.game.pc.actives):
-                self.selected_spell = self.world.game.pc.actives[0]
-            else:
-                self.selected_spell = self.world.game.pc.actives[self.world.game.pc.actives.index(self.selected_spell) + 1]
+            self.select_next_spell()
         if self.scroll_up:
-            if self.selected_spell == None:
-                self.selected_spell = self.world.game.pc.actives[-1]
-            else:
-                self.selected_spell = self.world.game.pc.actives[self.world.game.pc.actives.index(self.selected_spell) - 1]
+            self.select_previous_spell()
 
 
         # Draw menus
@@ -190,10 +194,26 @@ class UI:
 
         self.clock.tick(60)
 
+    def select_next_spell(self):
+        if self.selected_spell == None:
+            self.selected_spell = self.world.game.pc.actives[0]
+        elif self.world.game.pc.actives.index(self.selected_spell) + 1 >= len(self.world.game.pc.actives):
+            self.selected_spell = self.world.game.pc.actives[0]
+        else:
+            self.selected_spell = self.world.game.pc.actives[self.world.game.pc.actives.index(self.selected_spell) + 1]
 
-    def tile_to_screen_coords(self, coords):
+    def select_previous_spell(self):
+        if self.selected_spell == None:
+            self.selected_spell = self.world.game.pc.actives[-1]
+        else:
+            self.selected_spell = self.world.game.pc.actives[self.world.game.pc.actives.index(self.selected_spell) - 1]
+
+    def tile_to_screen_coords(self, coords, offset_by_half_a_tile=False):
         x = self.SPRITE_SIZE * (coords[0] - self.world.current_coordinates[0]) + self.centre_x
         y = self.SPRITE_SIZE * (coords[1] - self.world.current_coordinates[1]) + self.centre_y
+        if offset_by_half_a_tile:
+            x += self.SPRITE_SIZE//2
+            y += self.SPRITE_SIZE//2
         coords = (x, y)
         return coords
 
@@ -442,6 +462,8 @@ class ExplosionEffect(pygame.sprite.Sprite):
                 self.image = self.sprite[self.current_frame]
                 self.rect = self.image.get_rect(center=self.position)
 
+
+# Consider moving this into the UI class. It works fine like this, tbf.
 def blit_text(surface, text, pos, font, color=pygame.Color('black')):
     words = [word.split(' ') for word in text.splitlines()]  # 2D array where each row is a list of words.
     space = font.size(' ')[0]  # The width of a space.

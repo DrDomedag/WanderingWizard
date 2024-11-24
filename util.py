@@ -49,7 +49,7 @@ SCHOOLS = Tags(
     METAL=7,
     WATER=8,
     ICE=9,
-    WIND=10,
+    AIR=10,
     LIGHTNING=11,
     FIRE=12,
     NATURE=13,
@@ -71,7 +71,7 @@ SCHOOL_NAMES = [
     "Metal",
     "Water",
     "Ice",
-    "Wind",
+    "Air",
     "Lightning",
     "Fire",
     "Nature",
@@ -175,11 +175,19 @@ def bresenham(a, b):
 
     return paired_coordinates
 
-def disk(target, radius, include_origin_tile=False):
+def disk(target, radius, include_origin_tile=True):
     xs, ys = skimage.draw.disk(target, radius + 0.5)
+    xs = xs.astype(int)
+    ys = ys.astype(int)
     tiles = list(zip(xs, ys))
+
     if not include_origin_tile:
-        tiles.remove(target)
+        final_list = []
+        for tile in tiles:
+            if tile != target:
+                final_list.append(tile)
+        return final_list
+#        tiles.remove(target)
     return tiles
 
 #def compute_cone_tiles(grid_size, origin, target, radius, angle=45):

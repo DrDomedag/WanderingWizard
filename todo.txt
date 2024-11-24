@@ -10,12 +10,14 @@ Figure out why disks (Seismic Jolt) are so laggy.
 Doors!
 Teleporter tiles that just bring you somewhere nearby, or to a paired tile.
 PoIs
-FoW
 The "wait" action should give one "recovery turn" to a random spell per action used.
 Use the 'mazetest.py' algorithm to make a cave biome (good for tunnels) - combine with noise for irregularly shaped chambers.
 
 Implement a goblin shaman or something that casts Raise Longdead.
 
+Consider implementing *another* dict that remembers tiles you have seen to make FoW not regenerate. Update the show_los function to use this.
+
+Figure out why Seismic Jolt is *so slow* when Poison Mist isn't.
 
 Things that are 'implemented' but do not currently work:
 
@@ -54,9 +56,6 @@ Pay health to fire one of your own bones. Short range.
 
 Banish
 Instantly unmake a summoned creature.
-
-Flickerstep
-Move two squares per step, ignoring intervening walls/entities.
 
 Haste
 Air + Enchantment
@@ -112,6 +111,42 @@ Turns Chasm tiles in a square area into stone floor.
 Form of the Fish
 Water + Transmutation
 Turn into a fish, gaining the ability to swim but losing the ability to walk.
+
+Corpse Stench
+Death + Nature?
+Give an undead ally a poison aura.
+
+Poison Mist
+Nature + Water
+Create a cloud that deals poison damage to all creatures that enter it.
+
+Scry
+Astral?
+Give line of sight of all tiles in area.
+
+Borrow Senses
+Nature + Astral?
+Grant line of sight from a minion.
+
+Sense Evil
+Holy
+Grant line of sight of all undead and demonic creatures.
+
+Echolocation
+Nature + Transmutation
+Show the position of all entities, without actually granting line of sight.
+
+Cleansing Wind
+Holy + Air
+Remove all tile effects in the area
+
+Conjure Rust Monster
+Water + Nature + Conjuration
+A monster that deals damage to metal enemies (enemies of nature) in a radius each turn.
+
+Animate Tree
+Nature
+Turns a tree into a treant. The tree stats/abilities depend on the base tree.
 
 
 # Theme ideas:
