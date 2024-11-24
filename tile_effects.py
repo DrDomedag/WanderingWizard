@@ -35,8 +35,8 @@ class TileEffect:
         if self.expires:
             self.duration -= 1
             if self.duration <= 0:
-                self.world.total_tile_effects = None
-                self.world.active_tile_effects = None
+                self.world.total_tile_effects[self.position] = None
+                self.world.active_tile_effects[self.position] = None
                 del self
 
     def draw(self, display, screen_coordinates):
@@ -99,32 +99,41 @@ class ShimmeringSprite(pygame.sprite.Sprite):
 '''
 
 class ShimmeringSprite(pygame.sprite.Sprite):
-    def __init__(self, asset, hue, animation_speed=1, hue_range=50):
+    def __init__(self, asset, hue, hue_change_speed=4, lightness_change_speed=4, hue_range=50, lightness_base=50, lightness_range=10):
         super().__init__()
 
         self.asset = asset  # Original asset image
         self.base_hue = hue
-        self.animation_speed = animation_speed
+        self.hue_change_speed = hue_change_speed
         self.hue_range = hue_range
+        self.lightness_change_speed = lightness_change_speed
+        self.lightness_base = lightness_base
+        self.lightness_range = lightness_range
 
         self.image = self.asset.copy()  # Image used for drawing
         self.rect = self.image.get_rect()
 
         self.colour_image = pygame.Surface(self.asset.get_size(), pygame.SRCALPHA).convert_alpha()
-        self.frame_counter = 0
+
+        self.current_hue_mod_counter = 0
+        self.current_lightness_mod_counter = 0
 
     def update(self):
         """
         Update the sprite's hue variation.
         """
-        self.frame_counter += self.animation_speed
+        self.current_hue_mod_counter += self.hue_change_speed
+        self.current_lightness_mod_counter += self.lightness_change_speed
 
         # Compute the dynamic hue based on sine oscillation
-        hue_mod = (math.sin(self.frame_counter / 60) * self.hue_range + self.base_hue) % 360
+        # The division by 60 is extremely arbitrary.
+        hue_mod = (math.sin(self.current_hue_mod_counter / 60) * self.hue_range + self.base_hue) % 360
+        lightness_mod = (math.sin(self.current_lightness_mod_counter / 60) * self.lightness_range + self.lightness_base)
+
 
         # Generate a color with the computed hue
         color = pygame.Color(0)
-        color.hsla = (hue_mod, 100, 50, 100)
+        color.hsla = (hue_mod, 100, lightness_mod, 100)
 
         # Fill the color image with the hue-modified color
         self.colour_image.fill(color)
