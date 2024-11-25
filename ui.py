@@ -295,48 +295,49 @@ class UI:
 
                 if entity != self.world.game.pc:
                     # Show abilities
-                    for passive in entity.passives:
-                        name = self.font_20.render(f"{passive.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-                        nameRect = name.get_rect()
-                        nameRect.center = (left_end + width // 2, vertical_offset)
-                        self.display.blit(name, nameRect)
-                        vertical_offset += 30
-                        vertical_offset = blit_text(self.display, passive.description,
-                                                    (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+                    if len(entity.passives) > 0:
+                        for passive in entity.passives:
+                            name = self.font_20.render(f"{passive.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                            nameRect = name.get_rect()
+                            nameRect.center = (left_end + width // 2, vertical_offset)
+                            self.display.blit(name, nameRect)
+                            vertical_offset += 30
+                            vertical_offset = blit_text(self.display, passive.description,
+                                                        (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+                    if len(entity.passives) > 0:
+                        for active in entity.actives:
+                            name = self.font_20.render(f"{active.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                            nameRect = name.get_rect()
+                            nameRect.center = (left_end + width // 2, vertical_offset)
+                            self.display.blit(name, nameRect)
+                            vertical_offset += 30
 
-                    for active in entity.actives:
-                        name = self.font_20.render(f"{active.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-                        nameRect = name.get_rect()
-                        nameRect.center = (left_end + width // 2, vertical_offset)
-                        self.display.blit(name, nameRect)
-                        vertical_offset += 30
+                            power = self.font_14.render(f"Power: {active.power}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                            power_rect = name.get_rect()
+                            power_rect.center = (left_end + width // 2, vertical_offset)
+                            self.display.blit(power, power_rect)
+                            vertical_offset += 16
 
-                        power = self.font_14.render(f"Power: {active.power}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-                        power_rect = name.get_rect()
-                        power_rect.center = (left_end + width // 2, vertical_offset)
-                        self.display.blit(power, power_rect)
-                        vertical_offset += 16
+                            active_range = self.font_14.render(f"Range: {active.range}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                            active_range_rect = name.get_rect()
+                            active_range_rect.center = (left_end + width // 2, vertical_offset)
+                            self.display.blit(active_range, active_range_rect)
+                            vertical_offset += 16
 
-                        active_range = self.font_14.render(f"Range: {active.range}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-                        active_range_rect = name.get_rect()
-                        active_range_rect.center = (left_end + width // 2, vertical_offset)
-                        self.display.blit(active_range, active_range_rect)
-                        vertical_offset += 16
+                            action_cost = self.font_14.render(f"Action cost:", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                            action_cost_rect = name.get_rect()
+                            action_cost_rect.center = (left_end + width // 2, vertical_offset)
+                            self.display.blit(action_cost, action_cost_rect)
 
-                        action_cost = self.font_14.render(f"Action cost:", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-                        action_cost_rect = name.get_rect()
-                        action_cost_rect.center = (left_end + width // 2, vertical_offset)
-                        self.display.blit(action_cost, action_cost_rect)
+                            for i in range(active.action_cost):
+                                if i >= entity.current_actions:
+                                    self.display.blit(full_crystal, (left_end + (width // 2) + 40 + i * 30, vertical_offset - 15))
 
-                        for i in range(active.action_cost):
-                            if i >= entity.current_actions:
-                                self.display.blit(full_crystal, (left_end + (width // 2) + 40 + i * 30, vertical_offset - 15))
+                            vertical_offset += 20
 
-                        vertical_offset += 20
-
-                        vertical_offset = blit_text(self.display, active.description,
-                                                    (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
-                        vertical_offset += 50
+                            vertical_offset = blit_text(self.display, active.description,
+                                                        (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+                            vertical_offset += 50
 
 
 
