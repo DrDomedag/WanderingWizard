@@ -304,7 +304,7 @@ class UI:
                             vertical_offset += 30
                             vertical_offset = blit_text(self.display, passive.description,
                                                         (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
-                    if len(entity.passives) > 0:
+                    if len(entity.actives) > 0:
                         for active in entity.actives:
                             name = self.font_20.render(f"{active.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                             nameRect = name.get_rect()
