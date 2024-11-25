@@ -49,7 +49,7 @@ class PoisonMist(TileEffect):
     def on_init(self):
         self.potency = 2
         self.name = "Poison Mist"
-        self.description = f"This mist deals {self.potency} damage to each creature in it at the start of each turn."
+        self.description = f"This mist deals {self.potency} poison damage to each creature in it at the start of each turn."
         self.asset_name = "mist"
 
 

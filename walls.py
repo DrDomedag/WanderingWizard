@@ -6,6 +6,7 @@ class Wall(Entity):
         super().__init__(world)
         self.layer = "wall"
         self.name = "Wall"
+        self.description = "A wall."
         self.walkable = False
         self.max_hp = 50
         self.hp = self.max_hp
@@ -18,6 +19,7 @@ class StoneWall(Wall):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Stone Wall"
+        self.description = "A solid stone wall."
         self.max_hp = 100
         self.hp = self.max_hp
         self.asset = "stone_wall"
@@ -39,6 +41,7 @@ class WoodWall(Wall):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Wooden Wall"
+        self.description = "A wall of sturdy wood."
         self.max_hp = 50
         self.hp = self.max_hp
         self.asset = "wood_wall"
@@ -58,6 +61,7 @@ class Tree(WoodWall):
     def __init__(self, world):
         super().__init__(world)
         self.name = "Tree"
+        self.description = "A tree of a type common in the area."
         self.max_hp = 25
         self.hp = self.max_hp
         self.asset = "tree"

@@ -254,7 +254,7 @@ class Goblin(Entity):
         self.load_assets()
         attack = spells.PiercingMeleeAttack(self)
         attack.power = 1
-        attack.name = "Club"
+        attack.name = "Crude Spear"
         self.actives.append(attack)
 
 class Longdead(Entity):

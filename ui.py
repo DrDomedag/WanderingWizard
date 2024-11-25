@@ -3,6 +3,7 @@ import os
 import math
 from collections import defaultdict
 
+from Tools.scripts.verify_ensurepip_wheels import verify_wheel
 
 import entities.entities
 import util
@@ -256,22 +257,25 @@ class UI:
         bg_rect = pygame.Rect(left_end, 0, width, self.display.get_size()[1])
         pygame.draw.rect(self.display, COLOURS.BLACK, bg_rect)
         if self.mouse_over_game_area and self.world.game.pc.can_see(hovered_tile):
+            vertical_offset = 30
             entity = self.world.active_entities[hovered_tile]
             if entity is None:
                 entity = self.world.active_walls[hovered_tile]
             if entity is not None:
                 name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                 nameRect = name.get_rect()
-                nameRect.center = (left_end + width // 2, 30)
+                nameRect.center = (left_end + width // 2, vertical_offset)
+                vertical_offset += 30
                 self.display.blit(name, nameRect)
-                if entity.hp < 25:
+                if entity.hp <= entity.max_hp // 4:
                     hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
-                elif entity.hp < 50:
+                elif entity.hp <= entity.max_hp // 2:
                     hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
                 else:
                     hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                 hpRect = hp.get_rect()
-                hpRect.center = (left_end + width // 2, 60)
+                hpRect.center = (left_end + width // 2, vertical_offset)
+                vertical_offset += 30
                 self.display.blit(hp, hpRect)
 
                 # Action crystals
@@ -280,22 +284,86 @@ class UI:
                 for i in range(entity.actions_per_round):
                     if i >= entity.current_actions:
                         # Render empty action crystal
-                        self.display.blit(empty_crystal, (left_end + i * 30, 90))
+                        self.display.blit(empty_crystal, (left_end + i * 30, vertical_offset))
                     else:
                         # Render full action crystal
-                        self.display.blit(full_crystal, (left_end + i * 30, 90))
+                        self.display.blit(full_crystal, (left_end + i * 30, vertical_offset))
+                vertical_offset += 40
+                vertical_offset = blit_text(self.display, entity.description,
+                                            (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+                vertical_offset += 20
+
+                if entity != self.world.game.pc:
+                    # Show abilities
+                    for passive in entity.passives:
+                        name = self.font_20.render(f"{passive.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                        nameRect = name.get_rect()
+                        nameRect.center = (left_end + width // 2, vertical_offset)
+                        self.display.blit(name, nameRect)
+                        vertical_offset += 30
+                        vertical_offset = blit_text(self.display, passive.description,
+                                                    (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+
+                    for active in entity.actives:
+                        name = self.font_20.render(f"{active.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                        nameRect = name.get_rect()
+                        nameRect.center = (left_end + width // 2, vertical_offset)
+                        self.display.blit(name, nameRect)
+                        vertical_offset += 30
+
+                        power = self.font_14.render(f"Power: {active.power}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                        power_rect = name.get_rect()
+                        power_rect.center = (left_end + width // 2, vertical_offset)
+                        self.display.blit(power, power_rect)
+                        vertical_offset += 16
+
+                        active_range = self.font_14.render(f"Range: {active.range}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                        active_range_rect = name.get_rect()
+                        active_range_rect.center = (left_end + width // 2, vertical_offset)
+                        self.display.blit(active_range, active_range_rect)
+                        vertical_offset += 16
+
+                        action_cost = self.font_14.render(f"Action cost:", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                        action_cost_rect = name.get_rect()
+                        action_cost_rect.center = (left_end + width // 2, vertical_offset)
+                        self.display.blit(action_cost, action_cost_rect)
+
+                        for i in range(active.action_cost):
+                            if i >= entity.current_actions:
+                                self.display.blit(full_crystal, (left_end + (width // 2) + 40 + i * 30, vertical_offset - 15))
+
+                        vertical_offset += 20
+
+                        vertical_offset = blit_text(self.display, active.description,
+                                                    (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+                        vertical_offset += 50
+
+
+
+
             if entity is None:
                 entity = self.world.active_floor[hovered_tile]
                 if entity is not None:
                     name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                     nameRect = name.get_rect()
-                    nameRect.center = (left_end + width // 2, 30)
+                    nameRect.center = (left_end + width // 2, vertical_offset)
                     self.display.blit(name, nameRect)
+                    vertical_offset += 30
                     type = self.font_32.render(f"{entity.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                     typeRect = type.get_rect()
-                    typeRect.center = (left_end + width // 2, 60)
+                    typeRect.center = (left_end + width // 2, vertical_offset)
                     self.display.blit(type, typeRect)
+                    vertical_offset += 40
                     # Would be cool with boots/fins/wings icons here to show passability using these different types of movement.
+            hovered_tile_effect = self.world.active_tile_effects[hovered_tile]
+            if hovered_tile_effect is not None:
+                name = self.font_32.render(f"{hovered_tile_effect.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                nameRect = name.get_rect()
+                nameRect.center = (left_end + width // 2, vertical_offset)
+                self.display.blit(name, nameRect)
+                vertical_offset += 40
+                vertical_offset = blit_text(self.display, hovered_tile_effect.description, (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+
         else:
             if self.hovered_spell is not None:
                 vertical_offset = 30
@@ -317,7 +385,7 @@ class UI:
                 vertical_offset += 40
                 self.display.blit(descr, descrRect)
                 '''
-                pos = (left_end + width // 2, vertical_offset)
+                pos = (left_end + 5, vertical_offset)
                 blit_text(self.display, self.hovered_spell.description, pos, self.font_14, color=COLOURS.GRAY)
 
     def show_LoS_at_cursor(self):
@@ -480,3 +548,4 @@ def blit_text(surface, text, pos, font, color=pygame.Color('black')):
             x += word_width + space
         x = pos[0]  # Reset the x.
         y += word_height  # Start on new row.
+    return y

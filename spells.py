@@ -317,7 +317,7 @@ class BluntMeleeAttack(Spell):
         super().__init__(caster)
 
     def on_init(self):
-        self.name = "Bludgeoning strike"
+        self.name = "Bludgeoning Strike"
         self.description = "Striking with a club, fist or similar implement to deal bludgeoning damage."
         self.power = 2
         self.range = 1
@@ -334,7 +334,7 @@ class BluntMeleeAttack(Spell):
 
 class SlashingMeleeAttack(Spell):
     def on_init(self):
-        self.name = "Slashing strike"
+        self.name = "Slashing Strike"
         self.description = "Striking with a sword, claw or similar implement to deal slashing damage."
         self.power = 2
         self.range = 1
@@ -351,7 +351,7 @@ class SlashingMeleeAttack(Spell):
 
 class PiercingMeleeAttack(Spell):
     def on_init(self):
-        self.name = "Slashing strike"
+        self.name = "Piercing Strike"
         self.description = "Striking with a dagger, arrow or similar implement to deal piercing damage."
         self.power = 2
         self.range = 1
@@ -428,9 +428,7 @@ class PoisonMist(Spell):
         affected_tiles = disk(target, self.radius, include_origin_tile=True)
         for tile in affected_tiles:
             tile = (int(tile[0]), int(tile[1]))
-            print(f"Trying to place mist at {tile}")
             mist = tile_effects.PoisonMist(self.caster.world, self.caster, tile, True, self.duration)
-            print(mist.name)
             self.caster.world.place_tile_effect(mist, tile)
 
     def get_impacted_tiles(self, target):

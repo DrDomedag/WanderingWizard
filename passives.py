@@ -8,7 +8,8 @@ CURSE = 2
 class Passive:
     def __init__(self, source, subject):
         self.duration = None
-        self.name = "Unnamed buff"
+        self.name = "Unnamed passive ability"
+        self.description = "This passive ability defies description."
         self.nature = BLESSING
         self.source = source
         self.subject = subject
@@ -51,8 +52,10 @@ class Passive:
 class TrollRegen(Passive):
     def __init__(self, source, subject):
         super().__init__(source, subject)
+        self.name = "Troll Regeneration"
         self.nature = INHERENT
         self.power = 5
+        self.description = f"This troll's wounds close at a terrifying rate, and it regains {self.power} hit points at the start of each of its turns."
 
     def start_of_turn_effect(self):
         heal(self.source, self.subject, self.power)
