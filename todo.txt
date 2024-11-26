@@ -17,10 +17,14 @@ Implement a goblin shaman or something that casts Raise Longdead.
 
 Consider implementing *another* dict that remembers tiles you have seen to make FoW not regenerate. Update the show_los function to use this.
 
-Figure out why Seismic Jolt is *so slow* when Poison Mist isn't.
+Create "fear" status effect that causes enemies to flee, make trolls suffer it when they take fire damage.
+
+Print resistances on mouseover'd enemies.
+
+
+
 
 Things that are 'implemented' but do not currently work:
-
 
 Pushing entities still doesn't work.
 Visual effects still do not work.   <---- IMPORTANT

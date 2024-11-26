@@ -1,4 +1,4 @@
-from effects import *
+import effects
 
 INHERENT = 0
 BLESSING = 1
@@ -33,7 +33,7 @@ class Passive:
     def end_of_turn_effect(self):
         pass
 
-    def on_suffer_damage_effect(self):
+    def on_suffer_damage_effect(self, source, amount, type):
         pass
 
     def on_deal_hit_effect(self):
@@ -58,6 +58,6 @@ class TrollRegen(Passive):
         self.description = f"This troll's wounds close at a terrifying rate, and it regains {self.power} hit points at the start of each of its turns."
 
     def start_of_turn_effect(self):
-        heal(self.source, self.subject, self.power)
+        effects.heal(self.source, self.subject, self.power)
 
 
