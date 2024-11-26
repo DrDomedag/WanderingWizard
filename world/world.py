@@ -2,6 +2,8 @@ import entities.entities as entities
 from collections import defaultdict
 import effects
 import random
+
+import util
 from util import *
 import math
 #from main import *
@@ -255,7 +257,7 @@ class World:
         return visible_tiles
 
 
-    def summon_entity(self, entity_class, count, target, allegiance):
+    def summon_entity_from_class(self, entity_class, count, target, allegiance):
         summoned_entities = 0
         max_range = 5
         current_range = 1
@@ -280,6 +282,19 @@ class World:
             summoned_entities += 1
         return entities
 
+    def summon_entities_from_instance(self, entity_group, target):
+        for entity in entity_group:
+            proposed_tiles = disk(target, 5, include_origin_tile=True)
+            random.shuffle(proposed_tiles)
+            placed = False
+            while not placed and len(proposed_tiles) > 0:
+                tile = proposed_tiles.pop()
+                if self.total_entities[tile] is None and entity.can_move(tile):
+                    entity.position = tile
+                    self.total_entities[tile] = entity
+                    self.active_entities[tile] = entity
+                    placed = True
+
     def place_tile_effect(self, tile_effect, coordinates):
         if self.total_tile_effects[coordinates] is None:
             self.total_tile_effects[coordinates] = tile_effect
@@ -288,4 +303,12 @@ class World:
             if random.random() < 0.5:
                 self.total_tile_effects[coordinates] = tile_effect
                 self.active_tile_effects[coordinates] = tile_effect
+
+    def place_monster_group(self, monster_group, coordinates):
+        direction_from_player = compute_direction(self.game.pc.position, coordinates)
+        print(f"direction_from_player: {direction_from_player}, self.game.pc.position: {self.game.pc.position}, target coordinates: {coordinates}")
+        target_x = coordinates[0] - 5 * direction_from_player[0]
+        target_y = coordinates[1] - 5 * direction_from_player[1]
+        target = (target_x, target_y)
+        self.summon_entities_from_instance(monster_group, target)
 

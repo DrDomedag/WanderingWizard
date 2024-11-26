@@ -19,7 +19,7 @@ def damage_entity(source, target, amount, type):
     return dealt_damage
 
 def summon_minions(spell, entity_class, number, target, duration=0):
-    summons = spell.caster.world.summon_entity(entity_class, number, target, spell.caster.allegiance)
+    summons = spell.caster.world.summon_entity_from_class(entity_class, number, target, spell.caster.allegiance)
     for summon in summons:
         summon.owner = spell.caster
         summon.max_hp = spell.minion_health

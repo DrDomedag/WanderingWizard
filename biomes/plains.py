@@ -2,6 +2,8 @@ import random
 from biomes.biome import Biome
 from floors import DryGrassFloorTile
 from walls import Tree
+import entities.entities as entities
+from util import *
 
 class Plains(Biome):
     def __init__(self, world, biome_id):
@@ -16,3 +18,11 @@ class Plains(Biome):
             return None
         else:
             return Tree(self.world)
+
+    def generate_entity(self, coords):
+        if random.random() < 0.98:
+            return None
+        else:
+            enemy = entities.Goblin(self.world)
+            enemy.allegiance = ALLEGIANCES.ENEMY_TEAM
+            return enemy

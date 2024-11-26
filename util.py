@@ -451,7 +451,7 @@ def backtranslate_coordinates(grid_coordinates, center_x, center_y, grid_size):
             grid_coordinates[1] + (center_y - grid_size))
 
 
-def compute_direction(origin, target):
+def compute_direction(origin, target, exact=False):
     direction = (target[0] - origin[0], target[1] - origin[1])
 
     # Normalize the direction vector
@@ -460,4 +460,6 @@ def compute_direction(origin, target):
         return []
         # raise ValueError("Target cannot be the same as the origin.")
     unit_direction = (direction[0] / direction_length, direction[1] / direction_length)
+    if not exact:
+        unit_direction = (math.floor(unit_direction[0]), math.floor(unit_direction[1]))
     return unit_direction

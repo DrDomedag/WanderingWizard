@@ -83,6 +83,6 @@ class PointOfInterest():
         direction_from_player = compute_direction(self.world.game.pc.position, self.generation_coordinates)
         centre_x = self.generation_coordinates[0] + (self.size[0] // 2) * direction_from_player[0]
         centre_y = self.generation_coordinates[1] + (self.size[1] // 2) * direction_from_player[1]
-        centre_tile = (centre_x, centre_y)
+        centre_tile = (int(centre_x), int(centre_y))
         return centre_tile
 

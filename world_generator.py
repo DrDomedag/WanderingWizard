@@ -44,10 +44,12 @@ Mushroom caverns
 Crystal caverns
 Catacombs
 
+Ruined city
+
 Jungle (dense trees)
 Swamp (difficult to traverse, lots of water tiles)
 Riverland (long streaks of water)
-Ocean/beach (definitely requires swimming ability)
+Ocean/beach (definitely requires swimming/flying ability)
 Canyon (winding paths)
 Plains (very open)
 Tundra (open and cold)

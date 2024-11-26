@@ -71,6 +71,19 @@ class HealingMist(TileEffect):
                 effects.heal(self, self.world.active_entities[self.position], self.potency)
 
 
+class Web(TileEffect):
+    def on_init(self):
+        self.name = "Web"
+        self.description = "A non-spider entering this web loses the remainder of their action points."
+        self.asset_name = "web"
+
+    def on_enter_effect(self):
+        if self.world.active_entities[self.position] is not None:
+            self.world.active_entities[self.position].current_actions = 0
+            self.world.active_tile_effects[self.position] = None
+            self.world.total_tile_effects[self.position] = None
+            del self
+
 '''
 class ShimmeringSprite(pygame.sprite.Sprite):
 

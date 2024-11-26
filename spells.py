@@ -68,6 +68,9 @@ class Spell:
     def on_init(self):
         pass
 
+    def get_relevant_stats(self):
+        return {}
+
 
     def cast(self, target):
         print(f"Cast {self.name} at {target}!")
@@ -168,6 +171,14 @@ class IronNeedle(Spell):
         self.schools = [SCHOOLS.METAL, SCHOOLS.SORCERY]
         self.upgrades = []
         self.recovery_time = 5
+
+    def get_relevant_stats(self):
+        return {"power": self.power,
+                "range": self.range,
+                "action_cost": self.action_cost,
+                "max_charges": self.max_charges,
+                "recovery_time": self.recovery_time
+                }
 
     def on_cast(self, target):
         damage_tile(self.caster.world, self, target, self.power, DAMAGE_TYPES.PIERCING)
