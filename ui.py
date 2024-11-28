@@ -87,7 +87,7 @@ class UI:
             #if world.calculate_distance(tile_coords, world.current_coordinates) < VISUAL_RANGE:
             tile = self.world.active_floor[tile_coords]
             if tile is not None and self.world.game.pc.can_see(tile_coords):
-                self.display.blit(self.world.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
+                self.display.blit(self.world.game.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
 
         # Render items
         for item_coords in self.world.active_walls.keys():
@@ -95,7 +95,7 @@ class UI:
                 item = self.world.total_items[item_coords]
                 if item.layer == "item":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    self.display.blit(self.world.assets[item.asset], self.tile_to_screen_coords(item_coords))
+                    self.display.blit(self.world.game.assets[item.asset], self.tile_to_screen_coords(item_coords))
 
         # Render walls:
         for entity_coords in self.world.active_walls.keys():
@@ -103,7 +103,7 @@ class UI:
                 wall = self.world.total_walls[entity_coords]
                 if wall.layer == "wall":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    self.display.blit(self.world.assets[wall.asset], self.tile_to_screen_coords(entity_coords))
+                    self.display.blit(self.world.game.assets[wall.asset], self.tile_to_screen_coords(entity_coords))
 
         # Render entities
         for entity_coords in self.world.active_entities.keys():
@@ -141,15 +141,15 @@ class UI:
                 self.show_LoS_at_cursor()
 
             # Just always highlight mouseover'd tile
-            self.display.blit(self.world.assets["target_tile"], self.tile_to_screen_coords(hovered_tile))
+            self.display.blit(self.world.game.assets["target_tile"], self.tile_to_screen_coords(hovered_tile))
 
             # Highlight affected tiles if holding down right mouse button
 
             if pygame.mouse.get_pressed(num_buttons=3)[2] and self.selected_spell is not None:
-                tile_sprite = self.world.assets["targetable_tile"]
+                tile_sprite = self.world.game.assets["targetable_tile"]
                 for tile in self.selected_spell.get_targetable_tiles():
                     self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
-                tile_sprite = self.world.assets["impacted_tile"]
+                tile_sprite = self.world.game.assets["impacted_tile"]
                 for tile in self.selected_spell.get_impacted_tiles(hovered_tile):
                     self.display.blit(tile_sprite, self.tile_to_screen_coords(tile))
 
@@ -232,8 +232,8 @@ class UI:
         self.display.blit(text, textRect)
 
         # Action crystals
-        full_crystal = self.world.assets["action_crystal_full"]
-        empty_crystal = self.world.assets["action_crystal_empty"]
+        full_crystal = self.world.game.assets["action_crystal_full"]
+        empty_crystal = self.world.game.assets["action_crystal_empty"]
         for i in range(self.world.game.pc.actions_per_round):
             if i >= self.world.game.pc.current_actions:
                 # Render empty action crystal
@@ -279,8 +279,8 @@ class UI:
                 self.display.blit(hp, hpRect)
 
                 # Action crystals
-                full_crystal = self.world.assets["action_crystal_full"]
-                empty_crystal = self.world.assets["action_crystal_empty"]
+                full_crystal = self.world.game.assets["action_crystal_full"]
+                empty_crystal = self.world.game.assets["action_crystal_empty"]
                 for i in range(entity.actions_per_round):
                     if i >= entity.current_actions:
                         # Render empty action crystal
@@ -397,7 +397,7 @@ class UI:
         #tiles_to_highlight = tiles_visible_from_origin.intersection(visible_tiles)
 
         #print(tiles_to_highlight)
-        tile_sprite = self.world.assets["visible_tile"]
+        tile_sprite = self.world.game.assets["visible_tile"]
         for tile in tiles_to_highlight:
             self.display.blit(tile_sprite, (
             self.SPRITE_SIZE * (tile[0] - self.world.current_coordinates[0]) + self.centre_x,

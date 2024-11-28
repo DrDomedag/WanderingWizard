@@ -4,7 +4,7 @@ from floors import *
 from util import *
 import entities.entities as entities
 
-class Biome():
+class Biome:
     def __init__(self, world, biome_id):
         self.world = world
         self.biome_id = biome_id
@@ -19,9 +19,9 @@ class Biome():
 
     def generate_floor_tile(self, coords):
         if random.random() < 0.9:
-            return DirtFloorTile()
+            return DirtFloorTile(self.world)
         else:
-            return WaterFloorTile()
+            return WaterFloorTile(self.world)
 
     def generate_wall_tile(self, coords):
         if random.random() < 0.9:
@@ -50,7 +50,12 @@ class StarterBiome(Biome):
         self.name = "Starter biome"
 
     def generate_floor_tile(self, coords):
-        return DirtFloorTile()
+        from world.world import World
+        if random.random() < 0.98:
+            return DirtFloorTile(self.world)
+        else:
+            return Portal(self.world, World(self.world.game), coords)
+            # home_world, home_world_coordinates, away_world_coordinates=(0, 0), paired_portal=None
 
     def intensity_weight(self, coords):
         return 1

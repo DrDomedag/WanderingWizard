@@ -45,7 +45,7 @@ class Entity:
 
         self.on_init()
 
-        self.asset = world.assets[self.asset_name]
+        self.asset = world.game.assets[self.asset_name]
         self.idle_asset = [self.asset]
         self.acting_asset = [self.asset]
 
@@ -63,16 +63,16 @@ class Entity:
 
     def load_assets(self):
         i = 1
-        if self.world.assets[f"{self.asset_name}_idle_{i}"]:
+        if self.world.game.assets[f"{self.asset_name}_idle_{i}"]:
             self.idle_asset = []
-            while self.world.assets[f"{self.asset_name}_idle_{i}"]:
-                self.idle_asset.append(self.world.assets[f"{self.asset_name}_idle_{i}"])
+            while self.world.game.assets[f"{self.asset_name}_idle_{i}"]:
+                self.idle_asset.append(self.world.game.assets[f"{self.asset_name}_idle_{i}"])
                 i += 1
         i = 1
-        if self.world.assets[f"{self.asset_name}_acting_{i}"]:
+        if self.world.game.assets[f"{self.asset_name}_acting_{i}"]:
             self.acting_asset = []
-            while self.world.assets[f"{self.asset_name}_acting_{i}"]:
-                self.acting_asset.append(self.world.assets[f"{self.asset_name}_acting_{i}"])
+            while self.world.game.assets[f"{self.asset_name}_acting_{i}"]:
+                self.acting_asset.append(self.world.game.assets[f"{self.asset_name}_acting_{i}"])
                 i += 1
 
 

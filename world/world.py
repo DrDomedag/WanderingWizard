@@ -209,6 +209,7 @@ class World:
             entity.position = target
             if self.active_tile_effects[target] is not None:
                 self.active_tile_effects[target].on_enter_effect()
+            self.active_floor[target].on_enter_effect(entity)
             return True
         else:
             return False

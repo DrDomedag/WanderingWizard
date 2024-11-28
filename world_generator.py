@@ -113,7 +113,10 @@ class WorldGenerator():
         tile = {}
         tile["floor"] = biome.generate_floor_tile(coords)
         tile["wall"] = biome.generate_wall_tile(coords)
-        tile["entity"] = biome.generate_entity(coords)
+        if self.world.game.enemy_spawns_enabled:
+            tile["entity"] = biome.generate_entity(coords)
+        else:
+            tile["entity"] = None
         tile["tile_effect"] = biome.generate_tile_effect(coords)
         tile["item"] = biome.generate_item(coords)
         return tile

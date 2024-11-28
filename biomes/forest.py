@@ -19,7 +19,7 @@ class Forest(Biome):
 
 
     def generate_floor_tile(self, coords):
-        return DirtFloorTile()
+        return DirtFloorTile(self.world)
 
     def generate_wall_tile(self, coords):
         if random.random() < 0.8:

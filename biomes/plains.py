@@ -11,7 +11,7 @@ class Plains(Biome):
         self.name = "Plains"
 
     def generate_floor_tile(self, coords):
-        return DryGrassFloorTile()
+        return DryGrassFloorTile(self.world)
 
     def generate_wall_tile(self, coords):
         if random.random() < 0.99:

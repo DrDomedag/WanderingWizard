@@ -8,11 +8,15 @@ import entities.entities as entities
 
 
 class Game:
-    def __init__(self):
-        pygame.init()
+    def __init__(self, display):
+
+        # Debug settings
+        self.enemy_spawns_enabled = False
+
+        #pygame.init()
         # display = pygame.display.set_mode((800, 600))
-        display = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.current_display_size = display.get_size()
+        self.display = display
+        self.current_display_size = self.display.get_size()
         #print(f"current_display_size: {current_display_size}")
         pygame.display.set_caption('Wandering Wizard')
 
