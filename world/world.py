@@ -155,7 +155,8 @@ class World:
                 item.on_pickup()
             visible_tiles = self.get_visible_tiles(self.game.pc.position)
             for tile in visible_tiles:
-                self.has_seen[tile] = True
+                if chebyshev_distance(self.game.pc.position, tile) <= 18: # 18 is the number of tiles that are actually shown with the current settings, though I imagine it's actually resolution dependent. Ah, well. Fix it if it needs fixing later.
+                    self.has_seen[tile] = True
             return True
         return False
 

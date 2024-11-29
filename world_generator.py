@@ -96,6 +96,9 @@ class WorldGenerator():
         for biome_name, biome_id in BIOME_IDS.__dict__.items():
             self.biomes[biome_id] = BIOMES[biome_id](self.world, biome_id)
 
+    def get_biome_object_from_tile(self, coordinates):
+        biome_id = self.get_biome_id(coordinates)
+        return self.biomes[biome_id]
 
     def get_biome_id(self, coords):
 

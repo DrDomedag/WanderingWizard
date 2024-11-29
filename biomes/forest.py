@@ -20,6 +20,7 @@ class Forest(biome.Biome):
         self.poi_spawn_rate = 0.0005
         self.pois.append(ShamanHut)
         self.poi_weights.append(1)
+        self.fow_colour = (255, 255, 255)
 
 
     def generate_floor_tile(self, coords):

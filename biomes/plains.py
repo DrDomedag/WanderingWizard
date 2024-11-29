@@ -15,6 +15,7 @@ class Plains(Biome):
         self.monster_group_weights.append(1)
         self.monster_group_spawn_probability = 0.002
         self.poi_spawn_rate = 0.0
+        self.fow_colour = (255, 255, 255)
 
     def generate_floor_tile(self, coords):
         return DryGrassFloorTile(self.world, coords)

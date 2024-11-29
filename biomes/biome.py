@@ -16,6 +16,7 @@ class Biome:
         self.poi_spawn_rate = 0.0
         self.pois = []
         self.poi_weights = []
+        self.fow_colour = (255, 255, 255)
 
     def intensity_weight(self, coords):
         return 1
@@ -74,6 +75,7 @@ class StarterBiome(Biome):
         super().__init__(world, biome_id)
         self.name = "Starter biome"
         self.monster_group_spawn_probability = 0
+        self.fow_colour = (255, 255, 255)
 
     def generate_floor_tile(self, coords):
         from world.world import World

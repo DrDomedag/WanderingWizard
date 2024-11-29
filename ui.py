@@ -39,6 +39,7 @@ class UI:
         self.font_14 = pygame.font.Font('PixelatedEleganceRegular.ttf', 14)
         # font = pygame.font.Font('PublicPixel.ttf', 32)
 
+        self.fow_asset = self.world.game.assets["fog_of_war"]
 
         self.VISUAL_RANGE = 10 # Think about this later. Probably do Manhattan and just let it be what's on screen.
 
@@ -48,6 +49,8 @@ class UI:
 
         self.centre_x = int(self.display.get_size()[0] / 2)
         self.centre_y = int(self.display.get_size()[1] / 2)
+
+        self.background = DriftingBackground(self, "fog_of_war", self.display.get_size(), (-0.3, -0.04))
 
         # Common denominators for 1920 and 1080:
         # 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 120
@@ -71,6 +74,10 @@ class UI:
 
         # Fill screen with black. Could change to a nice fog image or something later.
         self.display.fill(COLOURS.BLACK)
+
+        self.background.update(self.world.world_generator.get_biome_object_from_tile(self.world.game.pc.position).fow_colour)
+        self.background.draw(self.display)
+
 
         # Create new effects
         while len(self.world.effect_queue) > 0:
@@ -624,3 +631,54 @@ class Projectile:
         # Check if the projectile is close enough to the target
         distance = math.sqrt((self.target_x - self.x) ** 2 + (self.target_y - self.y) ** 2)
         return distance < self.speed  # Threshold based on speed for smooth stopping
+
+
+class DriftingBackground:
+    def __init__(self, ui, asset_name, screen_size, drift_speed=(1, 1)):
+        self.ui = ui
+        self.image = self.ui.world.game.assets[asset_name]
+        self.screen_size = screen_size
+        self.drift_speed = drift_speed
+        self.offset = [0, 0]
+
+        # Initialize color transition variables
+        self.current_tint_color = (255, 255, 255)  # No tint by default
+        self.target_tint_color = (255, 255, 255)
+        self.transition_speed = 0.1  # Speed of color transition (0.0 to 1.0)
+
+    def update(self, target_tint_colour):
+        """Update the offset for the drifting effect."""
+        self.offset[0] = (self.offset[0] + self.drift_speed[0]) % self.image.get_width()
+        self.offset[1] = (self.offset[1] + self.drift_speed[1]) % self.image.get_height()
+
+        # Set the target tint color
+        self.target_tint_color = target_tint_colour
+
+        # Smoothly interpolate current tint color toward the target tint color
+        self.current_tint_color = self.smooth_transition(self.current_tint_color, self.target_tint_color)
+
+    def smooth_transition(self, current, target):
+        """Perform a linear interpolation between the current and target colors."""
+        return tuple(
+            current[i] + (target[i] - current[i]) * self.transition_speed
+            for i in range(3)  # RGBA has 4 components
+        )
+
+    def draw(self, screen):
+        """Render the drifting, tiled background with the current tint color."""
+        # Apply tint to the image
+        tinted_image = self.apply_tint(self.image, self.current_tint_color)
+
+        # Tile the image across the screen
+        for x in range(-self.image.get_width(), self.screen_size[0], self.image.get_width()):
+            for y in range(-self.image.get_height(), self.screen_size[1], self.image.get_height()):
+                screen.blit(tinted_image, (x + self.offset[0], y + self.offset[1]))
+
+    @staticmethod
+    def apply_tint(image, tint_color):
+        """Apply a color tint to the image."""
+        tinted_image = image.copy()
+        tint_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
+        tint_surface.fill(tint_color)  # Use an RGBA color for tinting
+        tinted_image.blit(tint_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        return tinted_image
