@@ -287,21 +287,41 @@ class UI:
             if entity is None:
                 entity = self.world.active_walls[hovered_tile]
             if entity is not None:
+                # Name
                 name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                 nameRect = name.get_rect()
                 nameRect.center = (left_end + width // 2, vertical_offset)
-                vertical_offset += 30
                 self.display.blit(name, nameRect)
-                if entity.hp <= entity.max_hp // 4:
-                    hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
-                elif entity.hp <= entity.max_hp // 2:
-                    hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
-                else:
-                    hp = self.font_32.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
-                hpRect = hp.get_rect()
-                hpRect.center = (left_end + width // 2, vertical_offset)
+
                 vertical_offset += 30
+
+                # HP
+                if entity.hp <= entity.max_hp // 4:
+                    hp = self.font_20.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.RED, COLOURS.DARK_GRAY)
+                elif entity.hp <= entity.max_hp // 2:
+                    hp = self.font_20.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.YELLOW, COLOURS.DARK_GRAY)
+                else:
+                    hp = self.font_20.render(f"HP: {entity.hp}/{entity.max_hp}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                hpRect = hp.get_rect()
+                hpRect.center = (left_end + width // 4, vertical_offset)
                 self.display.blit(hp, hpRect)
+
+                # Allegiance
+                if entity.allegiance == ALLEGIANCES.PLAYER_TEAM:
+                    allegiance = self.font_20.render(f"Ally", True, COLOURS.CYAN, COLOURS.BLACK)
+                    allegiance_rect = allegiance.get_rect()
+                    allegiance_rect.center = (left_end + 3 * (width // 4), vertical_offset)
+                elif entity.allegiance == ALLEGIANCES.NEUTRAL:
+                    allegiance = self.font_20.render(f"Neutral", True, COLOURS.GRAY, COLOURS.BLACK)
+                    allegiance_rect = allegiance.get_rect()
+                    allegiance_rect.center = (left_end + 3 * (width // 4), vertical_offset)
+                else:
+                    allegiance = self.font_20.render(f"Hostile", True, COLOURS.RED, COLOURS.BLACK)
+                    allegiance_rect = allegiance.get_rect()
+                    allegiance_rect.center = (left_end + 3 * (width // 4), vertical_offset)
+                self.display.blit(allegiance, allegiance_rect)
+
+                vertical_offset += 30
 
                 # Action crystals
                 full_crystal = self.world.game.assets["action_crystal_full"]
@@ -309,10 +329,10 @@ class UI:
                 for i in range(entity.actions_per_round):
                     if i >= entity.current_actions:
                         # Render empty action crystal
-                        self.display.blit(empty_crystal, (left_end + i * 30, vertical_offset))
+                        self.display.blit(empty_crystal, (left_end + i * 30 + 5, vertical_offset))
                     else:
                         # Render full action crystal
-                        self.display.blit(full_crystal, (left_end + i * 30, vertical_offset))
+                        self.display.blit(full_crystal, (left_end + i * 30 + 5, vertical_offset))
                 vertical_offset += 40
                 vertical_offset = blit_text(self.display, entity.description,
                                             (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)

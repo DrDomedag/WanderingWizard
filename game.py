@@ -11,7 +11,7 @@ class Game:
     def __init__(self, display):
 
         # Debug settings
-        self.enemy_spawns_enabled = False
+        self.enemy_spawns_enabled = True
 
         #pygame.init()
         # display = pygame.display.set_mode((800, 600))
