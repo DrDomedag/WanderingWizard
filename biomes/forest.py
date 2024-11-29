@@ -1,31 +1,35 @@
 import random
-from biomes.biome import Biome
+import biomes.biome as biome
+import floors
+from entities.entities import GoblinShaman
 from floors import DirtFloorTile
-from walls import Tree
+from walls import Tree, WoodWall
 import entities.entities as entities
 from util import *
 
-class Forest(Biome):
+class Forest(biome.Biome):
     def __init__(self, world, biome_id):
         super().__init__(world, biome_id)
         self.name = "Forest"
 
-        self.monster_groups = []
-        self.monster_group_weights = []
-        self.monster_groups.append([entities.Troll, entities.Troll, entities.Goblin, entities.Goblin])
+        self.monster_groups.append([entities.Troll, entities.Goblin, entities.Goblin, entities.Goblin])
         self.monster_group_weights.append(1)
         self.monster_groups.append([entities.Goblin] * 9)
-        self.monster_group_weights.append(3)
+        self.monster_group_weights.append(7)
+        self.monster_group_spawn_probability = 0.002
+        self.poi_spawn_rate = 0.0005
+        self.pois.append(ShamanHut)
+        self.poi_weights.append(1)
 
 
     def generate_floor_tile(self, coords):
-        return DirtFloorTile(self.world)
+        return DirtFloorTile(self.world, coords)
 
     def generate_wall_tile(self, coords):
         if random.random() < 0.8:
             return None
         else:
-            return Tree(self.world)
+            return Tree(self.world, coords)
 
     def generate_entity(self, coords):
         roll = random.random()
@@ -41,12 +45,23 @@ class Forest(Biome):
             return enemy
 
 
-    def generate_monster_group(self, coords):
-        monster_group = random.choice(self.monster_groups)
-        generated_monsters = []
-        for monster in monster_group:
-            generated_monster = monster(self.world)
-            generated_monster.allegiance = ALLEGIANCES.ENEMY_TEAM
-            generated_monsters.append(generated_monster)
 
-        self.world.place_monster_group(generated_monsters, coords)
+class ShamanHut(biome.PointOfInterest):
+    def __init__(self, world, coordinates):
+        super().__init__(world, coordinates)
+        self.size = (5, 5)
+
+    def draw(self):
+        for x in range(-2, 2, 1):
+            for y in range(-2, 2, 1):
+                x_ = self.centre_tile[0] + x
+                y_ = self.centre_tile[1] + y
+                coords = (x_, y_)
+                self.world.total_floor[coords] = floors.generic_floor_tile(self.world, coords, "Wooden floor", "wood_tile")
+                if chebyshev_distance(self.centre_tile, coords) == 2 and not coords[1] == self.centre_tile[1]:
+                    self.world.total_walls[coords] = WoodWall(self.world, coords)
+        if self.world.game.enemy_spawns_enabled:
+            shaman = GoblinShaman(self.world)
+            shaman.allegiance = ALLEGIANCES.ENEMY_TEAM
+            shaman.position = self.centre_tile
+            self.world.total_entities[self.centre_tile] = shaman

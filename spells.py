@@ -166,7 +166,7 @@ class IronNeedle(Spell):
         self.action_cost = 1
         self.max_charges = 15
         self.name = "Iron Needle"
-        self.description = "Quickly fire a needle of iron."
+        self.description = f"Quickly fire a needle of iron dealing {self.power} damage to a single target."
         self.level = 1
         self.schools = [SCHOOLS.METAL, SCHOOLS.SORCERY]
         self.upgrades = []
@@ -182,9 +182,10 @@ class IronNeedle(Spell):
 
     def on_cast(self, target):
         damage_tile(self.caster.world, self, target, self.power, DAMAGE_TYPES.PIERCING)
-        if not self.caster.world.active_entities[target] is None:
+        '''if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
-            damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)
+            damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)'''
+        self.caster.world.show_projectile(self.caster.position, target, "metal_projectile")
 
 class FireBreath(Spell):
     def __init__(self, caster):
@@ -196,7 +197,7 @@ class FireBreath(Spell):
         self.action_cost = 2
         self.max_charges = 10
         self.name = "Fire Breath"
-        self.description = "Spray fire, dealing damage in a cone."
+        self.description = f"Spray fire, dealing {self.power} damage in a {self.range} tile long cone."
         self.level = 1
         self.schools = [SCHOOLS.FIRE, SCHOOLS.SORCERY]
         self.upgrades = []
@@ -206,7 +207,7 @@ class FireBreath(Spell):
         affected_tiles = compute_cone_tiles(self.caster.position, target, self.range + 0.5, include_origin_tile=False)
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.FIRE)
-            self.caster.world.show_effect(tile, SCHOOLS.FIRE)
+            self.caster.world.show_effect(tile, "fire_explosion")
 
     def get_impacted_tiles(self, target):
         return compute_cone_tiles(self.caster.position, target, self.range + 0.5, include_origin_tile=False)
@@ -223,7 +224,7 @@ class SeismicJolt(Spell):
         self.action_cost = 2
         self.max_charges = 7
         self.name = "Seismic Jolt"
-        self.description = "Deal bludgeoning damage to enemies in a two tile radius and push them back one tile."
+        self.description = f"Deal {self.power} bludgeoning damage to enemies in a {self.radius} tile radius and push them back one tile."
         self.level = 2
         self.schools = [SCHOOLS.EARTH, SCHOOLS.SORCERY]
         self.upgrades = []
@@ -270,7 +271,7 @@ class RaiseLongdead(Spell):
         self.current_charges = self.max_charges
         self.duration = 20
         self.name = "Raise Longdead"
-        self.description = "Within the earth rests the bones of countless generations. Long dead, these skeletal servants are not very powerful, but they are always available."
+
         self.level = 1
         self.schools = [SCHOOLS.CONJURATION, SCHOOLS.DEATH]
         self.upgrades = []
@@ -279,6 +280,8 @@ class RaiseLongdead(Spell):
         self.minion_damage = 2
         self.minion_health = 5
         self.minion_count = 1
+
+        self.description = f"Within the earth rests the bones of countless generations. Long dead, these skeletal servants are not very powerful, but they are always available. The skeletons have {self.minion_health} hit points and deal {self.minion_damage} damage per attack."
 
         self.cannot_target_entity = True
         self.can_target_ground = True

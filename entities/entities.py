@@ -1,3 +1,4 @@
+import items
 from util import *
 import random
 from collections import defaultdict
@@ -5,6 +6,7 @@ from collections import defaultdict
 from passives import *
 import spells
 from effects import *
+from items import *
 
 
 
@@ -43,11 +45,16 @@ class Entity:
         self.expires = False
         self.duration = 0
 
+        self.items = []
+
         self.on_init()
 
         self.asset = world.game.assets[self.asset_name]
         self.idle_asset = [self.asset]
         self.acting_asset = [self.asset]
+        self.greyscale_asset = desaturate_sprite(self.asset)
+        self.idle_greyscale_asset = [desaturate_sprite(ia) for ia in self.idle_asset]
+        self.acting_greyscale_asset = [desaturate_sprite(aa) for aa in self.acting_asset]
 
         self.load_assets()
 
@@ -65,40 +72,49 @@ class Entity:
         i = 1
         if self.world.game.assets[f"{self.asset_name}_idle_{i}"]:
             self.idle_asset = []
+            self.idle_greyscale_asset = []
             while self.world.game.assets[f"{self.asset_name}_idle_{i}"]:
                 self.idle_asset.append(self.world.game.assets[f"{self.asset_name}_idle_{i}"])
+                self.idle_greyscale_asset.append(desaturate_sprite(self.world.game.assets[f"{self.asset_name}_idle_{i}"]))
                 i += 1
         i = 1
         if self.world.game.assets[f"{self.asset_name}_acting_{i}"]:
             self.acting_asset = []
+            self.acting_greyscale_asset = []
             while self.world.game.assets[f"{self.asset_name}_acting_{i}"]:
                 self.acting_asset.append(self.world.game.assets[f"{self.asset_name}_acting_{i}"])
+                self.acting_greyscale_asset.append(desaturate_sprite(self.world.game.assets[f"{self.asset_name}_acting_{i}"]))
                 i += 1
 
 
+    def update(self, greyscale=False):
+        if greyscale:
+            self.asset = self.idle_greyscale_asset[self.asset_index]
+        else:
+            self.current_frame += 1
+            # If idle. Similar logic for if acted later.
+            if self.current_frame >= self.animation_frames:
+                self.current_frame = 0
+                self.asset_index = (self.asset_index + 1) % len(self.idle_asset)
+                self.asset = self.idle_asset[self.asset_index]
+
     def draw(self, display, screen_coords):
-
-        self.current_frame += 1
-        # If idle. Similar logic for if acted later.
-        if self.current_frame >= self.animation_frames:
-            self.current_frame = 0
-            self.asset_index = (self.asset_index + 1) % len(self.idle_asset)
-            self.asset = self.idle_asset[self.asset_index]
-
         # print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
         display.blit(self.asset, screen_coords)
+
 
     def start_of_turn(self):
         #print(f"{self.name}'s turn started.")
         self.current_actions = self.actions_per_round
+        for p in self.passives:
+            p.start_of_turn_effect()
         for active in self.actives:
             if active.current_charges < active.max_charges:
                 active.recovery_turns_left -= 1
                 if active.recovery_turns_left <= 0 and active.current_charges < active.max_charges:
                     active.current_charges += 1
-                    active.recovery_turns_left = active.recovery_time
-        for p in self.passives:
-            p.start_of_turn_effect()
+                    active.recovery_turns_left += active.recovery_time
+
 
     def can_see(self, target):
         line_tiles = bresenham(self.position, target)
@@ -126,6 +142,8 @@ class Entity:
     def on_death(self):
         for passive in self.passives:
             passive.on_death_effect()
+        for item in self.items:
+            self.world.place_item(item, self.position)
 
     def die(self):
         self.world.total_entities[self.position] = None
@@ -176,9 +194,12 @@ class Entity:
                         if active.can_cast(entity.position):
                             targets.append(entity.position)
             if len(targets) > 0:
+
                 target = random.choice(targets)
                 active.cast(target)
                 return
+            else:
+                print(f"Found no suitable ally target for {active.name}")
         if active.should_target_empty:
             targets = []
             for target in active.caster.world.active_floor.keys():
@@ -189,15 +210,23 @@ class Entity:
                 target = random.choice(targets)
                 active.cast(target)
                 return
+            else:
+                print(f"Found no suitable empty tile to target with {active.name}")
 
-        targets = []
-        for entity in active.caster.world.active_entities.values():
-            if entity is not None:
-                if entity.allegiance != active.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
-                    if active.can_cast(entity.position):
-                        targets.append(entity.position)
-        target = random.choice(targets)
-        active.cast(target)
+        elif active.should_target_enemies:
+            targets = []
+            for entity in active.caster.world.active_entities.values():
+                if entity is not None:
+                    if entity.allegiance != active.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
+                        if active.can_cast(entity.position):
+                            targets.append(entity.position)
+            if len(targets) > 0:
+                target = random.choice(targets)
+                active.cast(target)
+                return
+            else:
+                print(f"Found no suitable ally target for {active.name}")
+        print(f"Found no suitable target at all for {active.name} cast by {self.name} from {self.position}")
         return
 
     def on_expire(self):
@@ -230,6 +259,9 @@ class PC(Entity):
     def move(self, target):
         return self.world.move_player(target)
 
+    def on_death(self):
+        self.world.game.game_over()
+
 class Troll(Entity):
 
     def on_init(self):
@@ -251,11 +283,25 @@ class Goblin(Entity):
         self.max_hp = 5
         self.tags = [ENTITY_TAGS.LIVING]
         self.asset_name = "goblin"
-        self.load_assets()
         attack = spells.PiercingMeleeAttack(self)
         attack.power = 1
         attack.name = "Crude Spear"
         self.actives.append(attack)
+
+class GoblinShaman(Entity):
+    def on_init(self):
+        self.name = "Goblin Shaman"
+        self.description = "That a creature of goblin intellect is capable of magic is a greater marvel than the wonder that is that very magic."
+        self.max_hp = 10
+        self.tags = [ENTITY_TAGS.LIVING]
+        self.asset_name = "goblin_shaman"
+        self.actives.append(spells.RaiseLongdead(self))
+        melee_attack = spells.BluntMeleeAttack(self)
+        melee_attack.power = 1
+        melee_attack.name = "Staff"
+        self.actives.append(melee_attack)
+        self.items.append(items.Spellbook(self.world, 1, self.position))
+
 
 class Longdead(Entity):
     def on_init(self):

@@ -110,16 +110,15 @@ class WorldGenerator():
 
     def generate_tile(self, coords):
         biome = self.biomes[self.get_biome_id(coords)]
-        tile = {}
-        tile["floor"] = biome.generate_floor_tile(coords)
-        tile["wall"] = biome.generate_wall_tile(coords)
-        if self.world.game.enemy_spawns_enabled:
-            tile["entity"] = biome.generate_entity(coords)
-        else:
-            tile["entity"] = None
-        tile["tile_effect"] = biome.generate_tile_effect(coords)
-        tile["item"] = biome.generate_item(coords)
-        return tile
+
+        if self.world.total_floor[coords] is None:
+            self.world.total_floor[coords] = biome.generate_floor_tile(coords)
+            self.world.total_walls[coords] = biome.generate_wall_tile(coords)
+            self.world.total_tile_effects[coords] = biome.generate_tile_effect(coords)
+            self.world.total_items[coords] = biome.generate_item(coords)
+            if self.world.game.enemy_spawns_enabled:
+                biome.generate_monster_group(coords)
+            biome.generate_poi(coords)
 
     def generate_biome_grid(self, width, height):
         grid = np.zeros((height, width))

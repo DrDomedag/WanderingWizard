@@ -36,12 +36,19 @@ class World:
         self.active_entities = defaultdict(lambda: None)
         self.active_tile_effects = defaultdict(lambda: None)
         self.active_items = defaultdict(lambda: None)
+        self.has_seen = defaultdict(lambda: False)
         self.active_tile_range = 30 # Consider changing
         self.current_coordinates = (0, 0)
         self.effect_queue = []
 
+
+
     def show_effect(self, target, effect_type):
-        self.effect_queue.append((target, effect_type))
+        self.effect_queue.append((None, target, effect_type))
+
+    def show_projectile(self, origin, target, projectile_type):
+        print(f"Adding a projectile to the effect queue. Type: '{projectile_type}'")
+        self.effect_queue.append((origin, target, projectile_type))
 
     def __setitem__(self, key, value):
         #base_class = util.get_top_parent(value)
@@ -89,40 +96,23 @@ class World:
 
     def generate_tile(self, coords):
         tile = self.world_generator.generate_tile(coords)
-        if self.total_floor[coords] is None:
-            self.total_floor[coords] = tile["floor"]
-        if self.total_walls[coords] is None:
-            if tile["wall"] is not None:
-                self.total_walls[coords] = tile["wall"]
-                tile["wall"].position = coords
-        if self.total_entities[coords] is None and self.total_walls[coords] is None:
-            if tile["entity"] is not None:
-                self.total_entities[coords] = tile["entity"]
-                tile["entity"].position = coords
-        if self.total_tile_effects[coords] is None:
-            if tile["tile_effect"] is not None:
-                self.total_tile_effects[coords] = tile["tile_effect"]
-                tile["tile_effect"].position = coords
-        if self.total_items[coords] is None:
-            if tile["item"] is not None:
-                self.total_items[coords] = tile["item"]
-                tile["item"].position = coords
-        return tile
+
+        #return tile
 
     def check_can_move(self, entity, target):
-        if self.active_entities[target] is not None:
+        if self.total_entities[target] is not None:
             #print(f"{entity.name} could not move because {self.active_entities[target].name} blocked the way.")
             return False # Change down the line to allow PC to walk into ally spaces.
-        if self.active_walls[target] is not None and not entity.intangible:
+        if self.total_walls[target] is not None and not entity.intangible:
             #print(f"Could not move because a wall blocked the way and {entity.name} is not intangible.")
             return False
-        if self.active_floor[target].walkable and entity.walking:
+        if self.total_floor[target].walkable and entity.walking:
             #print(f"{entity.name} could move because it can walk and the target tile is walkable.")
             return True
-        if self.active_floor[target].flyable and entity.flying:
+        if self.total_floor[target].flyable and entity.flying:
             #print(f"{entity.name} could move because it can fly and the target tile is flyable.")
             return True
-        if self.active_floor[target].swimmable and entity.swimming:
+        if self.total_floor[target].swimmable and entity.swimming:
             #print(f"{entity.name} could move because it can swim and the target tile is swimmable.")
             return True
 
@@ -163,23 +153,15 @@ class World:
             if self.total_items[self.current_coordinates] is not None:
                 item = self.total_items[self.current_coordinates]
                 item.on_pickup()
+            visible_tiles = self.get_visible_tiles(self.game.pc.position)
+            for tile in visible_tiles:
+                self.has_seen[tile] = True
             return True
         return False
 
 
     def generate_tile(self, coords):
-        tile = self.world_generator.generate_tile(coords)
-        if self.total_floor[coords] is None:
-            self.total_floor[coords] = tile["floor"]
-        if self.total_walls[coords] is None:
-            if tile["wall"] is not None:
-                self.total_walls[coords] = tile["wall"]
-                tile["wall"].position = coords
-        if self.total_entities[coords] is None and self.total_walls[coords] is None:
-            if tile["entity"] is not None:
-                self.total_entities[coords] = tile["entity"]
-                tile["entity"].position = coords
-        return tile
+        self.world_generator.generate_tile(coords)
 
 
     def set_current_active_tiles(self):
@@ -207,6 +189,8 @@ class World:
             self.active_entities[target] = entity
             self.total_entities[target] = entity
             entity.position = target
+            for item in entity.items:
+                item.position = target
             if self.active_tile_effects[target] is not None:
                 self.active_tile_effects[target].on_enter_effect()
             self.active_floor[target].on_enter_effect(entity)
@@ -285,11 +269,14 @@ class World:
 
     def summon_entities_from_instance(self, entity_group, target):
         for entity in entity_group:
-            proposed_tiles = disk(target, 5, include_origin_tile=True)
+            proposed_tiles = disk(target, 4, include_origin_tile=True)
+            #print(len(proposed_tiles)) # 69 tiles should be more than enough for most scenarios.
             random.shuffle(proposed_tiles)
             placed = False
             while not placed and len(proposed_tiles) > 0:
                 tile = proposed_tiles.pop()
+                if self.total_floor[tile] is None:
+                    self.generate_tile(tile)
                 if self.total_entities[tile] is None and entity.can_move(tile):
                     entity.position = tile
                     self.total_entities[tile] = entity
@@ -305,11 +292,26 @@ class World:
                 self.total_tile_effects[coordinates] = tile_effect
                 self.active_tile_effects[coordinates] = tile_effect
 
+    def place_item(self, item, coordinates):
+        if self.total_items[coordinates] is None and self.total_walls[coordinates] is None:
+            self.total_items[coordinates] = item
+            self.active_items[coordinates] = item
+        else:
+            possible_tiles = disk(coordinates, 3, False)
+            random.shuffle(possible_tiles)
+            for tile in possible_tiles:
+                if self.total_items[tile] is None and self.total_walls[tile] is None:
+                    self.total_items[tile] = item
+                    self.active_items[tile] = item
+                    return
+
     def place_monster_group(self, monster_group, coordinates):
-        direction_from_player = compute_direction(self.game.pc.position, coordinates)
-        print(f"direction_from_player: {direction_from_player}, self.game.pc.position: {self.game.pc.position}, target coordinates: {coordinates}")
-        target_x = coordinates[0] - 5 * direction_from_player[0]
-        target_y = coordinates[1] - 5 * direction_from_player[1]
+        #direction_from_player = compute_direction(self.game.pc.position, coordinates, exact=True)
+        direction_from_player = relative_quadrant(self.game.pc.position, coordinates)
+        #print(f"direction_from_player: {direction_from_player}, self.game.pc.position: {self.game.pc.position}, target coordinates: {coordinates}")
+        target_x = int(coordinates[0] - 4 * direction_from_player[0])
+        target_y = int(coordinates[1] - 4 * direction_from_player[1])
         target = (target_x, target_y)
+        #print(f"Final target coordinates: {target}")
         self.summon_entities_from_instance(monster_group, target)
 

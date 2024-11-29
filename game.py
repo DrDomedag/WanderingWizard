@@ -11,7 +11,7 @@ class Game:
     def __init__(self, display):
 
         # Debug settings
-        self.enemy_spawns_enabled = False
+        self.enemy_spawns_enabled = True
 
         #pygame.init()
         # display = pygame.display.set_mode((800, 600))
@@ -80,6 +80,9 @@ class Game:
 
         return world
 
+    def game_over(self):
+        print("You lost.")
+
     def main_loop(self):
         while True:
             #for event in pygame.event.get():
@@ -88,11 +91,16 @@ class Game:
             #        sys.exit()
 
             print(f"Start of player turn. Player at coordinates {self.world.current_coordinates}")
+            self.floor_effects()
             self.tile_effects()
             self.player_turn()
             self.side_turn(ALLEGIANCES.PLAYER_TEAM)
             self.side_turn(ALLEGIANCES.ENEMY_TEAM)
 
+    def floor_effects(self):
+        for floor_tile in self.world.active_floor:
+            if self.world.active_floor[floor_tile] is not None:
+                self.world.active_floor[floor_tile].on_start_of_turn_effect()
 
     def tile_effects(self):
         for tile_effect in self.world.active_tile_effects:

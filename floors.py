@@ -3,8 +3,9 @@ from util import *
 
 
 class FloorTile:
-    def __init__(self, world):
+    def __init__(self, world, position):
         self.world = world
+        self.position = position
         self.layer = "floor"
         self.name = "Floor"
         self.type = "solid"
@@ -14,25 +15,32 @@ class FloorTile:
         self.flammable = False
         self.asset = "unknown"
 
+    def on_start_of_turn_effect(self):
+        pass
+
     def on_enter_effect(self, entity):
         pass
 
+
 class BurningGround(FloorTile):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Burning Ground"
         self.asset = "burning_ground"
 
+    def on_start_of_turn_effect(self):
+        effects.damage_tile(self.world, self, self.position, 1, DAMAGE_TYPES.FIRE)
+
     def on_enter_effect(self, entity):
         effects.damage_entity(self, entity, 1, DAMAGE_TYPES.FIRE)
-        self.world.show_effect(entity.position, SCHOOLS.FIRE)
+        self.world.show_effect(entity.position, "fire_explosion")
 
 class Portal(FloorTile):
     def __init__(self, home_world, away_world, home_world_coordinates, away_world_coordinates=(0, 0), paired_portal=None):
-        super().__init__(home_world)
+        super().__init__(home_world, home_world_coordinates)
         self.layer = "floor"
         self.name = "Portal"
-        self.asset = "portal"
+        self.asset = "portal_tile"
 
         self.home_world = home_world
 
@@ -41,13 +49,13 @@ class Portal(FloorTile):
             self.away_world_coordinates = away_world_coordinates
             self.away_world = away_world
             self.away_world.total_floor[self.away_world_coordinates] = Portal(self.away_world, self.home_world, self.away_world_coordinates, away_world_coordinates=self.home_world_coordinates, paired_portal=self)
-            print(f"Created unpaired portal. Home/Away world coordinates: {self.home_world_coordinates} / {self.away_world_coordinates}")
+            #print(f"Created unpaired portal. Home/Away world coordinates: {self.home_world_coordinates} / {self.away_world_coordinates}")
         else:
 
             self.home_world_coordinates = paired_portal.away_world_coordinates
             self.away_world_coordinates = paired_portal.home_world_coordinates
             self.away_world = paired_portal.home_world
-            print(f"Created paired portal. Home/Away world coordinates: {self.home_world_coordinates} / {self.away_world_coordinates}")
+            #print(f"Created paired portal. Home/Away world coordinates: {self.home_world_coordinates} / {self.away_world_coordinates}")
 
 
     def on_enter_effect(self, entity):
@@ -61,29 +69,37 @@ class Portal(FloorTile):
 
 
 class DirtFloorTile(FloorTile):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Floor"
         self.asset = "dirt_tile"
 
 class DryGrassFloorTile(FloorTile):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Floor"
         self.asset = "dry_grass_tile"
 
 class LavaFloorTile(FloorTile):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Lava"
         self.type = "liquid"
         self.walkable = False
         self.swimmable = True
         #self.onEnterEffects.append() Deal fire damage
 
+    def on_start_of_turn_effect(self):
+        effects.damage_tile(self.world, self, self.position, 5, DAMAGE_TYPES.FIRE)
+
+    def on_enter_effect(self, entity):
+        effects.damage_entity(self, entity, 5, DAMAGE_TYPES.FIRE)
+        self.world.show_effect(entity.position, "fire_explosion")
+
+
 class WaterFloorTile(FloorTile):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Water"
         self.type = "liquid"
         self.asset = "water_tile"
@@ -92,9 +108,23 @@ class WaterFloorTile(FloorTile):
         # Make this turn into ice when hit by cold damage, which thaws when hit by fire damage
 
 class ChasmFloorTile(FloorTile):
-    def __init__(self,world):
-        super().__init__(world)
+    def __init__(self,world, position):
+        super().__init__(world, position)
         self.name = "Chasm"
         self.type = "void"
+        self.asset = "chasm_tile"
         self.walkable = False
         self.swimmable = False
+
+class WoodenFloorTile(FloorTile):
+    def __init__(self, world, position):
+        super().__init__(world, position)
+        self.name = "Wooden floor"
+        self.type = "solid"
+        self.asset = "wood_tile"
+
+def generic_floor_tile(world, position, name, asset_name):
+    tile = FloorTile(world, position)
+    tile.name = name
+    tile.asset = asset_name
+    return tile

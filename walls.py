@@ -2,8 +2,9 @@ from util import *
 from entities.entities import Entity
 
 class Wall(Entity):
-    def __init__(self, world):
+    def __init__(self, world, position):
         super().__init__(world)
+        self.position = position
         self.layer = "wall"
         self.name = "Wall"
         self.description = "A wall."
@@ -16,8 +17,8 @@ class Wall(Entity):
 
 
 class StoneWall(Wall):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Stone Wall"
         self.description = "A solid stone wall."
         self.max_hp = 100
@@ -38,8 +39,8 @@ class StoneWall(Wall):
 
 
 class WoodWall(Wall):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Wooden Wall"
         self.description = "A wall of sturdy wood."
         self.max_hp = 50
@@ -58,8 +59,8 @@ class WoodWall(Wall):
         self.resistances[DAMAGE_TYPES.ARCANE] = 50
 
 class Tree(WoodWall):
-    def __init__(self, world):
-        super().__init__(world)
+    def __init__(self, world, position):
+        super().__init__(world, position)
         self.name = "Tree"
         self.description = "A tree of a type common in the area."
         self.max_hp = 25

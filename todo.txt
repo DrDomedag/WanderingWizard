@@ -1,34 +1,47 @@
 General things to do:
-Fix hover so that you get info on spells and not tiles when hovering over menu items (left side in particular).
-Add more entity info (like remaining duration, attributes, passive and active abilities with mouseovers) to right side menu.
+Add duration for summoned entities in right-side menu.
+Print resistances on mouseover'd enemies.
 
 Verify bug level of spellbook pickups. Seemed like they didn't give the right tier.
-Figure out why disks (Seismic Jolt) are so laggy.
 
 ...sound
 
 Doors!
-Teleporter tiles that just bring you somewhere nearby, or to a paired tile.
+Same-world teleporter tiles.
+
 PoIs
 The "wait" action should give one "recovery turn" to a random spell per action used.
 Use the 'mazetest.py' algorithm to make a cave biome (good for tunnels) - combine with noise for irregularly shaped chambers.
-
-Implement a goblin shaman or something that casts Raise Longdead.
 
 Consider implementing *another* dict that remembers tiles you have seen to make FoW not regenerate. Update the show_los function to use this.
 
 Create "fear" status effect that causes enemies to flee, make trolls suffer it when they take fire damage.
 
-Print resistances on mouseover'd enemies.
+Make multicoloured text. ChatGPT had a suggestion that didn't seem horrible.
 
+Use the desaturation thing to make and show a Petrified status effect.
+
+Add a "has noticed player" boolean to monsters. If False, at the beginning of act(),
+check if player within certain range (representing hearing) or within LoS, or if ally within range is flagged as true.
+If not, skip turn.
+
+
+Create more visual effects.
+Create projectile visual effect.
+
+
+Biome plan:
+Give harder biomes a bias of arctan(x-a)-1.5 where x is the tile and a is the minimum distance it should spawn at.
 
 
 
 Things that are 'implemented' but do not currently work:
 
 Pushing entities still doesn't work.
-Visual effects still do not work.   <---- IMPORTANT
 
+For some inexplicable reason, walking into a portal by clicking on it moves you one tile off target in the other world,
+but clicking on the far side of the portal or using the keyboard, you land on target.
+This is in spite of the fact that both use the world.move_player(target) function.
 
 
 

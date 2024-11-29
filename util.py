@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+import pygame
 import skimage.draw
 from skimage.draw import line
 import numpy as np
@@ -351,6 +351,8 @@ def find_path(entity, target):
     #print(translated_start)
     #print(translated_target)
 
+    print(f"entity.position: {entity.position}, translated_start: {translated_start}, target: {target}, translated_target: {translated_target}")
+
     # Mark starting point as passable
     grid[translated_start[0]][translated_start[1]] = 1
     # Also mark ending point as passable. Otherwise we won't be able to use this to find the path to an entity.
@@ -452,6 +454,8 @@ def backtranslate_coordinates(grid_coordinates, center_x, center_y, grid_size):
 
 
 def compute_direction(origin, target, exact=False):
+    print(origin)
+    print(target)
     direction = (target[0] - origin[0], target[1] - origin[1])
 
     # Normalize the direction vector
@@ -463,3 +467,29 @@ def compute_direction(origin, target, exact=False):
     if not exact:
         unit_direction = (math.floor(unit_direction[0]), math.floor(unit_direction[1]))
     return unit_direction
+
+def relative_quadrant(point1, point2):
+    # Calculate the differences in x and y
+    dx = int(point2[0]) - int(point1[0])
+    dy = int(point2[1]) - int(point1[1])
+
+    # Normalize to -1, 0, or 1
+    quadrant_x = (dx > 0) - (dx < 0)  # 1 if positive, -1 if negative, 0 if zero
+    quadrant_y = (dy > 0) - (dy < 0)
+
+    return (quadrant_x, quadrant_y)
+
+
+def desaturate_sprite(sprite):
+    """Desaturates a sprite using a blending effect."""
+    # Create a grayscale-like surface (pure white to desaturate colors)
+    gray_overlay = pygame.Surface(sprite.get_size())
+    gray_overlay.fill((128, 128, 128))  # Gray color to reduce saturation
+
+    # Create a copy of the sprite to modify
+    desaturated_sprite = sprite.copy()
+
+    # Blend the sprite with the gray overlay
+    desaturated_sprite.blit(gray_overlay, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+
+    return desaturated_sprite

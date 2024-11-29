@@ -6,7 +6,7 @@ class Item:
         self.world = world
         self.position = position
         self.asset_name = "unknown"
-        self.asset = world.assets[self.asset_name]
+        self.asset = world.game.assets[self.asset_name]
         self.layer = "item"
         self.name = "Nameless Item"
 

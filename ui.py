@@ -21,6 +21,7 @@ class UI:
         self.world = world
 
         self.ongoing_effects = pygame.sprite.Group()
+        self.projectiles = []
         self.clock = pygame.time.Clock()
 
         # This is real ugly, but it's the best I can think of right now.
@@ -73,13 +74,18 @@ class UI:
 
         # Create new effects
         while len(self.world.effect_queue) > 0:
-            target_tile, effect_type = self.world.effect_queue.pop()
+            origin_tile, target_tile, effect_type = self.world.effect_queue.pop()
 
-            target_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
-
-            if effect_type == SCHOOLS.FIRE:
-                new_sprite = ExplosionEffect(self.world, "fire", target_coords, self.ongoing_effects)
+            if effect_type == "fire_explosion":
+                new_sprite = ExplosionEffect(self.world, "fire", target_tile, self.ongoing_effects)
                 self.ongoing_effects.add(new_sprite)
+
+            if effect_type == "metal_projectile":
+                origin_screen_coords = self.tile_to_screen_coords(origin_tile, offset_by_half_a_tile=True)
+                target_screen_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
+                print(f"Found a metal projectile in the effect queue. Creating object.")
+                projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["metal_projectile"])
+                self.projectiles.append(projectile)
 
 
         # Render tiles:
@@ -88,6 +94,8 @@ class UI:
             tile = self.world.active_floor[tile_coords]
             if tile is not None and self.world.game.pc.can_see(tile_coords):
                 self.display.blit(self.world.game.assets[tile.asset], self.tile_to_screen_coords(tile_coords))
+            elif tile is not None and self.world.has_seen[tile_coords]:
+                self.display.blit(desaturate_sprite(self.world.game.assets[tile.asset]), self.tile_to_screen_coords(tile_coords))
 
         # Render items
         for item_coords in self.world.active_walls.keys():
@@ -99,20 +107,23 @@ class UI:
 
         # Render walls:
         for entity_coords in self.world.active_walls.keys():
-            if self.world.total_walls[entity_coords] is not None and self.world.game.pc.can_see(entity_coords):
-                wall = self.world.total_walls[entity_coords]
+            wall = self.world.total_walls[entity_coords]
+            if wall is not None and self.world.game.pc.can_see(entity_coords):
                 if wall.layer == "wall":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
                     self.display.blit(self.world.game.assets[wall.asset], self.tile_to_screen_coords(entity_coords))
+            elif wall is not None and self.world.has_seen[entity_coords]:
+                self.display.blit(desaturate_sprite(self.world.game.assets[wall.asset]), self.tile_to_screen_coords(entity_coords))
 
         # Render entities
         for entity_coords in self.world.active_entities.keys():
             if self.world.total_entities[entity_coords] is not None and self.world.game.pc.can_see(entity_coords):
                 entity = self.world.total_entities[entity_coords]
                 if entity.layer == "entity":
+                    entity.update()
                     entity.draw(self.display, self.tile_to_screen_coords(entity_coords))
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    #self.display.blit(self.assets[entity.asset], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
+                    #self.display.blit(self.world.game.assets[entity.asset_name], (self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x, self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y))
 
         # Render tile effects:
         for tile_effect_coords in self.world.active_tile_effects.keys():
@@ -127,6 +138,13 @@ class UI:
         self.ongoing_effects.update()
         self.ongoing_effects.draw(self.display)
         #print(f"len(self.ongoing_effects): {len(self.ongoing_effects)}")
+
+        # Update and render projectiles
+        self.projectiles = [p for p in self.projectiles if p.active]
+        for projectile in self.projectiles:
+            print("Rendering a projectile for a frame!")
+            projectile.update()
+            projectile.draw(self.display)
 
         hovered_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
 
@@ -164,7 +182,7 @@ class UI:
 
             # Walk on clicking adjacent tile:
             elif self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.game.pc.position, hovered_tile) == 1:
-                if self.world.game.pc.move(hovered_tile):
+                if self.world.move_player(hovered_tile):
                     self.world.game.pc.current_actions -= 1
 
             # Walk on clicking distant tile
@@ -172,7 +190,7 @@ class UI:
                 path = util.find_path(self.world.game.pc, hovered_tile)
                 #print(path)
                 if len(path) > 0:
-                    if self.world.game.pc.move(path[1]):
+                    if self.world.move_player(path[1]):
                         self.world.game.pc.current_actions -= 1
 
         if self.scroll_down and len(self.world.game.pc.actives) > 0:
@@ -503,14 +521,14 @@ class ExplosionEffect(pygame.sprite.Sprite):
         print(self.world.assets[f"{self.asset_name}_{i}"])
         '''
         sprite_list = []
-        if self.world.assets[f"{self.asset_name}_{i}"]:
+        if self.world.game.assets[f"{self.asset_name}_{i}"]:
             #print(f"Determined that there is a frame {i}")
-            while self.world.assets[f"{self.asset_name}_{i}"]:
+            while self.world.game.assets[f"{self.asset_name}_{i}"]:
                 #print(f"Found sprite frame {i}")
-                sprite_list.append(self.world.assets[f"{self.asset_name}_{i}"])
+                sprite_list.append(self.world.game.assets[f"{self.asset_name}_{i}"])
                 i += 1
         else:
-            sprite_list.append(self.world.assets[f"{self.asset_name}"])
+            sprite_list.append(self.world.game.assets[f"{self.asset_name}"])
         return sprite_list
 
     def update(self):
@@ -518,6 +536,8 @@ class ExplosionEffect(pygame.sprite.Sprite):
         Updates the explosion animation by switching frames and removing itself when done.
         """
         now = pygame.time.get_ticks()
+
+        target_coords = self.world.game.ui.tile_to_screen_coords(self.position, offset_by_half_a_tile=True)
 
         if now - self.last_update_time >= self.delay:
             self.last_update_time = now
@@ -529,7 +549,7 @@ class ExplosionEffect(pygame.sprite.Sprite):
             else:
                 # Update to the next frame
                 self.image = self.sprite[self.current_frame]
-                self.rect = self.image.get_rect(center=self.position)
+                self.rect = self.image.get_rect(center=target_coords)
 
 
 # Consider moving this into the UI class. It works fine like this, tbf.
@@ -550,3 +570,57 @@ def blit_text(surface, text, pos, font, color=pygame.Color('black')):
         x = pos[0]  # Reset the x.
         y += word_height  # Start on new row.
     return y
+
+
+# Angle calculation for projectile effect
+def calculate_angle(start_pos, target_pos):
+    dx = target_pos[0] - start_pos[0]
+    dy = target_pos[1] - start_pos[1]
+    return math.degrees(math.atan2(-dy, dx))  # Negative dy to match PyGame's y-axis
+
+# Class to represent a projectile
+class Projectile:
+    def __init__(self, world, start_pos, target_pos, speed, asset):
+        self.world = world
+        self.x, self.y = start_pos
+        self.target_x, self.target_y = target_pos
+        self.speed = speed
+
+        self.active = True
+
+        # Calculate angle
+        self.angle = calculate_angle(start_pos, target_pos)
+        self.image = asset
+        self.rotated_image = pygame.transform.rotate(self.image, self.angle)
+
+        # Movement direction
+        angle_rad = math.radians(self.angle)
+        self.dx = math.cos(angle_rad) * self.speed
+        self.dy = -math.sin(angle_rad) * self.speed  # Negative for PyGame's y-axis
+
+    def update(self):
+        # Move the projectile
+        self.x += self.dx
+        self.y += self.dy
+
+        # Recalculate rotation (optional if dynamic rotation needed)
+        # Shouldn't be necessary for us.
+        #self.rotated_image = pygame.transform.rotate(self.image, self.angle)
+
+        # Check if the projectile has reached the target
+        if self._reached_target():
+            self.active = False  # Deactivate the projectile
+
+
+    def draw(self, screen):
+        # Center the rotated image
+        #draw_at = self.world.game.ui.tile_to_screen_coords((self.x, self.y), offset_by_half_a_tile=True)
+
+
+        rect = self.rotated_image.get_rect(center=(self.x, self.y))
+        screen.blit(self.rotated_image, rect.topleft)
+
+    def _reached_target(self):
+        # Check if the projectile is close enough to the target
+        distance = math.sqrt((self.target_x - self.x) ** 2 + (self.target_y - self.y) ** 2)
+        return distance < self.speed  # Threshold based on speed for smooth stopping
