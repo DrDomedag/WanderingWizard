@@ -323,6 +323,14 @@ class UI:
 
                 vertical_offset += 30
 
+                # Duration
+                if entity.expires:
+                    type = self.font_20.render(f"Remaining duration: {entity.duration}", True, COLOURS.GRAY, COLOURS.BLACK)
+                    typeRect = type.get_rect()
+                    typeRect.center = (left_end + width // 2, vertical_offset)
+                    self.display.blit(type, typeRect)
+                    vertical_offset += 26
+
                 # Action crystals
                 full_crystal = self.world.game.assets["action_crystal_full"]
                 empty_crystal = self.world.game.assets["action_crystal_empty"]
@@ -337,6 +345,26 @@ class UI:
                 vertical_offset = blit_text(self.display, entity.description,
                                             (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
                 vertical_offset += 20
+
+                # Resistances
+                if len(entity.resistances.keys()) > 0:
+                    type = self.font_20.render(f"Resistances", True, COLOURS.WHITE, COLOURS.BLACK)
+                    typeRect = type.get_rect()
+                    typeRect.center = (left_end + width // 2, vertical_offset)
+                    self.display.blit(type, typeRect)
+                    vertical_offset += 26
+                    for resistance in entity.resistances.keys():
+                        resistance_name = DAMAGE_TYPE_NAMES[resistance]
+                        value = entity.resistances[resistance]
+                        type = self.font_14.render(f"{resistance_name}: {value}%", True, DAMAGE_TYPE_COLOURS[resistance], COLOURS.BLACK)
+                        typeRect = type.get_rect()
+                        typeRect.center = (left_end + width // 2, vertical_offset)
+                        self.display.blit(type, typeRect)
+                        vertical_offset += 20
+
+
+
+
 
                 if entity != self.world.game.pc:
                     # Show abilities
@@ -375,8 +403,7 @@ class UI:
                             self.display.blit(action_cost, action_cost_rect)
 
                             for i in range(active.action_cost):
-                                if i >= entity.current_actions:
-                                    self.display.blit(full_crystal, (left_end + (width // 2) + 40 + i * 30, vertical_offset - 15))
+                                self.display.blit(full_crystal, (left_end + (width // 2) + 40 + i * 30, vertical_offset - 15))
 
                             vertical_offset += 20
 
@@ -388,14 +415,14 @@ class UI:
 
 
             if entity is None:
-                entity = self.world.active_floor[hovered_tile]
+                floor = self.world.active_floor[hovered_tile]
                 if entity is not None:
-                    name = self.font_32.render(f"{entity.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                    name = self.font_32.render(f"{floor.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                     nameRect = name.get_rect()
                     nameRect.center = (left_end + width // 2, vertical_offset)
                     self.display.blit(name, nameRect)
                     vertical_offset += 30
-                    type = self.font_32.render(f"{entity.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                    type = self.font_32.render(f"{floor.type}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
                     typeRect = type.get_rect()
                     typeRect.center = (left_end + width // 2, vertical_offset)
                     self.display.blit(type, typeRect)

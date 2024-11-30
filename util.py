@@ -31,6 +31,35 @@ DAMAGE_TYPES = Tags(
     ARCANE=10
 )
 
+DAMAGE_TYPE_NAMES = [
+    "Bludgeoning",
+    "Piercing",
+    "Slashing",
+    "Fire",
+    "Cold",
+    "Lightning",
+    "Poison",
+    "Dark",
+    "Light",
+    "Psychic",
+    "Arcane"
+]
+
+DAMAGE_TYPE_COLOURS = [
+    (200, 200, 200), #"Bludgeoning",
+    (200, 200, 200), #"Piercing",
+    (200, 200, 200), #"Slashing",
+    (255,107,43), #"Fire",
+    (36,226,255), #"Cold",
+    (255,255,20), #"Lightning",
+    (0,135,5), #"Poison",
+    (135,0,135), #"Dark",
+    (255,255,143), #"Light",
+    (224,171,255), #"Psychic",
+    (117,163,255) #"Arcane"
+
+]
+
 # Damage types not appearing in this game
 # Acid
 # Sonic/Thunder
@@ -108,6 +137,7 @@ SCHOOL_COLOURS = [
 COLOURS = Tags(
     WHITE=(255, 255, 255),
     BLACK=(0, 0, 0),
+    LIGHT_GRAY=(220, 220, 220),
     GRAY=(200, 200, 200),
     DARK_GRAY=(100,100,100),
     RED=(255, 0, 0),
