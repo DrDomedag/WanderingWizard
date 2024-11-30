@@ -37,12 +37,11 @@ Origin Realm (where dragons live)
 
 # Biome ideas:
 '''
-
 Ice caverns (closed and cold)
 Volcanic caverns (hot and closed)
-Mushroom caverns
+Mushroom caverns (under forest?)
 Crystal caverns
-Catacombs
+Catacombs (under church PoI)
 
 Ruined city
 

@@ -113,6 +113,11 @@ class PortalBiome(StarterBiome):
     def intensity_bias(self, coords):
         return 8 - 2 * euclidean_distance((0, 0), coords)
 
+
+class InfiniteStoneBiome(Biome):
+    def generate_floor_tile(self, coords):
+        return (self.world, coords)
+
 class PointOfInterest:
     def __init__(self, world, generation_coordinates):
         self.name="Unnamed Point of Interest"

@@ -80,19 +80,19 @@ class Portal(FloorTile):
 class DirtFloorTile(FloorTile):
     def __init__(self, world, position):
         super().__init__(world, position)
-        self.name = "Floor"
+        self.name = "Dirt"
         self.asset = "dirt_tile"
 
 class DryGrassFloorTile(FloorTile):
     def __init__(self, world, position):
         super().__init__(world, position)
-        self.name = "Floor"
+        self.name = "Grass"
         self.asset = "dry_grass_tile"
 
 class PortalStoneFloorTile(FloorTile):
     def __init__(self, world, position):
         super().__init__(world, position)
-        self.name = "Floor"
+        self.name = "Stone floor"
         self.asset = "portal_stone_tile"
 
 class LavaFloorTile(FloorTile):
@@ -137,6 +137,13 @@ class WoodenFloorTile(FloorTile):
         self.name = "Wooden floor"
         self.type = "solid"
         self.asset = "wood_tile"
+
+class StoneFloorTile(FloorTile):
+    def __init__(self, world, position):
+        super().__init__(world, position)
+        self.name = "Stone floor"
+        self.type = "solid"
+        self.asset = "stone_tile"
 
 def generic_floor_tile(world, position, name, asset_name):
     tile = FloorTile(world, position)

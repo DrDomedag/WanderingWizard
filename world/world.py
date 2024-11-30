@@ -217,7 +217,7 @@ class World:
         for coords in line_tiles:
             if self.active_walls[coords] is not None and coords != y:
                 return False
-            if not self.game.pc.can_see(coords):
+            if not self.game.pc.can_see(coords) and not self.has_seen[coords]:
                 return False
         return True
 
