@@ -81,17 +81,17 @@ class UI:
 
         # Create new effects
         while len(self.world.effect_queue) > 0:
-            origin_tile, target_tile, effect_type = self.world.effect_queue.pop()
+            origin_tile, target_tile, effect_type, delay = self.world.effect_queue.pop()
 
             if effect_type == "fire_explosion":
-                new_sprite = ExplosionEffect(self.world, "fire", target_tile, self.ongoing_effects)
+                new_sprite = ExplosionEffect(self.world, "fire", target_tile, delay, self.ongoing_effects)
                 self.ongoing_effects.add(new_sprite)
 
             if effect_type == "metal_projectile":
                 origin_screen_coords = self.tile_to_screen_coords(origin_tile, offset_by_half_a_tile=True)
                 target_screen_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
                 print(f"Found a metal projectile in the effect queue. Creating object.")
-                projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["metal_projectile"])
+                projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["metal_projectile"], delay)
                 self.projectiles.append(projectile)
 
 
@@ -518,7 +518,7 @@ class SpellSelectorButton:
 
 
 class ExplosionEffect(pygame.sprite.Sprite):
-    def __init__(self, world, asset_name, position, *groups):
+    def __init__(self, world, asset_name, position, start_delay, *groups):
         """
         Creates an explosion effect that animates through a list of sprites and deletes itself.
 
@@ -533,6 +533,8 @@ class ExplosionEffect(pygame.sprite.Sprite):
         self.sprite = self.get_sprites()
         self.position = position
         self.delay = 100
+        self.start_delay = start_delay
+        self.time_since_start = 0
         self.current_frame = 0
         self.last_update_time = pygame.time.get_ticks()
         self.image = self.sprite[self.current_frame]
@@ -562,21 +564,30 @@ class ExplosionEffect(pygame.sprite.Sprite):
         """
         Updates the explosion animation by switching frames and removing itself when done.
         """
+
         now = pygame.time.get_ticks()
 
-        target_coords = self.world.game.ui.tile_to_screen_coords(self.position, offset_by_half_a_tile=True)
+        self.time_since_start += now - self.last_update_time
 
-        if now - self.last_update_time >= self.delay:
-            self.last_update_time = now
-            self.current_frame += 1
+        if self.time_since_start >= self.start_delay:
 
-            # Check if the animation is complete
-            if self.current_frame >= len(self.sprite):
-                self.kill()  # Remove itself from all sprite groups
-            else:
-                # Update to the next frame
-                self.image = self.sprite[self.current_frame]
-                self.rect = self.image.get_rect(center=target_coords)
+            target_coords = self.world.game.ui.tile_to_screen_coords(self.position, offset_by_half_a_tile=True)
+
+            if now - self.last_update_time >= self.delay:
+                self.last_update_time = now
+                self.current_frame += 1
+
+                # Check if the animation is complete
+                if self.current_frame >= len(self.sprite):
+                    self.kill()  # Remove itself from all sprite groups
+                else:
+                    # Update to the next frame
+                    self.image = self.sprite[self.current_frame]
+                    self.rect = self.image.get_rect(center=target_coords)
+
+    def draw(self, display):
+        if self.time_since_start >= self.start_delay:
+            super().draw(display)
 
 
 # Consider moving this into the UI class. It works fine like this, tbf.
@@ -607,11 +618,14 @@ def calculate_angle(start_pos, target_pos):
 
 # Class to represent a projectile
 class Projectile:
-    def __init__(self, world, start_pos, target_pos, speed, asset):
+    def __init__(self, world, start_pos, target_pos, speed, asset, delay):
         self.world = world
         self.x, self.y = start_pos
         self.target_x, self.target_y = target_pos
         self.speed = speed
+
+        self.delay = delay
+        self.start_time = pygame.time.get_ticks()
 
         self.active = True
 
@@ -626,26 +640,31 @@ class Projectile:
         self.dy = -math.sin(angle_rad) * self.speed  # Negative for PyGame's y-axis
 
     def update(self):
-        # Move the projectile
-        self.x += self.dx
-        self.y += self.dy
+        now = pygame.time.get_ticks()
+        if now - self.start_time >= self.delay:
 
-        # Recalculate rotation (optional if dynamic rotation needed)
-        # Shouldn't be necessary for us.
-        #self.rotated_image = pygame.transform.rotate(self.image, self.angle)
+            # Move the projectile
+            self.x += self.dx
+            self.y += self.dy
 
-        # Check if the projectile has reached the target
-        if self._reached_target():
-            self.active = False  # Deactivate the projectile
+            # Recalculate rotation (optional if dynamic rotation needed)
+            # Shouldn't be necessary for us.
+            #self.rotated_image = pygame.transform.rotate(self.image, self.angle)
+
+            # Check if the projectile has reached the target
+            if self._reached_target():
+                self.active = False  # Deactivate the projectile
 
 
     def draw(self, screen):
         # Center the rotated image
         #draw_at = self.world.game.ui.tile_to_screen_coords((self.x, self.y), offset_by_half_a_tile=True)
 
+        now = pygame.time.get_ticks()
+        if now - self.start_time >= self.delay:
 
-        rect = self.rotated_image.get_rect(center=(self.x, self.y))
-        screen.blit(self.rotated_image, rect.topleft)
+            rect = self.rotated_image.get_rect(center=(self.x, self.y))
+            screen.blit(self.rotated_image, rect.topleft)
 
     def _reached_target(self):
         # Check if the projectile is close enough to the target

@@ -1,6 +1,7 @@
 General things to do:
 Add duration for summoned entities in right-side menu.
 Print resistances on mouseover'd enemies.
+Show allegiance on map somehow.
 
 Verify bug level of spellbook pickups. Seemed like they didn't give the right tier.
 
@@ -164,6 +165,10 @@ A monster that deals damage to metal enemies (enemies of nature) in a radius eac
 Animate Tree
 Nature
 Turns a tree into a treant. The tree stats/abilities depend on the base tree.
+
+Razor Boomerang
+Metal
+Throw a chakram in circle. Maybe regain a charge if there were no walls in the AoE.
 
 
 # Theme ideas:

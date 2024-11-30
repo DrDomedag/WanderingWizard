@@ -185,7 +185,7 @@ class IronNeedle(Spell):
         '''if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)'''
-        self.caster.world.show_projectile(self.caster.position, target, "metal_projectile")
+        self.caster.world.show_projectile(self.caster.position, target, "metal_projectile", 0)
 
 class FireBreath(Spell):
     def __init__(self, caster):
@@ -207,7 +207,7 @@ class FireBreath(Spell):
         affected_tiles = compute_cone_tiles(self.caster.position, target, self.range + 0.5, include_origin_tile=False)
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.FIRE)
-            self.caster.world.show_effect(tile, "fire_explosion")
+            self.caster.world.show_effect(tile, "fire_explosion", (euclidean_distance(self.caster.position, tile)*500))
 
     def get_impacted_tiles(self, target):
         return compute_cone_tiles(self.caster.position, target, self.range + 0.5, include_origin_tile=False)

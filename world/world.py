@@ -43,12 +43,12 @@ class World:
 
 
 
-    def show_effect(self, target, effect_type):
-        self.effect_queue.append((None, target, effect_type))
+    def show_effect(self, target, effect_type, delay):
+        self.effect_queue.append((None, target, effect_type, delay))
 
-    def show_projectile(self, origin, target, projectile_type):
+    def show_projectile(self, origin, target, projectile_type, delay):
         print(f"Adding a projectile to the effect queue. Type: '{projectile_type}'")
-        self.effect_queue.append((origin, target, projectile_type))
+        self.effect_queue.append((origin, target, projectile_type, delay))
 
     def __setitem__(self, key, value):
         #base_class = util.get_top_parent(value)
