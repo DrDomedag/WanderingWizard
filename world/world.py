@@ -21,9 +21,9 @@ DOWN = 2
 DOWN_RIGHT = 3
 
 class World:
-    def __init__(self, game):
+    def __init__(self, game, biome_list):
         self.game = game
-        self.world_generator = WorldGenerator(self)
+        self.world_generator = WorldGenerator(self, biome_list)
         #self.total_tiles = defaultdict(lambda: None)
         #self.active_tiles = defaultdict(lambda: None)
         self.total_floor = defaultdict(lambda: None)

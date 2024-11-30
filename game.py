@@ -5,6 +5,7 @@ from spells import *
 from world.world import *
 from ui import *
 import entities.entities as entities
+from util import *
 
 
 class Game:
@@ -61,7 +62,8 @@ class Game:
 
 
     def new_game(self):
-        world = World(self)
+        biome_list = [BIOME_IDS.PLAINS, BIOME_IDS.FOREST, BIOME_IDS.STARTER_BIOME]
+        world = World(self, biome_list)
         world.assets = self.assets
         self.pc = PC(world)
         self.pc.position = (0, 0)

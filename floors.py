@@ -6,6 +6,7 @@ class FloorTile:
     def __init__(self, world, position):
         self.world = world
         self.position = position
+        self.description = ""
         self.layer = "floor"
         self.name = "Floor"
         self.type = "solid"
@@ -27,13 +28,21 @@ class BurningGround(FloorTile):
         super().__init__(world, position)
         self.name = "Burning Ground"
         self.asset = "burning_ground"
+        self.description = "This tile deals 1 damage to any non-flying that enters it, and 1 at the start of each turn."
 
     def on_start_of_turn_effect(self):
-        effects.damage_tile(self.world, self, self.position, 1, DAMAGE_TYPES.FIRE)
+        if self.world.total_entities[self.position] is not None:
+            entity = self.world.total_entities[self.position]
+            if not entity.flying:
+                effects.damage_entity(self, entity, 1, DAMAGE_TYPES.FIRE)
+                self.world.show_effect(entity.position, "fire_explosion")
 
     def on_enter_effect(self, entity):
-        effects.damage_entity(self, entity, 1, DAMAGE_TYPES.FIRE)
-        self.world.show_effect(entity.position, "fire_explosion")
+        if self.world.total_entities[self.position] is not None:
+            entity = self.world.total_entities[self.position]
+            if not entity.flying:
+                effects.damage_entity(self, entity, 1, DAMAGE_TYPES.FIRE)
+                self.world.show_effect(entity.position, "fire_explosion")
 
 class Portal(FloorTile):
     def __init__(self, home_world, away_world, home_world_coordinates, away_world_coordinates=(0, 0), paired_portal=None):
@@ -79,6 +88,12 @@ class DryGrassFloorTile(FloorTile):
         super().__init__(world, position)
         self.name = "Floor"
         self.asset = "dry_grass_tile"
+
+class PortalStoneFloorTile(FloorTile):
+    def __init__(self, world, position):
+        super().__init__(world, position)
+        self.name = "Floor"
+        self.asset = "portal_stone_tile"
 
 class LavaFloorTile(FloorTile):
     def __init__(self, world, position):

@@ -132,6 +132,13 @@ ENTITY_TAGS = Tags(
 )
 
 
+# Note to self: Keep synced with list in world_generator.py or expect bugs.
+BIOME_IDS = Tags(
+    STARTER_BIOME=0,
+    PLAINS=1,
+    FOREST=2,
+    PORTAL_BIOME=3
+)
 
 
 # Allegiances

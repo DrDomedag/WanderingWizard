@@ -76,20 +76,28 @@ class StarterBiome(Biome):
         self.name = "Starter biome"
         self.monster_group_spawn_probability = 0
         self.fow_colour = (255, 255, 255)
+        self.portal_destination_world_biomes = [BIOME_IDS.PORTAL_BIOME, BIOME_IDS.PLAINS, BIOME_IDS.FOREST]
 
     def generate_floor_tile(self, coords):
         from world.world import World
-        if random.random() < 0.98:
-            return DirtFloorTile(self.world, coords)
+        if coords == (0, 0):
+            return PortalStoneFloorTile(self.world, coords)
         else:
-            return Portal(self.world, World(self.world.game), coords)
-            # home_world, home_world_coordinates, away_world_coordinates=(0, 0), paired_portal=None
-
-    def intensity_weight(self, coords):
-        return 1
+            r = random.random()
+            if r + (euclidean_distance((0, 0), coords)/20) < 0.4:
+                return PortalStoneFloorTile(self.world, coords)
+            else:
+                return DirtFloorTile(self.world, coords)
+            '''
+            elif r < 0.98:
+                return DirtFloorTile(self.world, coords)
+            else:
+                return Portal(self.world, World(self.world.game, self.portal_destination_world_biomes), coords)
+                # home_world, home_world_coordinates, away_world_coordinates=(0, 0), paired_portal=None
+            '''
 
     def intensity_bias(self, coords):
-        return 16 - 2 * euclidean_distance((0, 0), coords)
+        return 12 - 2 * euclidean_distance((0, 0), coords)
 
 
     def generate_entity(self, coords):
@@ -97,6 +105,13 @@ class StarterBiome(Biome):
 
     def generate_wall_tile(self, coords):
         return None
+
+class PortalBiome(StarterBiome):
+    def generate_floor_tile(self, coords):
+        return PortalStoneFloorTile(self.world, coords)
+
+    def intensity_bias(self, coords):
+        return 8 - 2 * euclidean_distance((0, 0), coords)
 
 class PointOfInterest:
     def __init__(self, world, generation_coordinates):

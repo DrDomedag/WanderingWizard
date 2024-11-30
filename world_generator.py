@@ -73,27 +73,22 @@ temperature x humidity x magic
 
 '''
 
-
-BIOME_IDS = Tags(
-    STARTER_BIOME=0,
-    PLAINS=1,
-    FOREST=2,
-    #VOLCANO_CAVERNS=3,
-    #CANYON=4
-)
-
 # This has to be kept in the right order, which sucks, but who ever said good programming practices were a thing?
+# Even worse, they can't even be in the same place as the biome ids which belong in util due to import stuff.
+# That part *could* be handled with lazy imports, but it's nicer to have big lists in one place, so this is how it's going to be.
+# So yeah, keep this synced with the list in util or things will get buggy.
 BIOMES = [
     StarterBiome,
     Plains,
-    Forest
+    Forest,
+    PortalBiome
 ]
 
-class WorldGenerator():
-    def __init__(self, world):
+class WorldGenerator:
+    def __init__(self, world, biome_list):
         self.world = world
         self.biomes = {}
-        for biome_name, biome_id in BIOME_IDS.__dict__.items():
+        for biome_id in biome_list:
             self.biomes[biome_id] = BIOMES[biome_id](self.world, biome_id)
 
     def get_biome_object_from_tile(self, coordinates):
@@ -103,7 +98,7 @@ class WorldGenerator():
     def get_biome_id(self, coords):
 
         biome_intensity = {}
-        for biome_name, biome_id in BIOME_IDS.__dict__.items():
+        for biome_id in self.biomes.keys():
             biome_intensity[biome_id] = self.persistent_noise(coords, BIOME_SCALE, self.biomes[biome_id].seed, octaves=4) * self.biomes[biome_id].intensity_weight(coords) + self.biomes[biome_id].intensity_bias(coords)
             #print(f"coordinates: {coords}, distance: {euclidean_distance((0, 0), coords)}, biome_id: {biome_id}, biome_intensity[biome_id]: {biome_intensity[biome_id]}")
 
