@@ -90,7 +90,6 @@ class UI:
             if effect_type == "metal_projectile":
                 origin_screen_coords = self.tile_to_screen_coords(origin_tile, offset_by_half_a_tile=True)
                 target_screen_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
-                print(f"Found a metal projectile in the effect queue. Creating object.")
                 projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["metal_projectile"], delay)
                 self.projectiles.append(projectile)
 
@@ -149,7 +148,6 @@ class UI:
         # Update and render projectiles
         self.projectiles = [p for p in self.projectiles if p.active]
         for projectile in self.projectiles:
-            print("Rendering a projectile for a frame!")
             projectile.update()
             projectile.draw(self.display)
 

@@ -119,11 +119,14 @@ class Entity:
 
 
     def can_see(self, target):
+        return self.world.can_see(self.position, target)
+        '''
         line_tiles = bresenham(self.position, target)
         for coords in line_tiles:
             if self.world.active_walls[coords] is not None and coords != target:
                 return False
         return True
+        '''
 
     def can_move(self, target):
         return self.world.check_can_move(self, target)

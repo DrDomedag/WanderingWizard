@@ -47,7 +47,6 @@ class World:
         self.effect_queue.append((None, target, effect_type, delay))
 
     def show_projectile(self, origin, target, projectile_type, delay):
-        print(f"Adding a projectile to the effect queue. Type: '{projectile_type}'")
         self.effect_queue.append((origin, target, projectile_type, delay))
 
     def __setitem__(self, key, value):
@@ -95,9 +94,7 @@ class World:
     '''
 
     def generate_tile(self, coords):
-        tile = self.world_generator.generate_tile(coords)
-
-        #return tile
+        self.world_generator.generate_tile(coords)
 
     def check_can_move(self, entity, target):
         if self.total_entities[target] is not None:
@@ -164,10 +161,6 @@ class World:
         return False
 
 
-    def generate_tile(self, coords):
-        self.world_generator.generate_tile(coords)
-
-
     def set_current_active_tiles(self):
         self.active_walls = defaultdict(lambda: None)
         self.active_floor = defaultdict(lambda: None)
@@ -179,7 +172,7 @@ class World:
                            self.current_coordinates[1] + self.active_tile_range):
                 coords = (x, y)
                 if self.total_floor[coords] is None:
-                    tile = self.generate_tile(coords)
+                    self.generate_tile(coords)
                 if chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
                     self.active_floor[coords] = self.total_floor[coords]
                     self.active_walls[coords] = self.total_walls[coords]

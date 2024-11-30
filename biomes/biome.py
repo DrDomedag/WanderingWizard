@@ -130,6 +130,8 @@ class PointOfInterest:
 
         self.centre_tile = self.compute_centre_tile()
 
+        print(f"Generating {self.name} PoI at {generation_coordinates}. Size: {self.size}, centre tile: {self.centre_tile}.")
+
 
     def on_init(self):
         pass
@@ -139,7 +141,7 @@ class PointOfInterest:
         pass
 
     def compute_centre_tile(self):
-        direction_from_player = compute_direction(self.world.game.pc.position, self.generation_coordinates)
+        direction_from_player = relative_quadrant(self.world.game.pc.position, self.generation_coordinates)
         centre_x = self.generation_coordinates[0] + (self.size[0] // 2) * direction_from_player[0]
         centre_y = self.generation_coordinates[1] + (self.size[1] // 2) * direction_from_player[1]
         centre_tile = (int(centre_x), int(centre_y))

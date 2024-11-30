@@ -21,6 +21,12 @@ class Wall(Entity):
     def on_enter_effect(self):
         pass
 
+    def die(self):
+        self.world.total_walls[self.position] = None
+        self.world.active_walls[self.position] = None
+        self.on_death()
+        del self
+
 
 
 class StoneWall(Wall):

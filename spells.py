@@ -73,7 +73,7 @@ class Spell:
 
 
     def cast(self, target):
-        print(f"Cast {self.name} at {target}!")
+        #print(f"Cast {self.name} at {target}!")
         self.current_charges -= 1
         self.on_cast(target)
         self.caster.current_actions -= self.action_cost

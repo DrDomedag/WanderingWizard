@@ -50,6 +50,7 @@ class Forest(biome.Biome):
 class ShamanHut(biome.PointOfInterest):
     def on_init(self):
         self.size = (6, 6)
+        self.name = "Goblin Shaman's Hut"
 
     def draw(self):
         for x in range(-2, 3, 1):
