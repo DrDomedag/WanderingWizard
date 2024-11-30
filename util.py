@@ -227,78 +227,29 @@ def disk(target, radius, include_origin_tile=True):
 #        tiles.remove(target)
     return tiles
 
-#def compute_cone_tiles(grid_size, origin, target, radius, angle=45):
-def compute_cone_tiles(origin, target, radius, angle=45, include_origin_tile=False, fill=True):
-    """
-    Compute tiles affected by a cone on an infinite grid, including negative coordinates.
 
-    :param origin: Tuple (x, y) of the cone's starting point.
-    :param target: Tuple (x, y) indicating the direction of the cone.
-    :param radius: Radius (length) of the cone.
-    :param angle: Angle (in degrees) of the cone's width.
-    :return: A set of (x, y) tuples representing affected tiles.
-    """
+def compute_cone_tiles(origin, target, angle, radius, include_origin_tile=False):
+    # Convert angle to radians
+    angle_rad = math.radians(angle)
 
-    # Works, as long as you're in positive coordinates. Also somewhat weirdly shaped.
+    # Compute direction from origin to target
+    dx, dy = target[0] - origin[0], target[1] - origin[1]
+    direction_angle = math.atan2(dy, dx)  # Angle of the target from the origin
 
-    #radius = euclidean_distance_rounded_up(origin, target)
+    disk_tiles = disk(origin, radius, include_origin_tile=include_origin_tile)
+    sector_tiles = []
 
-    # Compute the direction vector and angle of the cone
-    direction = (target[0] - origin[0], target[1] - origin[1])
-    angle_rad = np.deg2rad(angle)
+    for tile in disk_tiles:
+        # Calculate the angle from the origin to this tile
+        tile_angle = math.atan2(tile[1] - origin[1], tile[0] - origin[0])
 
-    # Normalize the direction vector
-    direction_length = np.hypot(*direction)
-    if direction_length == 0:
-        return []
-        #raise ValueError("Target cannot be the same as the origin.")
-    unit_direction = (direction[0] / direction_length, direction[1] / direction_length)
-
-    # Compute the cone boundary vectors
-    cos_half_angle = np.cos(angle_rad / 2)
-    sin_half_angle = np.sin(angle_rad / 2)
-    left_boundary = (
-        unit_direction[0] * cos_half_angle - unit_direction[1] * sin_half_angle,
-        unit_direction[0] * sin_half_angle + unit_direction[1] * cos_half_angle,
-    )
-    right_boundary = (
-        unit_direction[0] * cos_half_angle + unit_direction[1] * sin_half_angle,
-        -unit_direction[0] * sin_half_angle + unit_direction[1] * cos_half_angle,
-    )
-
-    # Compute cone vertices
-    cone_vertices = [origin]
-    for boundary in (left_boundary, right_boundary):
-        vertex = (
-            origin[0] + boundary[0] * radius,
-            origin[1] + boundary[1] * radius,
-        )
-        cone_vertices.append(vertex)
-
-    # Convert vertices to grid coordinates (rounding for discrete tiles)
-    cone_vertices_px = np.array(cone_vertices, dtype=float)
-    cone_vertices_px = cone_vertices_px.round().astype(int)
-
-    '''
-    # Good so far
-    # Use skimage.draw.polygon to compute affected tiles
-    rr, cc = skimage.draw.polygon(
-        [v[1] for v in cone_vertices_px],  # Row coordinates (y-axis)
-        [v[0] for v in cone_vertices_px],  # Column coordinates (x-axis)
-    )
-    # Bad here
-    # Convert results to a set of tiles with (x, y) coordinates
-    affected_tiles = set(zip(cc, rr))
-    '''
-
-    affected_tiles = rasterize_polygon(cone_vertices_px, fill=fill)
+        # Check if the tile is within the angle range of the sector
+        if abs(tile_angle - direction_angle) <= angle_rad / 2:
+            sector_tiles.append(tile)
 
 
-    # Remove the origin tile if we intend to do so.
-    if origin in affected_tiles and not include_origin_tile:
-        affected_tiles.remove(origin)
+    return sector_tiles
 
-    return affected_tiles
 
 def rasterize_polygon(vertices, fill=True):
     """

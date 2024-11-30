@@ -1,7 +1,8 @@
 import random
 from biomes.biome import Biome
-from floors import DryGrassFloorTile
-from walls import Tree
+from biomes.biome import PointOfInterest
+from floors import *
+from walls import *
 import entities.entities as entities
 from util import *
 
@@ -33,3 +34,24 @@ class Plains(Biome):
             enemy = entities.Goblin(self.world)
             enemy.allegiance = ALLEGIANCES.ENEMY_TEAM
             return enemy
+
+
+class Church(PointOfInterest):
+    def __init__(self, world, coordinates):
+        super().__init__(world, coordinates)
+        self.size = (5, 5)
+
+    def draw(self):
+        for x in range(-2, 3, 1):
+            for y in range(-2, 3, 1):
+                x_ = self.centre_tile[0] + x
+                y_ = self.centre_tile[1] + y
+                coords = (x_, y_)
+                self.world.total_floor[coords] = generic_floor_tile(self.world, coords, "Wooden floor", "wood_tile")
+                if chebyshev_distance(self.centre_tile, coords) == 2 and not coords[1] == self.centre_tile[1]:
+                    self.world.total_walls[coords] = WoodWall(self.world, coords)
+        if self.world.game.enemy_spawns_enabled:
+            shaman = GoblinShaman(self.world)
+            shaman.allegiance = ALLEGIANCES.ENEMY_TEAM
+            shaman.position = self.centre_tile
+            self.world.total_entities[self.centre_tile] = shaman

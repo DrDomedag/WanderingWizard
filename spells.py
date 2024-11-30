@@ -203,14 +203,16 @@ class FireBreath(Spell):
         self.upgrades = []
         self.recovery_time = 5
 
+        self.angle = 60
+
     def on_cast(self, target):
-        affected_tiles = compute_cone_tiles(self.caster.position, target, self.range + 0.5, include_origin_tile=False)
+        affected_tiles = compute_cone_tiles(self.caster.position, target, self.angle, self.range + 0.5, include_origin_tile=False)
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.FIRE)
             self.caster.world.show_effect(tile, "fire_explosion", (euclidean_distance(self.caster.position, tile)*500))
 
     def get_impacted_tiles(self, target):
-        return compute_cone_tiles(self.caster.position, target, self.range + 0.5, include_origin_tile=False)
+        return compute_cone_tiles(self.caster.position, target, self.angle, self.range + 0.5, include_origin_tile=False)
 
 class SeismicJolt(Spell):
     def __init__(self, caster):

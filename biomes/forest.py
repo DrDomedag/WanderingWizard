@@ -53,8 +53,8 @@ class ShamanHut(biome.PointOfInterest):
         self.size = (5, 5)
 
     def draw(self):
-        for x in range(-2, 2, 1):
-            for y in range(-2, 2, 1):
+        for x in range(-2, 3, 1):
+            for y in range(-2, 3, 1):
                 x_ = self.centre_tile[0] + x
                 y_ = self.centre_tile[1] + y
                 coords = (x_, y_)
