@@ -150,3 +150,9 @@ def generic_floor_tile(world, position, name, asset_name):
     tile.name = name
     tile.asset = asset_name
     return tile
+
+class RedCarpetTile(FloorTile):
+    def __init__(self, world, position):
+        super().__init__(world, position)
+        self.name = "Carpet"
+        self.asset = "red_carpet_tile"

@@ -105,7 +105,9 @@ class World:
             return False # Change down the line to allow PC to walk into ally spaces.
         if self.total_walls[target] is not None and not entity.intangible:
             #print(f"Could not move because a wall blocked the way and {entity.name} is not intangible.")
-            return False
+            if not (self.total_walls[target].openable and entity.opens_doors):
+                if not (self.total_walls[target].walkable and entity.walking) or (self.total_walls[target].flyable and entity.flying) or (self.total_walls[target].swimmable and entity.swimming):
+                    return False
         if self.total_floor[target].walkable and entity.walking:
             #print(f"{entity.name} could move because it can walk and the target tile is walkable.")
             return True
@@ -122,8 +124,9 @@ class World:
     def check_can_be_pushed(self, entity, target):
         if self.active_entities[target] is not None:
             return False
-        if self.active_walls[target] is not None and not entity.intangible:
-            return False
+        if self.total_walls[target] is not None and not entity.intangible:
+            if not (self.total_walls[target].walkable and entity.walking) or (self.total_walls[target].flyable and entity.flying) or (self.total_walls[target].swimmable and entity.swimming):
+                return False
         return True
 
     def player_step(self, direction):
@@ -194,7 +197,10 @@ class World:
                 item.position = target
             if self.active_tile_effects[target] is not None:
                 self.active_tile_effects[target].on_enter_effect()
+            if self.active_walls[target] is not None:
+                self.active_walls[target].on_enter_effect()
             self.active_floor[target].on_enter_effect(entity)
+
             return True
         else:
             return False
@@ -216,7 +222,8 @@ class World:
             return True
         for coords in line_tiles:
             if self.active_walls[coords] is not None and coords != y:
-                return False
+                if self.active_walls[coords].blocks_vision:
+                    return False
             if not self.game.pc.can_see(coords) and not self.has_seen[coords]:
                 return False
         return True
@@ -227,7 +234,8 @@ class World:
             return True
         for coords in line_tiles:
             if self.active_walls[coords] is not None and coords != y:
-                return False
+                if self.active_walls[coords].blocks_vision:
+                    return False
         return True
 
     def get_visible_tiles(self, target, treat_fow_as_wall=False):

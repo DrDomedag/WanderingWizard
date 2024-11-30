@@ -251,7 +251,9 @@ def compute_cone_tiles(origin, target, angle, radius, include_origin_tile=False)
     return sector_tiles
 
 
-def rasterize_polygon(vertices, fill=True):
+
+
+def rasterize_polygon(vertices, wrap=True, fill=True):
     """
     Generate a list of (x, y) coordinate pairs that make up the polygon defined by vertices.
     :param vertices: List of (x, y) tuples defining the vertices of the polygon.
@@ -259,10 +261,17 @@ def rasterize_polygon(vertices, fill=True):
     """
     # Generate edge points
     edge_points = set()
-    for i in range(len(vertices)):
-        #x0, y0 = vertices[i]
-        #x1, y1 = vertices[(i + 1) % len(vertices)]  # Wrap to the first vertex
-        edge_points.update(bresenham(vertices[i], vertices[(i+1) % len(vertices)]))
+
+    if wrap:
+        for i in range(len(vertices)):
+            #x0, y0 = vertices[i]
+            #x1, y1 = vertices[(i + 1) % len(vertices)]  # Wrap to the first vertex
+            edge_points.update(bresenham(vertices[i], vertices[(i+1) % len(vertices)]))
+    else:
+        for i in range(len(vertices) - 1):
+            #x0, y0 = vertices[i]
+            #x1, y1 = vertices[(i + 1) % len(vertices)]  # Wrap to the first vertex
+            edge_points.update(bresenham(vertices[i], vertices[(i+1)]))
 
     if not fill:
         return list(edge_points)
@@ -481,3 +490,6 @@ def desaturate_sprite(sprite):
     desaturated_sprite.blit(gray_overlay, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
 
     return desaturated_sprite
+
+
+

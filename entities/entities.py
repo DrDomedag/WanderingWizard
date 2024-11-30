@@ -42,6 +42,8 @@ class Entity:
         self.position = None
         self.owner = None
 
+        self.opens_doors = True
+
         self.expires = False
         self.duration = 0
 

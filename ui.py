@@ -193,7 +193,7 @@ class UI:
                     self.world.game.pc.current_actions -= 1
 
             # Walk on clicking distant tile
-            if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.game.pc.position, hovered_tile) > 1 and self.world.game.pc.can_see(hovered_tile):
+            if self.left_click and not pygame.mouse.get_pressed(num_buttons=3)[2] and util.chebyshev_distance(self.world.game.pc.position, hovered_tile) > 1 and (self.world.game.pc.can_see(hovered_tile) or self.world.has_seen[hovered_tile]):
                 path = util.find_path(self.world.game.pc, hovered_tile)
                 #print(path)
                 if len(path) > 0:

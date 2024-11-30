@@ -48,9 +48,8 @@ class Forest(biome.Biome):
 
 
 class ShamanHut(biome.PointOfInterest):
-    def __init__(self, world, coordinates):
-        super().__init__(world, coordinates)
-        self.size = (5, 5)
+    def on_init(self):
+        self.size = (6, 6)
 
     def draw(self):
         for x in range(-2, 3, 1):

@@ -124,8 +124,15 @@ class PointOfInterest:
         self.world = world
         self.generation_coordinates = generation_coordinates
 
-        self.size = (3, 3)
+        self.size = (4, 4)
+
+        self.on_init()
+
         self.centre_tile = self.compute_centre_tile()
+
+
+    def on_init(self):
+        pass
 
 
     def draw(self):
@@ -137,4 +144,22 @@ class PointOfInterest:
         centre_y = self.generation_coordinates[1] + (self.size[1] // 2) * direction_from_player[1]
         centre_tile = (int(centre_x), int(centre_y))
         return centre_tile
+
+    def translate_poi_coordinates_to_world(self, relative_points):
+        """
+        Translates a list of relative points (x, y) to a world point.
+        """
+        # Calculate the top-left corner of the object
+        top_left_x = self.centre_tile[0] - self.size[0] // 2
+        top_left_y = self.centre_tile[1] - self.size[1] // 2
+
+        world_coordinates = []
+
+        for point in relative_points:
+            # Translate the relative point to world coordinates
+            world_x = top_left_x + point[0]
+            world_y = top_left_y + point[1]
+            world_coordinates.append((world_x, world_y))
+
+        return world_coordinates
 
