@@ -117,9 +117,11 @@ class UI:
             if wall is not None and self.world.game.pc.can_see(entity_coords):
                 if wall.layer == "wall":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    self.display.blit(self.world.game.assets[wall.asset], self.tile_to_screen_coords(entity_coords))
+                    #self.display.blit(self.world.game.assets[wall.asset], self.tile_to_screen_coords(entity_coords))
+                    self.display.blit(wall.asset, self.tile_to_screen_coords(entity_coords))
             elif wall is not None and self.world.has_seen[entity_coords]:
-                self.display.blit(desaturate_sprite(self.world.game.assets[wall.asset]), self.tile_to_screen_coords(entity_coords))
+                #self.display.blit(desaturate_sprite(self.world.game.assets[wall.asset]), self.tile_to_screen_coords(entity_coords))
+                self.display.blit(desaturate_sprite(wall.asset), self.tile_to_screen_coords(entity_coords))
 
         # Render entities
         for entity_coords in self.world.active_entities.keys():
@@ -345,20 +347,29 @@ class UI:
                 vertical_offset += 20
 
                 # Resistances
-                if len(entity.resistances.keys()) > 0:
+
+                has_a_resistance = False
+                for resistance in entity.resistances.keys():
+                    if entity.resistances[resistance] != 0:
+                        has_a_resistance = True
+
+                if has_a_resistance:
                     type = self.font_20.render(f"Resistances", True, COLOURS.WHITE, COLOURS.BLACK)
                     typeRect = type.get_rect()
                     typeRect.center = (left_end + width // 2, vertical_offset)
                     self.display.blit(type, typeRect)
                     vertical_offset += 26
-                    for resistance in entity.resistances.keys():
-                        resistance_name = DAMAGE_TYPE_NAMES[resistance]
-                        value = entity.resistances[resistance]
-                        type = self.font_14.render(f"{resistance_name}: {value}%", True, DAMAGE_TYPE_COLOURS[resistance], COLOURS.BLACK)
-                        typeRect = type.get_rect()
-                        typeRect.center = (left_end + width // 2, vertical_offset)
-                        self.display.blit(type, typeRect)
-                        vertical_offset += 20
+                    if len(entity.resistances.keys()) > 0:
+                        for resistance in entity.resistances.keys():
+                            if entity.resistances[resistance] != 0:
+                                resistance_name = DAMAGE_TYPE_NAMES[resistance]
+                                value = entity.resistances[resistance]
+                                type = self.font_14.render(f"{resistance_name}: {value}%", True, DAMAGE_TYPE_COLOURS[resistance], COLOURS.BLACK)
+                                typeRect = type.get_rect()
+                                typeRect.center = (left_end + width // 2, vertical_offset)
+                                self.display.blit(type, typeRect)
+                                vertical_offset += 20
+
 
 
 

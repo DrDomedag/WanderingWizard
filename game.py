@@ -74,7 +74,9 @@ class Game:
         # TEMP
         self.pc.actives.append(IronNeedle(self.pc))
         self.pc.actives.append(FireBreath(self.pc))
-        self.pc.actives.append(SeismicJolt(self.pc))
+        sj = SeismicJolt(self.pc)
+        sj.power = 5
+        self.pc.actives.append(sj)
         self.pc.actives.append(RaiseLongdead(self.pc))
         self.pc.actives.append(LightningBolt(self.pc))
         self.pc.actives.append(PoisonMist(self.pc))

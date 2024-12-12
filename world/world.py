@@ -119,12 +119,17 @@ class World:
         return False
 
     def check_can_be_pushed(self, entity, target):
-        if self.active_entities[target] is not None:
-            return False
-        if self.total_walls[target] is not None and not entity.intangible:
-            if not (self.total_walls[target].walkable and entity.walking) or (self.total_walls[target].flyable and entity.flying) or (self.total_walls[target].swimmable and entity.swimming):
+        if entity.layer == "entity":
+            if self.active_entities[target] is not None:
                 return False
-        return True
+            if self.total_walls[target] is not None and not entity.intangible:
+                if not (self.total_walls[target].walkable and entity.walking) or (self.total_walls[target].flyable and entity.flying) or (self.total_walls[target].swimmable and entity.swimming):
+                    return False
+            return True
+        elif entity.layer == "wall":
+            if self.active_entities[target] is not None or self.total_walls[target] is not None:
+                return False
+            return True
 
     def player_step(self, direction):
         if direction == UP_LEFT:
@@ -199,15 +204,26 @@ class World:
             return False
 
     def push_entity(self, entity, target):
-        if self.check_can_be_pushed(entity, target):
-            self.active_entities[entity.position] = None
-            self.total_entities[entity.position] = None
-            self.active_entities[target] = entity
-            self.total_entities[target] = entity
-            entity.position = target
-            return True
-        else:
-            return False
+        if entity.layer == "entity":
+            if self.check_can_be_pushed(entity, target):
+                self.active_entities[entity.position] = None
+                self.total_entities[entity.position] = None
+                self.active_entities[target] = entity
+                self.total_entities[target] = entity
+                entity.position = target
+                return True
+            else:
+                return False
+        elif entity.layer == "wall":
+            if self.check_can_be_pushed(entity, target):
+                self.active_walls[entity.position] = None
+                self.total_walls[entity.position] = None
+                self.active_walls[target] = entity
+                self.total_walls[target] = entity
+                entity.position = target
+                return True
+            else:
+                return False
 
     def can_see_and_no_fow(self, x, y):
         line_tiles = bresenham(x, y)

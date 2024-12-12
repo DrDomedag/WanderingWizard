@@ -100,7 +100,7 @@ class Church(PointOfInterest):
         for tile in grave_tiles:
             self.world.total_walls[tile] = Gravestone(self.world, tile)
 
-        door_pos = self.translate_poi_coordinates_to_world((11, 21))
+        door_pos = self.translate_poi_coordinates_to_world([(11, 21)])[0]
 
         self.world.total_walls[door_pos] = Door(self.world, door_pos, False)
 

@@ -154,13 +154,11 @@ class Entity:
         self.world.total_entities[self.position] = None
         self.world.active_entities[self.position] = None
         self.on_death()
-        del self
 
     def expire(self):
         self.world.total_entities[self.position] = None
         self.world.active_entities[self.position] = None
         self.on_expire()
-        del self
 
     def act(self):
         acted = False
