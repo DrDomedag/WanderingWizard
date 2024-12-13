@@ -224,4 +224,12 @@ class Game:
         for key in self.asset_dict.keys():
             self.assets[key] = pygame.image.load(self.asset_dict[key]).convert_alpha()
 
+        # Create a few variations of the allegiance indicator since doing for every enemy turns out to be pretty computationally intense.
+        allegiance_indicator_sprite = self.assets["allegiance_indicator"].copy()
+
+        self.assets["enemy_allegiance_indicator"] = tint_sprite(allegiance_indicator_sprite, COLOURS.RED)
+        self.assets["ally_allegiance_indicator"] = tint_sprite(allegiance_indicator_sprite, COLOURS.CYAN)
+        self.assets["neutral_allegiance_indicator"] = tint_sprite(allegiance_indicator_sprite, COLOURS.GRAY)
+        self.assets["other_allegiance_indicator"] = tint_sprite(allegiance_indicator_sprite, COLOURS.MAGENTA)
+
         #print(f"Loaded {len(self.assets.keys())} images as sprites.")

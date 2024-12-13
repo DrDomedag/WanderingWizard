@@ -128,6 +128,22 @@ class UI:
             if self.world.total_entities[entity_coords] is not None and self.world.game.pc.can_see(entity_coords):
                 entity = self.world.total_entities[entity_coords]
                 if entity.layer == "entity":
+
+
+
+
+                    if entity.allegiance == ALLEGIANCES.PLAYER_TEAM:
+                        self.display.blit(self.world.game.assets["ally_allegiance_indicator"], self.tile_to_screen_coords(entity_coords))
+                    elif entity.allegiance == ALLEGIANCES.ENEMY_TEAM:
+                        self.display.blit(self.world.game.assets["enemy_allegiance_indicator"], self.tile_to_screen_coords(entity_coords))
+                    elif entity.allegiance == ALLEGIANCES.NEUTRAL:
+                        self.display.blit(self.world.game.assets["neutral_allegiance_indicator"], self.tile_to_screen_coords(entity_coords))
+                    else:
+                        self.display.blit(self.world.game.assets["other_allegiance_indicator"], self.tile_to_screen_coords(entity_coords))
+
+
+                    #self.display.blit(allegiance_indicator_sprite, self.tile_to_screen_coords(entity_coords))
+
                     entity.update()
                     entity.draw(self.display, self.tile_to_screen_coords(entity_coords))
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
@@ -757,3 +773,23 @@ class DriftingBackground:
         tint_surface.fill(tint_color)  # Use an RGBA color for tinting
         tinted_image.blit(tint_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         return tinted_image
+
+
+def tint_sprite(sprite, tint_color):
+    """
+    Tints a sprite with a given color.
+
+    Parameters:
+        sprite (pygame.Surface): The original sprite surface.
+        tint_color (tuple): The RGB color to tint with (R, G, B).
+
+    Returns:
+        pygame.Surface: A new surface with the sprite tinted.
+    """
+    # Create a copy of the sprite to avoid modifying the original
+    tinted_sprite = sprite.copy()
+
+    # Fill the sprite with the tint color using BLEND_RGBA_MULT
+    tinted_sprite.fill(tint_color + (255,), special_flags=pygame.BLEND_RGBA_MULT)
+
+    return tinted_sprite
