@@ -203,16 +203,21 @@ class FireBreath(Spell):
         self.upgrades = []
         self.recovery_time = 5
 
+        self.requires_line_of_sight = False
+
         self.angle = 60
 
     def on_cast(self, target):
         affected_tiles = compute_cone_tiles(self.caster.position, target, self.angle, self.range + 0.5, include_origin_tile=False)
+        affected_tiles = self.caster.world.filter_line_of_effect(self.caster.position, affected_tiles, include_blocking_tile=True)
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.FIRE)
             self.caster.world.show_effect(tile, "fire_explosion", (euclidean_distance(self.caster.position, tile)*500))
 
     def get_impacted_tiles(self, target):
-        return compute_cone_tiles(self.caster.position, target, self.angle, self.range + 0.5, include_origin_tile=False)
+        affected_tiles = compute_cone_tiles(self.caster.position, target, self.angle, self.range + 0.5, include_origin_tile=False)
+        affected_tiles = self.caster.world.filter_line_of_effect(self.caster.position, affected_tiles, include_blocking_tile=True)
+        return affected_tiles
 
 class SeismicJolt(Spell):
     def __init__(self, caster):
@@ -426,9 +431,12 @@ class LightningBolt(Spell):
         self.recovery_time = 8
         self.max_charges = 14
 
+        self.requires_line_of_sight = False
+
     def on_cast(self, target):
         affected_tiles = bresenham(self.caster.position, target)
         affected_tiles.remove(self.caster.position)
+        affected_tiles = self.caster.world.filter_line_of_effect(self.caster.position, affected_tiles, include_blocking_tile=True)
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.LIGHTNING)
 
@@ -437,6 +445,37 @@ class LightningBolt(Spell):
         affected_tiles.remove(self.caster.position)
         return affected_tiles
 
+
+class TidalWave(Spell):
+    def on_init(self):
+        self.power = 20
+        self.range = 9
+        self.radius = 5
+
+        self.name = "Tidal Wave"
+        self.description = f"Release a wave of crushing force that damages and pushes away enemies in a wide line."
+        self.level = 3
+        self.schools = [SCHOOLS.WATER, SCHOOLS.SORCERY]
+        self.upgrades = []
+        self.recovery_time = 10
+        self.max_charges = 7
+
+        self.requires_line_of_sight = False
+
+    def on_cast(self, target):
+        affected_tiles = wide_line(self.caster.position, target, self.radius)
+        affected_tiles.remove(self.caster.position)
+        affected_tiles = sorted(affected_tiles, key=lambda tile: euclidean_distance(tile, self.caster.position))
+        affected_tiles = list(reversed(affected_tiles))
+        for tile in affected_tiles:
+            damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.BLUDGEONING)
+            push_tile(self.caster.world, self.caster.position, tile, 3, push_walls=True)
+
+
+    def get_impacted_tiles(self, target):
+        affected_tiles = wide_line(self.caster.position, target, self.radius)
+        affected_tiles.remove(self.caster.position)
+        return affected_tiles
 
 class PoisonMist(Spell):
     def on_init(self):
@@ -483,6 +522,7 @@ class SummonMonster(Spell):
         self.action_cost = 1
 
     def on_cast(self, target):
+        print(f"Summoning {self.monster_name}. Current charges: {self.current_charges}, remaining recovery turns: {self.recovery_turns_left}, recovery time: {self.recovery_time}")
         self.caster.world.summon_entity_from_class(self.monster_type, self.monster_count, self.caster.position, self.caster.allegiance)
 
     def should_cast(self):

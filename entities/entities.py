@@ -160,7 +160,7 @@ class Entity:
         actives = random.sample(self.actives, len(self.actives))
         actives.sort(key=lambda spell: spells.Spell.level)
         for active in actives:
-            if len(active.should_cast()) <= 0 and active.current_charges > 0:
+            if len(active.should_cast()) <= 0 or active.current_charges <= 0:
                 actives.remove(active)
         if len(actives) > 0:
             self.use_active(actives[0])
@@ -237,6 +237,7 @@ class Spawner(Entity):
         self.max_hp = 25
         self.asset_name = "spawner"
         self.name = "Spawner"
+        self.description = "A one-way portal from another realm through which pours hostile creatures."
         self.actions_per_round = 1
 
 class Troll(Entity):

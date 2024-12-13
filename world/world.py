@@ -282,7 +282,6 @@ class World:
                     entities.append(entity)
             current_range += 1
 
-            summoned_entities += 1
         return entities
 
     def summon_entities_from_instance(self, entity_group, target):
@@ -332,4 +331,41 @@ class World:
         target = (target_x, target_y)
         #print(f"Final target coordinates: {target}")
         self.summon_entities_from_instance(monster_group, target)
+
+    def filter_line_of_effect(self, origin, tiles, include_blocking_tile=True):
+        """
+        Filter tiles based on line of effect from the caster.
+
+        Parameters:
+            origin (tuple): The (x, y) coordinates of the caster.
+            tiles (list of tuple): The list of (x, y) tiles affected by the spell.
+            is_blocking (callable): A function that takes (x, y) and returns True if the tile blocks the line of effect.
+            include_blocking_tile (bool): Whether to include the first blocking tile in the result.
+
+        Returns:
+            list of tuple: The tiles that are within the line of effect.
+        """
+        result = []
+
+        for target in tiles:
+            # Use Bresenham's line algorithm to get the line from caster to the target
+            line_x, line_y = line(origin[0], origin[1], target[0], target[1])
+            line_coords = list(zip(line_x, line_y))
+
+            # Check each tile along the line
+            blocked = False
+            for i, (x, y) in enumerate(line_coords):
+                wall = self.total_walls[(x, y)]
+                if wall is not None:
+                    if wall.blocks_line_of_effect:
+                        if include_blocking_tile and i == len(line_coords) - 1:
+                            result.append((x, y))  # Add the blocking tile if it's the target
+                        blocked = True
+                        break
+
+            # If not blocked, add the target tile
+            if not blocked:
+                result.append(target)
+
+        return result
 

@@ -72,14 +72,25 @@ class Game:
         self.pc_available_spell_list = PCAvailableSpellList()
 
         # TEMP
+
         self.pc.actives.append(IronNeedle(self.pc))
-        self.pc.actives.append(FireBreath(self.pc))
+        fb = FireBreath(self.pc)
+        fb.range = 15
+        fb.power = 20
+        self.pc.actives.append(fb)
         sj = SeismicJolt(self.pc)
         sj.power = 9
         self.pc.actives.append(sj)
-        self.pc.actives.append(RaiseLongdead(self.pc))
+        rl = RaiseLongdead(self.pc)
+        rl.minion_count = 5
+        rl.minion_damage = 5
+        self.pc.actives.append(rl)
         self.pc.actives.append(LightningBolt(self.pc))
-        self.pc.actives.append(PoisonMist(self.pc))
+        pm = PoisonMist(self.pc)
+        pm.power = 3
+        self.pc.actives.append(pm)
+        tw = TidalWave(self.pc)
+        self.pc.actives.append(tw)
 
 
         return world

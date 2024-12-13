@@ -1,6 +1,7 @@
 from util import *
 from entities.entities import Entity
 
+
 class Wall(Entity):
     def __init__(self, world, position):
         self.blocks_vision = True
@@ -9,6 +10,7 @@ class Wall(Entity):
         self.swimmable = False
         self.openable = False
         self.is_open = False
+        self.blocks_line_of_effect = True
 
         super().__init__(world)
         self.position = position
@@ -44,17 +46,7 @@ class StoneWall(Wall):
         self.hp = self.max_hp
         self.asset_name = "stone_wall"
         self.flammable = False
-        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
-        self.resistances[DAMAGE_TYPES.PIERCING] = 90
-        self.resistances[DAMAGE_TYPES.SLASHING] = 90
-        self.resistances[DAMAGE_TYPES.FIRE] = 100
-        self.resistances[DAMAGE_TYPES.COLD] = 100
-        self.resistances[DAMAGE_TYPES.LIGHTNING] = 80
-        self.resistances[DAMAGE_TYPES.POISON] = 100
-        self.resistances[DAMAGE_TYPES.DARK] = 80
-        self.resistances[DAMAGE_TYPES.LIGHT] = 80
-        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
-        self.resistances[DAMAGE_TYPES.ARCANE] = 50
+        self.resistances = RESISTANCE_SETS.STONE
 
 
 class WoodWall(Wall):
@@ -64,17 +56,7 @@ class WoodWall(Wall):
         self.max_hp = 50
         self.hp = self.max_hp
         self.asset_name = "wood_wall"
-        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
-        self.resistances[DAMAGE_TYPES.PIERCING] = 90
-        self.resistances[DAMAGE_TYPES.SLASHING] = 50
-        self.resistances[DAMAGE_TYPES.FIRE] = 0
-        self.resistances[DAMAGE_TYPES.COLD] = 100
-        self.resistances[DAMAGE_TYPES.LIGHTNING] = 50
-        self.resistances[DAMAGE_TYPES.POISON] = 100
-        self.resistances[DAMAGE_TYPES.DARK] = 50
-        self.resistances[DAMAGE_TYPES.LIGHT] = 80
-        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
-        self.resistances[DAMAGE_TYPES.ARCANE] = 50
+        self.resistances = RESISTANCE_SETS.DEAD_WOOD
 
 class Tree(WoodWall):
     def on_init(self):
@@ -83,6 +65,7 @@ class Tree(WoodWall):
         self.max_hp = 25
         self.hp = self.max_hp
         self.asset_name = "tree"
+        self.resistances = RESISTANCE_SETS.LIVING_WOOD
 
 class WoodenFence(WoodWall):
     def on_init(self):
@@ -92,7 +75,9 @@ class WoodenFence(WoodWall):
         self.hp = self.max_hp
         self.asset_name = "wood_fence"
         self.blocks_vision = False
+        self.blocks_line_of_effect = False
         self.flyable = True
+        self.resistances = RESISTANCE_SETS.DEAD_WOOD
 
 class Gravestone(StoneWall):
     def on_init(self):
@@ -102,7 +87,21 @@ class Gravestone(StoneWall):
         self.hp = self.max_hp
         self.asset_name = "gravestone"
         self.blocks_vision = False
+        self.blocks_line_of_effect = False
         self.flyable = True
+        self.resistances = RESISTANCE_SETS.STONE
+
+class ChurchAltar(StoneWall):
+    def on_init(self):
+        self.name = "Gravestone"
+        self.description = "Pity the dead."
+        self.max_hp = 20
+        self.hp = self.max_hp
+        self.asset_name = "church_altar"
+        self.blocks_vision = False
+        self.blocks_line_of_effect = False
+        self.flyable = True
+        self.resistances = RESISTANCE_SETS.STONE
 
 class Door(Wall):
     def __init__(self, world, position, is_open=False):
@@ -119,17 +118,7 @@ class Door(Wall):
 
         self.openable = True
 
-        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
-        self.resistances[DAMAGE_TYPES.PIERCING] = 90
-        self.resistances[DAMAGE_TYPES.SLASHING] = 50
-        self.resistances[DAMAGE_TYPES.FIRE] = 0
-        self.resistances[DAMAGE_TYPES.COLD] = 100
-        self.resistances[DAMAGE_TYPES.LIGHTNING] = 50
-        self.resistances[DAMAGE_TYPES.POISON] = 100
-        self.resistances[DAMAGE_TYPES.DARK] = 50
-        self.resistances[DAMAGE_TYPES.LIGHT] = 80
-        self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
-        self.resistances[DAMAGE_TYPES.ARCANE] = 50
+        self.resistances = RESISTANCE_SETS.STONE
 
 
         self.blocks_vision = not self.is_open

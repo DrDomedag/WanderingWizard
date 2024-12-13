@@ -101,8 +101,10 @@ class Church(PointOfInterest):
             self.world.total_walls[tile] = Gravestone(self.world, tile)
 
         door_pos = self.translate_poi_coordinates_to_world([(11, 21)])[0]
-
         self.world.total_walls[door_pos] = Door(self.world, door_pos, False)
+
+        altar_pos = self.translate_poi_coordinates_to_world([(11, 6)])[0]
+        self.world.total_walls[altar_pos] = ChurchAltar(self.world, altar_pos)
 
         # Spawn enemies. Use monstergroup for everything but the priest, since we eventually want monstergroup
         # to scale with a difficulty/monster frequency slider.

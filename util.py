@@ -183,6 +183,169 @@ EVENT_TYPES = Tags(
     NPC_TURN_START=0,
 )
 
+
+
+RESISTANCE_SETS = Tags(
+STONE = defaultdict(lambda : 0,
+    {
+        DAMAGE_TYPES.BLUDGEONING: 75,
+        DAMAGE_TYPES.PIERCING: 90,
+        DAMAGE_TYPES.SLASHING: 90,
+        DAMAGE_TYPES.FIRE: 100,
+        DAMAGE_TYPES.COLD: 100,
+        DAMAGE_TYPES.LIGHTNING: 80,
+        DAMAGE_TYPES.POISON: 100,
+        DAMAGE_TYPES.DARK: 80,
+        DAMAGE_TYPES.LIGHT: 80,
+        DAMAGE_TYPES.PSYCHIC: 100,
+        DAMAGE_TYPES.ARCANE: 50,
+    }
+),
+
+DEAD_WOOD = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: 75,
+            DAMAGE_TYPES.PIERCING: 90,
+            DAMAGE_TYPES.SLASHING: 50,
+            DAMAGE_TYPES.FIRE: -50,
+            DAMAGE_TYPES.COLD: 100,
+            DAMAGE_TYPES.LIGHTNING: 0,
+            DAMAGE_TYPES.POISON: 100,
+            DAMAGE_TYPES.DARK: 50,
+            DAMAGE_TYPES.LIGHT: 80,
+            DAMAGE_TYPES.PSYCHIC: 100,
+            DAMAGE_TYPES.ARCANE: 50
+        }
+    ),
+
+LIVING_WOOD = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: 75,
+            DAMAGE_TYPES.PIERCING: 90,
+            DAMAGE_TYPES.SLASHING: 50,
+            DAMAGE_TYPES.FIRE: 0,
+            DAMAGE_TYPES.COLD: 50,
+            DAMAGE_TYPES.LIGHTNING: 0,
+            DAMAGE_TYPES.POISON: 0,
+            DAMAGE_TYPES.DARK: 0,
+            DAMAGE_TYPES.LIGHT: 50,
+            DAMAGE_TYPES.PSYCHIC: 100,
+            DAMAGE_TYPES.ARCANE: 50
+        }
+    ),
+
+SENTIENT_WOOD = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: 75,
+            DAMAGE_TYPES.PIERCING: 90,
+            DAMAGE_TYPES.SLASHING: 50,
+            DAMAGE_TYPES.FIRE: 0,
+            DAMAGE_TYPES.COLD: 50,
+            DAMAGE_TYPES.LIGHTNING: 0,
+            DAMAGE_TYPES.POISON: 0,
+            DAMAGE_TYPES.DARK: 0,
+            DAMAGE_TYPES.LIGHT: 0,
+            DAMAGE_TYPES.PSYCHIC: 0,
+            DAMAGE_TYPES.ARCANE: 50
+        }
+    ),
+
+METAL = defaultdict(lambda : 0,
+    {
+        DAMAGE_TYPES.BLUDGEONING: 90,
+        DAMAGE_TYPES.PIERCING: 90,
+        DAMAGE_TYPES.SLASHING: 90,
+        DAMAGE_TYPES.FIRE: 50,
+        DAMAGE_TYPES.COLD: 100,
+        DAMAGE_TYPES.LIGHTNING: 50,
+        DAMAGE_TYPES.POISON: 100,
+        DAMAGE_TYPES.DARK: 0,
+        DAMAGE_TYPES.LIGHT: 0,
+        DAMAGE_TYPES.PSYCHIC: 0,
+        DAMAGE_TYPES.ARCANE: 0,
+    }
+),
+
+BONE = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: -100,
+            DAMAGE_TYPES.PIERCING: 75,
+            DAMAGE_TYPES.SLASHING: 25,
+            DAMAGE_TYPES.FIRE: 50,
+            DAMAGE_TYPES.COLD: 100,
+            DAMAGE_TYPES.POISON: 100,
+            DAMAGE_TYPES.DARK: 100,
+            DAMAGE_TYPES.LIGHT: -100,
+            DAMAGE_TYPES.PSYCHIC: 100,
+        }
+    ),
+
+DEAD_FLESH = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: 0,
+            DAMAGE_TYPES.PIERCING: 25,
+            DAMAGE_TYPES.COLD: 100,
+            DAMAGE_TYPES.POISON: 100,
+            DAMAGE_TYPES.DARK: 10,
+            DAMAGE_TYPES.LIGHT: -100,
+            DAMAGE_TYPES.PSYCHIC: 100,
+        }
+    ),
+
+EVIL_GHOST = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: 100,
+            DAMAGE_TYPES.PIERCING: 100,
+            DAMAGE_TYPES.SLASHING: 100,
+            DAMAGE_TYPES.FIRE: 0,
+            DAMAGE_TYPES.COLD: 100,
+            DAMAGE_TYPES.LIGHTNING: 0,
+            DAMAGE_TYPES.POISON: 100,
+            DAMAGE_TYPES.DARK: 100,
+            DAMAGE_TYPES.LIGHT: -100,
+            DAMAGE_TYPES.PSYCHIC: 0,
+            DAMAGE_TYPES.ARCANE: 0
+        }
+    ),
+
+GOOD_GHOST = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: 100,
+            DAMAGE_TYPES.PIERCING: 100,
+            DAMAGE_TYPES.SLASHING: 100,
+            DAMAGE_TYPES.FIRE: 0,
+            DAMAGE_TYPES.COLD: 100,
+            DAMAGE_TYPES.LIGHTNING: 0,
+            DAMAGE_TYPES.POISON: 100,
+            DAMAGE_TYPES.DARK: 0,
+            DAMAGE_TYPES.LIGHT: 100,
+            DAMAGE_TYPES.PSYCHIC: 0,
+            DAMAGE_TYPES.ARCANE: 0
+        }
+    ),
+
+)
+
+
+
+'''
+Stone
+self.resistances[DAMAGE_TYPES.BLUDGEONING] = 75
+self.resistances[DAMAGE_TYPES.PIERCING] = 90
+self.resistances[DAMAGE_TYPES.SLASHING] = 90
+self.resistances[DAMAGE_TYPES.FIRE] = 100
+self.resistances[DAMAGE_TYPES.COLD] = 100
+self.resistances[DAMAGE_TYPES.LIGHTNING] = 80
+self.resistances[DAMAGE_TYPES.POISON] = 100
+self.resistances[DAMAGE_TYPES.DARK] = 80
+self.resistances[DAMAGE_TYPES.LIGHT] = 80
+self.resistances[DAMAGE_TYPES.PSYCHIC] = 100
+self.resistances[DAMAGE_TYPES.ARCANE] = 50
+'''
+
+
+
+
 def get_top_parent(obj):
     return obj.__class__.mro()[-2]
 
@@ -211,6 +374,50 @@ def bresenham(a, b):
     paired_coordinates = list(zip(xs, ys))
 
     return paired_coordinates
+
+
+def wide_line(start, end, width):
+    """
+    Generate grid coordinates for a wide line, avoiding gaps and limiting to the correct direction.
+
+    Parameters:
+        start (tuple): The (x, y) starting point of the line.
+        end (tuple): The (x, y) ending point of the line.
+        width (int): The width of the line in tiles.
+
+    Returns:
+        List[tuple]: A list of (x, y) coordinates representing the wide line.
+    """
+    # Compute the primary line
+    rr, cc = line(start[1], start[0], end[1], end[0])
+    primary_line = list(zip(cc, rr))
+
+    # Compute direction vector and line length
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    length_squared = dx ** 2 + dy ** 2  # Squared length to avoid sqrt
+
+    if length_squared == 0:
+        return [(start[0], start[1])]  # Handle degenerate case
+
+    # Normalize the direction vector
+    direction_vector = (dx, dy)
+
+    # Include a bounding box of neighboring tiles
+    wide_line_coords = set()
+    for x, y in primary_line:
+        for nx in range(x - width, x + width + 1):
+            for ny in range(y - width, y + width + 1):
+                # Check distance from the point to the line
+                distance = abs(dy * (nx - start[0]) - dx * (ny - start[1])) / np.sqrt(dx ** 2 + dy ** 2)
+                if distance <= width / 2:
+                    # Project the point onto the line to check if it's within bounds
+                    projection = (nx - start[0]) * dx + (ny - start[1]) * dy
+                    if 0 <= projection <= length_squared:  # Only include points within the start-end range
+                        wide_line_coords.add((nx, ny))
+
+    return list(wide_line_coords)
+
 
 def disk(target, radius, include_origin_tile=True):
     xs, ys = skimage.draw.disk(target, radius + 0.5)
@@ -243,10 +450,12 @@ def compute_cone_tiles(origin, target, angle, radius, include_origin_tile=False)
         # Calculate the angle from the origin to this tile
         tile_angle = math.atan2(tile[1] - origin[1], tile[0] - origin[0])
 
-        # Check if the tile is within the angle range of the sector
-        if abs(tile_angle - direction_angle) <= angle_rad / 2:
-            sector_tiles.append(tile)
+        # Normalize angular difference to [-π, π]
+        angular_diff = (tile_angle - direction_angle + math.pi) % (2 * math.pi) - math.pi
 
+        # Check if the tile is within the angle range of the sector
+        if abs(angular_diff) <= angle_rad / 2:
+            sector_tiles.append(tile)
 
     return sector_tiles
 
