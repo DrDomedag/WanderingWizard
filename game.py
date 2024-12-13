@@ -97,6 +97,7 @@ class Game:
             print(f"Start of player turn. Player at coordinates {self.world.current_coordinates}")
             self.floor_effects()
             self.tile_effects()
+            pygame.event.clear() # Clear any old inputs before starting the player's turn.
             self.player_turn()
             self.side_turn(ALLEGIANCES.PLAYER_TEAM)
             self.side_turn(ALLEGIANCES.ENEMY_TEAM)
@@ -111,6 +112,20 @@ class Game:
             if self.world.active_tile_effects[tile_effect] is not None:
                 self.world.active_tile_effects[tile_effect].start_of_turn()
 
+    def check_for_mouse_input(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                self.ui.left_click = True
+            if event.button == 2:
+                # This is a middle button/scroll wheel click
+                pass
+            if event.button == 3:
+                self.ui.right_click = True
+            if event.button == 4:
+                self.ui.scroll_up = True
+            if event.button == 5:
+                self.ui.scroll_down = True
+
     def player_turn(self):
         player_turn_ended = False
         for entity in self.world.active_entities.values():
@@ -124,18 +139,7 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        self.ui.left_click = True
-                    if event.button == 2:
-                        # This is a middle button/scroll wheel click
-                        pass
-                    if event.button == 3:
-                        self.ui.right_click = True
-                    if event.button == 4:
-                        self.ui.scroll_up = True
-                    if event.button == 5:
-                        self.ui.scroll_down = True
+                self.check_for_mouse_input(event)
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a or event.key == pygame.K_KP_4:
@@ -189,6 +193,8 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
+                #self.check_for_mouse_input(event) # This technically kind of works, but it is very sluggish.
 
                 if event.type == EVENT_TYPES.NPC_TURN_START and len(initiative_queue) > 0:
                     active_entity = initiative_queue.pop()

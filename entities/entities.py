@@ -1,4 +1,5 @@
 import items
+from ui import tint_sprite
 from util import *
 import random
 from collections import defaultdict
@@ -120,13 +121,6 @@ class Entity:
 
     def can_see(self, target):
         return self.world.can_see(self.position, target)
-        '''
-        line_tiles = bresenham(self.position, target)
-        for coords in line_tiles:
-            if self.world.active_walls[coords] is not None and coords != target:
-                return False
-        return True
-        '''
 
     def can_move(self, target):
         return self.world.check_can_move(self, target)
@@ -161,6 +155,7 @@ class Entity:
         self.on_expire()
 
     def act(self):
+        pygame.event.pump() # Since there are a lot of "act" in a row during the enemy turn in particular, this should help keep the game from going unresponsive?
         acted = False
         actives = random.sample(self.actives, len(self.actives))
         actives.sort(key=lambda spell: spells.Spell.level)
@@ -172,7 +167,7 @@ class Entity:
         # If we can't meaningfully use any of our abilities, we move towards the closest enemy.
         enemies = find_and_sort_enemies_by_distance(self)
 
-        while len(enemies) > 0 and not acted:
+        while len(enemies) > 0 and not acted and not self.stationary:
             # Move
             target = enemies.pop()
             path = find_path(self, target.position)
@@ -206,7 +201,6 @@ class Entity:
                 self.expire()
 
 
-
 class PC(Entity):
     def __init__(self, world):
         super().__init__(world)
@@ -228,6 +222,22 @@ class PC(Entity):
 
     def on_death(self):
         self.world.game.game_over()
+
+
+class Spawner(Entity):
+    def __init__(self, world, monster_type, monster_count, cooldown, colour):
+        self.monster_type = monster_type
+        super().__init__(world)
+
+        self.actives.append(spells.SummonMonster(self, monster_type, monster_count, cooldown))
+        self.asset = tint_sprite(self.asset, colour)
+
+    def on_init(self):
+        self.stationary = True
+        self.max_hp = 25
+        self.asset_name = "spawner"
+        self.name = "Spawner"
+        self.actions_per_round = 1
 
 class Troll(Entity):
 

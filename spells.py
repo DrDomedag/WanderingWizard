@@ -111,7 +111,7 @@ class Spell:
         if self.cannot_target_entity and self.caster.world.active_entities[target] is not None:
             #print("This spell does not target entities. Please select another target.... Jimzo.")
             return False
-        if self.range < euclidean_distance(self.caster.position, target):
+        if self.range < int(euclidean_distance(self.caster.position, target)):
             #print(f"Can't use a {self.range} spell at a distance of {self.caster.world.euclidean_distance(self.caster.position, target)} tiles, that should be obvious, Jimmy old sport.")
             return False
         if self.requires_line_of_sight and not(self.caster.can_see(target)):
@@ -464,3 +464,26 @@ class PoisonMist(Spell):
     def get_impacted_tiles(self, target):
         affected_tiles = disk(target, self.radius, include_origin_tile=True)
         return affected_tiles
+
+
+class SummonMonster(Spell):
+    def __init__(self, caster, monster_type, monster_count, cooldown):
+        self.monster_type = monster_type
+        self.monster_name = self.monster_type(caster.world).name
+        self.monster_count = monster_count
+        super().__init__(caster)
+        self.recovery_time = cooldown
+
+    def on_init(self):
+        self.name = f"Summon {self.monster_name}"
+        self.description = f"Summons a {self.monster_name}."
+        self.level = 10
+        #self.schools = [SCHOOLS.NATURE, SCHOOLS.WATER, SCHOOLS.AIR]
+        self.max_charges = 1
+        self.action_cost = 1
+
+    def on_cast(self, target):
+        self.caster.world.summon_entity_from_class(self.monster_type, self.monster_count, self.caster.position, self.caster.allegiance)
+
+    def should_cast(self):
+        return [self.caster.position]

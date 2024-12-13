@@ -1,7 +1,7 @@
 import random
 import biomes.biome as biome
 import floors
-from entities.entities import GoblinShaman
+from entities.entities import GoblinShaman, Spawner, Goblin
 from floors import DirtFloorTile
 from walls import Tree, WoodWall
 import entities.entities as entities
@@ -66,3 +66,8 @@ class ShamanHut(biome.PointOfInterest):
             shaman.allegiance = ALLEGIANCES.ENEMY_TEAM
             shaman.position = self.centre_tile
             self.world.total_entities[self.centre_tile] = shaman
+
+            spawner = Spawner(self.world, Goblin, 2, 10, COLOURS.GREEN)
+            spawner.allegiance = ALLEGIANCES.ENEMY_TEAM
+            spawner.position = (self.centre_tile[0], self.centre_tile[1] + 1)
+            self.world.total_entities[spawner.position] = spawner

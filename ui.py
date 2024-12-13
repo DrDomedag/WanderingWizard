@@ -67,6 +67,9 @@ class UI:
         self.selected_spell = None
 
     def render_everything(self):
+
+        dt = self.clock.tick(60)
+
         #print(f"Floor tile count: {len(self.world.total_floor.keys())}")
         #print(f"Entity count: {len(self.world.total_entities.keys())}")
         #print(self.centre_x)
@@ -216,6 +219,7 @@ class UI:
                     if self.world.move_player(path[1]):
                         self.world.game.pc.current_actions -= 1
 
+
         if self.scroll_down and len(self.world.game.pc.actives) > 0:
             self.select_next_spell()
         if self.scroll_up:
@@ -234,7 +238,7 @@ class UI:
 
         pygame.display.flip()
 
-        self.clock.tick(60)
+
 
     def select_next_spell(self):
         if self.selected_spell == None:
@@ -777,7 +781,7 @@ class DriftingBackground:
 
 def tint_sprite(sprite, tint_color):
     """
-    Tints a sprite with a given color.
+    Tints a sprite with a given color while preserving its original alpha channel.
 
     Parameters:
         sprite (pygame.Surface): The original sprite surface.
@@ -786,10 +790,16 @@ def tint_sprite(sprite, tint_color):
     Returns:
         pygame.Surface: A new surface with the sprite tinted.
     """
-    # Create a copy of the sprite to avoid modifying the original
+    # Create a copy of the sprite
     tinted_sprite = sprite.copy()
 
-    # Fill the sprite with the tint color using BLEND_RGBA_MULT
-    tinted_sprite.fill(tint_color + (255,), special_flags=pygame.BLEND_RGBA_MULT)
+    # Separate out the original alpha channel
+    alpha = pygame.surfarray.pixels_alpha(sprite).copy()
+
+    # Fill the sprite with the tint color
+    tinted_sprite.fill(tint_color + (0,), special_flags=pygame.BLEND_RGBA_MULT)
+
+    # Restore the original alpha channel
+    pygame.surfarray.pixels_alpha(tinted_sprite)[:] = alpha
 
     return tinted_sprite
