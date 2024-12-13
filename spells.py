@@ -134,26 +134,26 @@ class Spell:
 
     def should_cast(self):
         # Since this belongs to the Spell class, weird spells can overwrite it.
+        # Return a list of good target tiles.
+        target_tiles = []
         if self.should_target_self:
-            return True
+            target_tiles.append(self.caster.position)
         if self.should_target_allies:
             for entity in self.caster.world.active_entities.values:
                 if entity is not None:
-                    if entity.allegiance == self.caster.allegiance:
-                        if self.can_cast(entity.position):
-                            return True
+                    if entity.allegiance == self.caster.allegiance and self.can_cast(entity.position):
+                        target_tiles.append(entity.position)
         if self.should_target_empty:
             for target in self.caster.world.active_floor.keys():
                 if self.caster.world.active_entities[target] is None:
                     if self.can_cast(target):
-                        return True
+                        target_tiles.append(target)
         if self.should_target_enemies:
             for entity in self.caster.world.active_entities.values():
                 if entity is not None:
-                    if entity.allegiance != self.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
-                        if self.can_cast(entity.position):
-                            return True
-        return False
+                    if entity.allegiance != self.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL and self.can_cast(entity.position):
+                        target_tiles.append(entity.position)
+        return target_tiles
 
 
 class IronNeedle(Spell):
@@ -306,6 +306,7 @@ class Heal(Spell):
 
         self.power = 10
         self.range = 6
+        self.radius = 1
         self.action_cost = 2
         self.max_charges = 3
         self.name = "Word of Healing"
@@ -322,10 +323,23 @@ class Heal(Spell):
 
         self.on_init()
 
+    def get_impacted_tiles(self, target):
+        return disk(target, self.radius, include_origin_tile=True)
+
+    def should_cast(self):
+        tiles = []
+        for entity in self.caster.world.active_entities.values:
+            if entity is not None:
+                if entity.allegiance == self.caster.allegiance and entity.hp < entity.max_hp and ENTITY_TAGS.LIVING in entity.tags and self.can_cast(entity.position):
+                    tiles.append(entity.position)
+        return tiles
+
     def cast(self, target):
-        if not self.caster.world.active_entities[target] is None:
-            subject = self.caster.world.active_entities[target]
-            heal(self, subject, self.power)
+        for tile in disk(target, self.radius, include_origin_tile=True):
+            entity = self.caster.world.active_entities[tile]
+            if not entity is None:
+                if entity.allegiance == self.caster.allegiance and ENTITY_TAGS.LIVING in entity.tags:
+                    heal(self, entity, self.power)
 
 
 class BluntMeleeAttack(Spell):

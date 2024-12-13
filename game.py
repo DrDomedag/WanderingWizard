@@ -12,7 +12,7 @@ class Game:
     def __init__(self, display):
 
         # Debug settings
-        self.enemy_spawns_enabled = False
+        self.enemy_spawns_enabled = True
 
         #pygame.init()
         # display = pygame.display.set_mode((800, 600))
@@ -75,7 +75,7 @@ class Game:
         self.pc.actives.append(IronNeedle(self.pc))
         self.pc.actives.append(FireBreath(self.pc))
         sj = SeismicJolt(self.pc)
-        sj.power = 5
+        sj.power = 9
         self.pc.actives.append(sj)
         self.pc.actives.append(RaiseLongdead(self.pc))
         self.pc.actives.append(LightningBolt(self.pc))

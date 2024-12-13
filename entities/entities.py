@@ -165,7 +165,7 @@ class Entity:
         actives = random.sample(self.actives, len(self.actives))
         actives.sort(key=lambda spell: spells.Spell.level)
         for active in actives:
-            if not active.should_cast() and active.current_charges > 0:
+            if len(active.should_cast()) <= 0 and active.current_charges > 0:
                 actives.remove(active)
         if len(actives) > 0:
             self.use_active(actives[0])
@@ -186,51 +186,15 @@ class Entity:
             self.current_actions -= 1
 
     def use_active(self, active):
-        if active.should_target_self:
-            active.cast(self.position)
+        targets = active.should_cast()
+
+        if len(targets) > 0:
+            target = random.choice(targets)
+            active.cast(target)
             return
-        if active.should_target_allies:
-            targets = []
-            for entity in active.caster.world.active_entities.values:
-                if entity is not None:
-                    if entity.allegiance == active.caster.allegiance:
-                        if active.can_cast(entity.position):
-                            targets.append(entity.position)
-            if len(targets) > 0:
+        else:
+            print(f"Found no suitable empty tile to target with {active.name}")
 
-                target = random.choice(targets)
-                active.cast(target)
-                return
-            else:
-                print(f"Found no suitable ally target for {active.name}")
-        if active.should_target_empty:
-            targets = []
-            for target in active.caster.world.active_floor.keys():
-                if active.caster.world.active_entities[target] is None:
-                    if active.can_cast(target):
-                        targets.append(target)
-            if len(targets) > 0:
-                target = random.choice(targets)
-                active.cast(target)
-                return
-            else:
-                print(f"Found no suitable empty tile to target with {active.name}")
-
-        elif active.should_target_enemies:
-            targets = []
-            for entity in active.caster.world.active_entities.values():
-                if entity is not None:
-                    if entity.allegiance != active.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL:
-                        if active.can_cast(entity.position):
-                            targets.append(entity.position)
-            if len(targets) > 0:
-                target = random.choice(targets)
-                active.cast(target)
-                return
-            else:
-                print(f"Found no suitable ally target for {active.name}")
-        print(f"Found no suitable target at all for {active.name} cast by {self.name} from {self.position}")
-        return
 
     def on_expire(self):
         pass
