@@ -96,6 +96,12 @@ class UI:
                 projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["metal_projectile"], delay)
                 self.projectiles.append(projectile)
 
+            if effect_type == "arcane_projectile":
+                origin_screen_coords = self.tile_to_screen_coords(origin_tile, offset_by_half_a_tile=True)
+                target_screen_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
+                projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["arcane_projectile"], delay)
+                self.projectiles.append(projectile)
+
 
         # Render tiles:
         for tile_coords in self.world.active_floor.keys():
@@ -403,9 +409,19 @@ class UI:
                             nameRect = name.get_rect()
                             nameRect.center = (left_end + width // 2, vertical_offset)
                             self.display.blit(name, nameRect)
-                            vertical_offset += 30
-                            vertical_offset = blit_text(self.display, passive.description,
-                                                        (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+                            vertical_offset += 22
+
+                            if passive.duration is not None:
+                                duration_text = self.font_14.render(f"Duration: {passive.duration}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)
+                                durationRect = duration_text.get_rect()
+                                durationRect.center = (left_end + width // 2, vertical_offset)
+                                self.display.blit(duration_text, durationRect)
+                                vertical_offset += 16
+
+                            vertical_offset = blit_text(self.display, passive.description,(left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
+                            vertical_offset += 10
+
+
                     if len(entity.actives) > 0:
                         for active in entity.actives:
                             name = self.font_20.render(f"{active.name}", True, COLOURS.WHITE, COLOURS.DARK_GRAY)

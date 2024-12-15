@@ -22,6 +22,7 @@ class Passive:
         elif self.duration > 0:
             self.duration -= 1
         else:
+            self.on_expire_effect()
             # Remove from owner, delete self
             self.subject.passives.remove(self)
 
@@ -34,7 +35,7 @@ class Passive:
     def end_of_turn_effect(self):
         pass
 
-    def on_suffer_damage_effect(self, source, amount, type):
+    def on_suffer_damage_effect(self, source, amount, damage_type):
         pass
 
     def on_deal_hit_effect(self):
@@ -46,8 +47,34 @@ class Passive:
     def on_death_effect(self):
         pass
 
+    def on_apply_effect(self):
+        pass
+
+    def on_expire_effect(self):
+        pass
+
+    def on_dispelled_effect(self):
+        pass
+
+    def on_cause_heal_effect(self, target, amount):
+        pass
+
+    def on_healed_effect(self, source, amount):
+        pass
 
 
+
+
+class Regeneration(Passive):
+    def __init__(self, source, subject):
+        super().__init__(source, subject)
+        self.name = "Regeneration"
+        self.nature = BLESSING
+        self.power = 5
+        self.description = f"This creature gradually heals all injury, and it regains {self.power} hit points at the start of each of its turns."
+
+    def start_of_turn_effect(self):
+        effects.heal(self.source, self.subject, self.power)
 
 
 class TrollRegen(Passive):
@@ -75,3 +102,21 @@ class SpellChargeRecoveryBoost(Passive):
         for spell in self.subject.actives:
             if self.school in spell.schools:
                 spell.recovery_turns_left -= self.power
+
+
+class GrantActive(Passive):
+    def __init__(self, source, subject, active):
+        super().__init__(source, subject)
+        self.active = active
+        self.name = f"Granted {self.active.name}"
+        self.nature = BLESSING
+        self.description = f"This passive ability has granted you the active ability f{self.active.name}."
+
+    def on_apply_effect(self):
+        self.subject.actives.append(self.active)
+
+    def on_expire_effect(self):
+        self.subject.actives.remove(self.active)
+
+    def on_dispelled_effect(self):
+        self.subject.actives.remove(self.active)

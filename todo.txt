@@ -166,7 +166,16 @@ Turns a tree into a treant. The tree stats/abilities depend on the base tree.
 
 Razor Boomerang
 Metal
-Throw a chakram in circle. Maybe regain a charge if there were no walls in the AoE.
+Throw a chakram in circle. Regain a charge if there were no walls in the AoE.
+
+Draconic Transformation
+Dragon, Transmutation
+Target creature gets additional HP, some resistances and a draconic breath weapon.
+
+
+Arcanist's Trap
+Astral, Enchantment
+Does nothing on its own, but severely damages any creature that attempts to dispel it.
 
 
 # Theme ideas:

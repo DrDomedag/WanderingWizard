@@ -44,12 +44,30 @@ class DamageInstance:
 '''
 
 def heal(source, target, amount):
+    effective_heal = 0
     if target.hp == target.max_hp:
         pass
     elif target.hp + amount >= target.max_hp:
+        effective_heal = target.max_hp - target.hp
         target.hp = target.max_hp
     else:
+        effective_heal = amount
         target.hp += amount
+    source.on_cause_heal(target, effective_heal)
+    target.on_healed(source, effective_heal)
+
+
+def apply_passive(target, passive_to_apply):
+    preexisting_buff = None
+    for passive in target.passives:
+        if passive.name == passive_to_apply.name:
+            preexisting_buff = passive
+    if preexisting_buff is not None:
+        preexisting_buff.on_expire_effect()
+        target.passives.remove(preexisting_buff)
+    target.passives.append(passive_to_apply)
+    passive_to_apply.on_apply_effect()
+
 
 '''
 class HealingInstance:

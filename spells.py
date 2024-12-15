@@ -7,7 +7,7 @@ import random
 
 class PCAvailableSpellList:
     def __init__(self):
-        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath, LightningBolt]
+        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath, LightningBolt, TidalWave, PoisonMist, ArcaneLesson]
 
     def get_random_spells_of_tier(self, level, count):
         candidates = []
@@ -53,6 +53,8 @@ class Spell:
         self.can_target_water = True
         self.can_target_void = True
         self.can_target_wall = True
+
+        self.target_must_have_tag = []
 
         self.should_target_enemies = True
         self.should_target_self = False
@@ -117,6 +119,16 @@ class Spell:
         if self.requires_line_of_sight and not(self.caster.can_see(target)):
             #print("Can't target what you can't see, Jimpers.")
             return False
+        if len(self.target_must_have_tag) > 0:
+            entity = self.caster.world.total_entities[target]
+            if entity is not None:
+                has_tag = False
+                for tag in self.target_must_have_tag:
+                    if tag in entity.tags:
+                        has_tag = True
+                        break
+                if not has_tag:
+                    return False
         return True
 
     def can_cast(self, target):
@@ -153,6 +165,24 @@ class Spell:
                 if entity is not None:
                     if entity.allegiance != self.caster.allegiance and entity.allegiance != ALLEGIANCES.NEUTRAL and self.can_cast(entity.position):
                         target_tiles.append(entity.position)
+        target_tiles = self.remove_tiles_with_incompatible_tags(target_tiles)
+        return target_tiles
+
+    def remove_tiles_with_incompatible_tags(self, target_tiles):
+        if len(self.target_must_have_tag) > 0:
+            tiles_to_remove = []
+            for tile in target_tiles:
+                target = self.caster.world.total_entities[tile]
+                if target is not None:
+                    has_tag = False
+                    for tag in self.target_must_have_tag:
+                        if tag in target.tags:
+                            has_tag = True
+                            break
+                    if not has_tag:
+                        tiles_to_remove.append(tile)
+            for tile in tiles_to_remove:
+                target_tiles.remove(tile)
         return target_tiles
 
 
@@ -522,8 +552,133 @@ class SummonMonster(Spell):
         self.action_cost = 1
 
     def on_cast(self, target):
-        print(f"Summoning {self.monster_name}. Current charges: {self.current_charges}, remaining recovery turns: {self.recovery_turns_left}, recovery time: {self.recovery_time}")
+        #print(f"Summoning {self.monster_name}. Current charges: {self.current_charges}, remaining recovery turns: {self.recovery_turns_left}, recovery time: {self.recovery_time}")
         self.caster.world.summon_entity_from_class(self.monster_type, self.monster_count, self.caster.position, self.caster.allegiance)
 
     def should_cast(self):
         return [self.caster.position]
+
+
+class RegenerationSpell(Spell):
+    def on_init(self):
+        self.duration = 10
+        self.power = 3
+        self.level = 3
+        self.max_charges = 3
+        self.recovery_time = 10
+        self.name = "Regeneration"
+        self.schools = [SCHOOLS.NATURE, SCHOOLS.HOLY]
+        self.description = f"Target living creature regains {self.power} hit points at the start of each of its turns for the next {self.duration} turns."
+        # Make it able to hit other things with upgrades.
+
+        self.requires_line_of_sight = True
+        self.can_target_self = False
+        self.must_target_entity = True
+        self.can_target_ground = True
+        self.can_target_water = True
+        self.can_target_void = True
+        self.can_target_wall = True
+
+        self.target_must_have_tag = [ENTITY_TAGS.LIVING]
+
+        self.should_target_enemies = False
+        self.should_target_self = False
+        self.should_target_allies = True
+        self.should_target_empty = False
+
+    def on_cast(self, target):
+        subject = self.caster.world.active_entities[target]
+        if subject is not None:
+            if ENTITY_TAGS.LIVING in subject.tags:
+                buff = Regeneration(self.caster, subject)
+                buff.duration = self.duration
+                buff.power = self.power
+                apply_passive(subject, buff)
+
+    def should_cast(self):
+        should_cast_tiles = []
+        area = disk(self.caster.position, self.radius)
+        for tile in area:
+            subject = self.caster.world.total_entities[tile]
+            if subject is not None:
+                if subject.allegiance == self.caster.allegiance and ENTITY_TAGS.LIVING in subject.tags and not subject.has_passive("Regeneration"):
+                    should_cast_tiles.append(tile)
+        return should_cast_tiles
+
+
+
+class ArcaneLessonAttack(Spell):
+    def on_init(self):
+        self.power = 5
+        self.level = 2
+        self.action_cost = 2
+        self.max_charges = 1
+        self.recovery_time = 3
+        self.range = 5
+        self.schools = [SCHOOLS.ASTRAL]
+        self.name = "Arcane Bolt"
+        self.description = f"A rudimentary display of magic - a bolt of pure arcane energy that deals {self.power} damage."
+
+    def on_cast(self, target):
+        subject = self.caster.world.active_entities[target]
+        damage_entity(self, subject, self.power, DAMAGE_TYPES.ARCANE)
+        self.caster.world.show_projectile(self.caster.position, target, "arcane_projectile", 0)
+
+
+class ArcaneLesson(Spell):
+    def on_init(self):
+        self.duration = 22
+        self.radius = 8
+        self.range = 6
+        self.power = 20
+        self.level = 4
+        self.max_charges = 3
+        self.recovery_time = 12
+        self.name = "Arcane Lesson"
+        self.schools = [SCHOOLS.ASTRAL, SCHOOLS.ENCHANTMENT]
+        self.description = f"Friendly creatures within {self.radius} tiles learn a {self.range} ranged spell dealing {self.power} Arcane damage with a 3 turn cooldown for {self.duration} turns. Like most spells, it takes 2 actions to cast."
+
+        # Upgrade to give the attack small AoE.
+
+        self.requires_line_of_sight = True
+        self.can_target_self = True
+        self.must_target_entity = True
+        self.can_target_ground = True
+        self.can_target_water = True
+        self.can_target_void = True
+        self.can_target_wall = True
+
+        self.should_target_enemies = False
+        self.should_target_self = True
+        self.should_target_allies = False
+        self.should_target_empty = False
+
+    def on_cast(self, target):
+        area = disk(self.caster.position, self.radius, include_origin_tile=False)
+        for tile in area:
+            subject = self.caster.world.total_entities[tile]
+            if subject is not None:
+                if subject.allegiance == self.caster.allegiance:
+                    bolt_spell = ArcaneLessonAttack(subject)
+                    bolt_spell.power = self.power
+                    bolt_spell.range = self.range
+
+                    buff = GrantActive(self.caster, subject, bolt_spell)
+                    buff.name = "Arcane Lesson"
+                    buff.description = "This creature has learned rudimentary magic and can fire bolts of magical energy."
+                    buff.duration = self.duration
+                    buff.power = self.power
+                    apply_passive(subject, buff)
+
+    def should_cast(self):
+        area = disk(self.caster.position, self.radius)
+        for tile in area:
+            subject = self.caster.world.total_entities[tile]
+            if subject is not None:
+                if subject.allegiance == self.caster.allegiance and not subject.has_passive("Arcane Lesson"):
+                    return self.caster.position
+        return []
+
+    def get_impacted_tiles(self, target):
+        affected_tiles = disk(self.caster.position, self.radius, include_origin_tile=False)
+        return affected_tiles

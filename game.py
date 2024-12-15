@@ -43,12 +43,8 @@ class Game:
 
 
 
-        self.available_entities = {
-            "Longdead": entities.Longdead,
-            "Goblin": entities.Goblin,
-            "Troll": entities.Troll,
-            "Kindling": entities.Kindling
-        }
+        self.available_entities = entities.get_all_entities()
+
 
         self.ui = UI(display, self.world)
 
@@ -91,6 +87,8 @@ class Game:
         self.pc.actives.append(pm)
         tw = TidalWave(self.pc)
         self.pc.actives.append(tw)
+        al = ArcaneLesson(self.pc)
+        self.pc.actives.append(al)
 
 
         return world
@@ -139,10 +137,9 @@ class Game:
 
     def player_turn(self):
         player_turn_ended = False
-        for entity in self.world.active_entities.values():
-            if entity is not None:
-                if entity.allegiance == ALLEGIANCES.PLAYER_TEAM:
-                    entity.start_of_turn()
+
+        self.pc.start_of_turn()
+
         while not player_turn_ended:
             #self.graphics.find_tile_at_screen_coords(pygame.mouse.get_pos())
             for event in pygame.event.get():

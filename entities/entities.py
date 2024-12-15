@@ -10,6 +10,15 @@ from effects import *
 from items import *
 
 
+def get_all_entities():
+    return {
+        "Longdead": Longdead,
+        "Goblin": Goblin,
+        "Goblin Shaman": GoblinShaman,
+        "Troll": Troll,
+        "Kindling": Kindling
+    }
+
 
 class Entity:
     def __init__(self, world):
@@ -71,6 +80,12 @@ class Entity:
     def post_init(self):
         pass
 
+    def has_passive(self, name):
+        for passive in self.passives:
+            if passive.name == name:
+                return True
+        return False
+
     def load_assets(self):
         i = 1
         if self.world.game.assets[f"{self.asset_name}_idle_{i}"]:
@@ -111,6 +126,7 @@ class Entity:
         self.current_actions = self.actions_per_round
         for p in self.passives:
             p.start_of_turn_effect()
+            p.increment_duration()
         for active in self.actives:
             if active.current_charges < active.max_charges:
                 active.recovery_turns_left -= 1
@@ -131,12 +147,21 @@ class Entity:
     def move(self, target):
         return self.world.move_entity(self, target)
 
-    def on_suffer_damage(self, source, amount, type):
+    def on_suffer_damage(self, source, amount, damage_type):
         #print(f"{self.name} took {amount} damage from {source.name}.")
         for passive in self.passives:
-            passive.on_suffer_damage_effect(source, amount, type)
+            passive.on_suffer_damage_effect(source, amount, damage_type)
         if self.hp <= 0:
             self.die()
+
+    def on_cause_heal(self, target, amount):
+        for passive in self.passives:
+            passive.on_cause_heal_effect(target, amount)
+
+    def on_healed(self, source, amount):
+        for passive in self.passives:
+            passive.on_healed_effect(source, amount)
+
 
     def on_death(self):
         for passive in self.passives:
@@ -155,15 +180,16 @@ class Entity:
         self.on_expire()
 
     def act(self):
-        pygame.event.pump() # Since there are a lot of "act" in a row during the enemy turn in particular, this should help keep the game from going unresponsive?
+        pygame.event.pump() # Since there are a lot of "act" in a row during the enemy turn in particular, this should help keep the game from going unresponsive.
         acted = False
         actives = random.sample(self.actives, len(self.actives))
         actives.sort(key=lambda spell: spells.Spell.level)
+        final_actives = []
         for active in actives:
-            if len(active.should_cast()) <= 0 or active.current_charges <= 0:
-                actives.remove(active)
-        if len(actives) > 0:
-            self.use_active(actives[0])
+            if not(len(active.should_cast()) <= 0 or active.current_charges <= 0):
+                final_actives.append(active)
+        if len(final_actives) > 0:
+            self.use_active(final_actives[0])
         # If we can't meaningfully use any of our abilities, we move towards the closest enemy.
         enemies = find_and_sort_enemies_by_distance(self)
 
@@ -280,6 +306,24 @@ class GoblinShaman(Entity):
         self.actives.append(melee_attack)
         self.items.append(items.Spellbook(self.world, 1, self.position))
 
+class Treant(Entity):
+    def on_init(self):
+        self.name = "Treant"
+        self.description = "A living tree, undoubtedly angered at the disturbance of its home."
+        self.max_hp = 25
+        self.actions_per_round = 2
+        self.asset_name = "tree"
+        self.resistances = RESISTANCE_SETS.SENTIENT_WOOD
+
+        regen = Regeneration(self, self)
+        regen.nature = INHERENT
+
+        self.passives.append(regen)
+
+        melee_attack = spells.BluntMeleeAttack(self)
+        melee_attack.power = 8
+        melee_attack.name = "Branch"
+        self.actives.append(melee_attack)
 
 class Longdead(Entity):
     def on_init(self):
