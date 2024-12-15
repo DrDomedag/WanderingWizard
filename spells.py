@@ -682,3 +682,49 @@ class ArcaneLesson(Spell):
     def get_impacted_tiles(self, target):
         affected_tiles = disk(self.caster.position, self.radius, include_origin_tile=False)
         return affected_tiles
+
+
+class Flickerstep(Spell):
+    def on_init(self):
+        self.range = 8
+        self.action_cost = 1
+        self.max_charges = 5
+        self.name = "Flickerstep"
+        self.description = "Step through the space between space, emerging somewhere else nearby."
+        self.level = 1
+        self.schools = [SCHOOLS.ASTRAL]
+        self.upgrades = []
+        self.recovery_time = 5
+
+        # Upgrade for removing LoS requirement.
+
+        self.requires_line_of_sight = True
+        self.can_target_self = False
+        self.must_target_entity = False
+        self.cannot_target_entity = True
+        self.can_target_ground = True
+        self.can_target_water = True
+        self.can_target_void = True
+        self.can_target_wall = False
+
+        self.should_target_enemies = False
+        self.should_target_self = False
+        self.should_target_allies = False
+        self.should_target_empty = True
+
+    def get_targetable_tiles(self):
+        tiles = []
+        for tile in disk(self.caster.position, self.range):
+            if self.caster.can_move(tile) and self.caster.can_see(tile):
+                tiles.append(tile)
+        return tiles
+
+    def on_cast(self, target):
+        if self.caster == self.caster.world.game.pc:
+            self.caster.world.move_player(target)
+        else:
+            self.caster.world.move_entity(self.caster, target)
+
+    def should_cast(self):
+        # This basically means the AI targets random tiles with the spell, and I think that's fine for now.
+        return self.get_targetable_tiles()

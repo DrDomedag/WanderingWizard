@@ -89,6 +89,8 @@ class Game:
         self.pc.actives.append(tw)
         al = ArcaneLesson(self.pc)
         self.pc.actives.append(al)
+        fs = Flickerstep(self.pc)
+        self.pc.actives.append(fs)
 
 
         return world
