@@ -70,6 +70,9 @@ class Spell:
     def on_init(self):
         pass
 
+    def get_description(self):
+        return self.description
+
     def get_relevant_stats(self):
         return {}
 
@@ -202,6 +205,9 @@ class IronNeedle(Spell):
         self.upgrades = []
         self.recovery_time = 5
 
+    def get_description(self):
+        return f"Quickly fire a needle of iron dealing {self.power} damage to a single target."
+
     def get_relevant_stats(self):
         return {"power": self.power,
                 "range": self.range,
@@ -237,6 +243,9 @@ class FireBreath(Spell):
 
         self.angle = 60
 
+    def get_description(self):
+        return f"Spray fire, dealing {self.power} damage in a {self.range} tile long cone, yeah."
+
     def on_cast(self, target):
         affected_tiles = compute_cone_tiles(self.caster.position, target, self.angle, self.range + 0.5, include_origin_tile=False)
         affected_tiles = self.caster.world.filter_line_of_effect(self.caster.position, affected_tiles, include_blocking_tile=True)
@@ -270,6 +279,9 @@ class SeismicJolt(Spell):
         self.should_target_self = False
         self.should_target_allies = False
         self.should_target_empty = False
+
+    def get_description(self):
+        return f"Deal {self.power} bludgeoning damage to enemies in a {self.radius} tile radius and push them back one tile."
 
     # Overwriting this makes it so much faster
     def get_targetable_tiles(self):
@@ -328,6 +340,9 @@ class RaiseLongdead(Spell):
 
         self.should_target_empty = True
 
+    def get_description(self):
+        return f"Within the earth rests the bones of countless generations. Long dead, these skeletal servants are not very powerful, but they are always available. The skeletons have {self.minion_health} hit points and deal {self.minion_damage} damage per attack."
+
     def on_cast(self, target):
         entity_class = self.caster.world.game.available_entities["Longdead"]
         summon_minions(self, entity_class, self.minion_count, target, duration=self.duration)
@@ -345,6 +360,7 @@ class Heal(Spell):
         self.action_cost = 2
         self.max_charges = 3
         self.name = "Word of Healing"
+        self.description = f"Heal target living creature up to {self.range} tiles away by {self.power} hit points."
         self.level = 1
         self.schools = [SCHOOLS.HOLY, SCHOOLS.NATURE]
         self.upgrades = []
@@ -357,6 +373,9 @@ class Heal(Spell):
         self.should_target_empty = False
 
         self.on_init()
+
+    def get_description(self):
+        return f"Heal target living creature up to {self.range} tiles away by {self.power} hit points."
 
     def get_impacted_tiles(self, target):
         return disk(target, self.radius, include_origin_tile=True)
@@ -392,6 +411,10 @@ class BluntMeleeAttack(Spell):
         self.schools = []
         self.recovery_time = 1
 
+    def get_description(self):
+        return f"Striking with a club, fist or similar implement to deal {self.power} bludgeoning damage."
+
+
     def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
@@ -408,6 +431,9 @@ class SlashingMeleeAttack(Spell):
         self.level = 0
         self.schools = []
         self.recovery_time = 1
+
+    def get_description(self):
+        return f"Striking with a sword, claw or similar implement to deal {self.power} slashing damage."
 
     def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
@@ -426,6 +452,9 @@ class PiercingMeleeAttack(Spell):
         self.schools = []
         self.recovery_time = 1
 
+    def get_description(self):
+        return f"Striking with a dagger, arrow or similar implement to deal {self.power} piercing damage."
+
     def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
@@ -443,6 +472,8 @@ class FireSpit(Spell):
         self.max_charges = 100
         self.recovery_time = 1
 
+    def get_description(self):
+        return f"A small spittle of fire that burns a single target at {self.range} range for {self.power} damage."
 
     def on_cast(self, target):
         subject = self.caster.world.active_entities[target]
@@ -462,6 +493,9 @@ class LightningBolt(Spell):
         self.max_charges = 14
 
         self.requires_line_of_sight = False
+
+    def get_description(self):
+        return f"Fire a bolt of lightning that deals {self.power} Lightning damage to all targets it passes through."
 
     def on_cast(self, target):
         affected_tiles = bresenham(self.caster.position, target)
@@ -491,6 +525,9 @@ class TidalWave(Spell):
         self.max_charges = 7
 
         self.requires_line_of_sight = False
+
+    def get_description(self):
+        return f"Release a wave of crushing force that deals {self.power} damage and pushes away enemies in a wide line up to {self.range} long."
 
     def on_cast(self, target):
         affected_tiles = wide_line(self.caster.position, target, self.radius)
@@ -523,6 +560,9 @@ class PoisonMist(Spell):
         self.recovery_time = 8
         self.max_charges = 4
 
+    def get_description(self):
+        return f"Create a poisonous mist in a {self.radius} tile area for {self.duration} turns, dealing {self.power} damage to creatures within each turn."
+
     def on_cast(self, target):
         affected_tiles = disk(target, self.radius, include_origin_tile=True)
         for tile in affected_tiles:
@@ -550,6 +590,9 @@ class SummonMonster(Spell):
         #self.schools = [SCHOOLS.NATURE, SCHOOLS.WATER, SCHOOLS.AIR]
         self.max_charges = 1
         self.action_cost = 1
+
+    def get_description(self):
+        return f"Summons a {self.monster_name}."
 
     def on_cast(self, target):
         #print(f"Summoning {self.monster_name}. Current charges: {self.current_charges}, remaining recovery turns: {self.recovery_turns_left}, recovery time: {self.recovery_time}")
@@ -586,6 +629,9 @@ class RegenerationSpell(Spell):
         self.should_target_allies = True
         self.should_target_empty = False
 
+    def get_description(self):
+        return f"Target living creature regains {self.power} hit points at the start of each of its turns for the next {self.duration} turns."
+
     def on_cast(self, target):
         subject = self.caster.world.active_entities[target]
         if subject is not None:
@@ -618,6 +664,9 @@ class ArcaneLessonAttack(Spell):
         self.schools = [SCHOOLS.ASTRAL]
         self.name = "Arcane Bolt"
         self.description = f"A rudimentary display of magic - a bolt of pure arcane energy that deals {self.power} damage."
+
+    def get_description(self):
+        return f"A rudimentary display of magic - a bolt of pure arcane energy that deals {self.power} damage."
 
     def on_cast(self, target):
         subject = self.caster.world.active_entities[target]
@@ -653,6 +702,9 @@ class ArcaneLesson(Spell):
         self.should_target_allies = False
         self.should_target_empty = False
 
+    def get_description(self):
+        return f"Friendly creatures within {self.radius} tiles learn a {self.range} ranged spell dealing {self.power} Arcane damage with a 3 turn cooldown for {self.duration} turns. Like most spells, it takes 2 actions to cast."
+
     def on_cast(self, target):
         area = disk(self.caster.position, self.radius, include_origin_tile=False)
         for tile in area:
@@ -687,7 +739,7 @@ class ArcaneLesson(Spell):
 class Flickerstep(Spell):
     def on_init(self):
         self.range = 8
-        self.action_cost = 1
+        self.action_cost = 2
         self.max_charges = 5
         self.name = "Flickerstep"
         self.description = "Step through the space between space, emerging somewhere else nearby."
@@ -697,6 +749,7 @@ class Flickerstep(Spell):
         self.recovery_time = 5
 
         # Upgrade for removing LoS requirement.
+        # Upgrade for lowering action cost by 1.
 
         self.requires_line_of_sight = True
         self.can_target_self = False
@@ -711,6 +764,9 @@ class Flickerstep(Spell):
         self.should_target_self = False
         self.should_target_allies = False
         self.should_target_empty = True
+
+    def get_description(self):
+        return f"Step through the space between space, emerging up to {self.range} tiles away."
 
     def get_targetable_tiles(self):
         tiles = []

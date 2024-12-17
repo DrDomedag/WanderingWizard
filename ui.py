@@ -452,7 +452,7 @@ class UI:
 
                             vertical_offset += 20
 
-                            vertical_offset = blit_text(self.display, active.description,
+                            vertical_offset = blit_text(self.display, active.get_description(),
                                                         (left_end + 5, vertical_offset), self.font_14, COLOURS.WHITE)
                             vertical_offset += 50
 
@@ -504,7 +504,7 @@ class UI:
                 self.display.blit(descr, descrRect)
                 '''
                 pos = (left_end + 5, vertical_offset)
-                blit_text(self.display, self.hovered_spell.description, pos, self.font_14, color=COLOURS.GRAY)
+                blit_text(self.display, self.hovered_spell.get_description(), pos, self.font_14, color=COLOURS.GRAY)
 
     def show_LoS_at_cursor(self):
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
