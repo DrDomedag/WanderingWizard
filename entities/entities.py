@@ -16,7 +16,8 @@ def get_all_entities():
         "Goblin": Goblin,
         "Goblin Shaman": GoblinShaman,
         "Troll": Troll,
-        "Kindling": Kindling
+        "Kindling": Kindling,
+        "Friar": Friar,
     }
 
 
@@ -370,4 +371,31 @@ class Kindling(Entity):
         fire_spit.range = 4
         self.actives.append(fire_spit)
 
+class Friar(Entity):
+    def on_init(self):
+        self.name = "Friar"
+        self.description = "Faithful keeper of the flock, humble spellcaster, and eyes and ears of the church in the provinces. A good life - at least until the gods went mad."
+        self.max_hp = 15
+        self.tags = [ENTITY_TAGS.LIVING]
+        self.resistances[DAMAGE_TYPES.LIGHT] = 50
+
+        self.asset_name = "friar"
+
+        melee_attack = spells.BluntMeleeAttack(self)
+        melee_attack.power = 2
+        melee_attack.name = "Fist"
+        self.actives.append(melee_attack)
+
+        fire_spit = spells.FireSpit(self)
+        fire_spit.power = 5
+        fire_spit.range = 4
+        fire_spit.max_charges = 1
+        fire_spit.recovery_time = 2
+        fire_spit.description = "A small bolt of holy energy."
+        fire_spit.name = "Holy Bolt"
+        self.actives.append(fire_spit)
+
+        self.actives.append(spells.WordOfHealing(self))
+
+        self.items.append(items.Spellbook(self.world, 2, self.position, schools=[SCHOOLS.HOLY]))
 

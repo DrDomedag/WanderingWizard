@@ -7,8 +7,8 @@ CURSE = 2
 
 
 class Passive:
-    def __init__(self, source, subject):
-        self.duration = None
+    def __init__(self, source, subject, duration=None):
+        self.duration = duration
         self.name = "Unnamed passive ability"
         self.description = "This passive ability defies description."
         self.nature = BLESSING
@@ -120,3 +120,15 @@ class GrantActive(Passive):
 
     def on_dispelled_effect(self):
         self.subject.actives.remove(self.active)
+
+class Slow(Passive):
+    def __init__(self, source, subject, duration=None):
+        super().__init__(source, subject, duration)
+
+        self.name = "Slow"
+        self.nature = CURSE
+        self.power = 1
+        self.description = f"This entity cannot act very quickly and gains {self.power} action points fewer each turn."
+
+    def start_of_turn_effect(self):
+        self.subject.current_actions -= self.power

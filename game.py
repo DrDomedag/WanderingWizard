@@ -12,7 +12,7 @@ class Game:
     def __init__(self, display):
 
         # Debug settings
-        self.enemy_spawns_enabled = True
+        self.enemy_spawns_enabled = False
 
         #pygame.init()
         # display = pygame.display.set_mode((800, 600))
@@ -58,14 +58,14 @@ class Game:
 
 
     def new_game(self):
-        biome_list = [BIOME_IDS.PLAINS, BIOME_IDS.FOREST, BIOME_IDS.STARTER_BIOME]
-        world = World(self, biome_list)
+        overworld_biome_list = [BIOME_IDS.PLAINS, BIOME_IDS.FOREST, BIOME_IDS.STARTER_BIOME]
+        world = World(self, overworld_biome_list)
         world.assets = self.assets
         self.pc = PC(world)
         self.pc.position = (0, 0)
         world.total_entities[(0, 0)] = self.pc  # Dunno why it was so very wonky when I did this earlier, but i'm not going to complain that it works now.
 
-        self.pc_available_spell_list = PCAvailableSpellList()
+        self.pc_available_spell_list = PCAvailableSpellList(self.pc)
 
         # TEMP
 

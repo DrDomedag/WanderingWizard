@@ -1,4 +1,6 @@
 import random
+
+import items
 from walls import *
 from floors import *
 from util import *
@@ -104,6 +106,11 @@ class StarterBiome(Biome):
         return None
 
     def generate_wall_tile(self, coords):
+        return None
+
+    def generate_item(self, coords):
+        if random.random() < 0.05:
+            return items.Spellbook(self.world, 5, coords, [SCHOOLS.HOLY])
         return None
 
 class PortalBiome(StarterBiome):

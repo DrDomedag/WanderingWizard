@@ -1,3 +1,4 @@
+import effects
 import tile_effects
 from effects import *
 from util import *
@@ -6,14 +7,30 @@ import random
 
 
 class PCAvailableSpellList:
-    def __init__(self):
-        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath, LightningBolt, TidalWave, PoisonMist, ArcaneLesson]
+    def __init__(self, pc):
+        self.pc = pc
+        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath, LightningBolt, TidalWave, PoisonMist, ArcaneLesson, WordOfHealing, RegenerationSpell, Flickerstep, Decrepify]
 
-    def get_random_spells_of_tier(self, level, count):
+    def get_random_spells_of_tier(self, level, count, schools=None):
         candidates = []
         for candidate in self.spells:
-            if candidate.level == level:
-                candidates.append(candidate)
+            # Check that it's not a spell we already know. Going by name for now - doesn't feel future-proof, but I can't see right now why it wouldn't work.
+            known = False
+            for active in self.pc.actives:
+                if candidate.name == active.name:
+                    known = True
+                    break
+            if known:
+                continue
+            # Check whether it is an allowed school
+            if schools is not None:
+                for s in schools:
+                    if candidate.level == level and s in candidate.schools:
+                        candidates.append(candidate)
+            # If not, just make sure it's the right level
+            else:
+                if candidate.level == level:
+                    candidates.append(candidate)
         if len(candidates) > 0:
             return random.choices(candidates, k=count)
         return []
@@ -23,7 +40,9 @@ class PCAvailableSpellList:
 
 
 class Spell:
+    name = "Unnamed Spell"
     level = 1
+    schools = []
     def __init__(self, caster):
         self.caster = caster
 
@@ -190,6 +209,8 @@ class Spell:
 
 
 class IronNeedle(Spell):
+    name = "Iron Needle"
+    schools = [SCHOOLS.METAL, SCHOOLS.SORCERY]
     def __init__(self, caster):
         super().__init__(caster)
 
@@ -224,6 +245,8 @@ class IronNeedle(Spell):
         self.caster.world.show_projectile(self.caster.position, target, "metal_projectile", 0)
 
 class FireBreath(Spell):
+    name = "Fire Breath"
+    schools = [SCHOOLS.FIRE, SCHOOLS.SORCERY]
     def __init__(self, caster):
         super().__init__(caster)
 
@@ -259,6 +282,8 @@ class FireBreath(Spell):
         return affected_tiles
 
 class SeismicJolt(Spell):
+    name = "Seismic Jolt"
+    schools = [SCHOOLS.EARTH, SCHOOLS.SORCERY]
     def __init__(self, caster):
         super().__init__(caster)
 
@@ -307,6 +332,8 @@ class SeismicJolt(Spell):
 
 
 class RaiseLongdead(Spell):
+    name = "Raise Longdead"
+    schools = [SCHOOLS.CONJURATION, SCHOOLS.DEATH]
     def __init__(self, caster):
         super().__init__(caster)
 
@@ -350,7 +377,9 @@ class RaiseLongdead(Spell):
 
 
 
-class Heal(Spell):
+class WordOfHealing(Spell):
+    name = "Word of Healing"
+    schools = [SCHOOLS.HOLY, SCHOOLS.NATURE]
     def __init__(self, caster):
         super().__init__(caster)
 
@@ -397,6 +426,7 @@ class Heal(Spell):
 
 
 class BluntMeleeAttack(Spell):
+    name = "Bludgeoning Strike"
     def __init__(self, caster):
         super().__init__(caster)
 
@@ -421,6 +451,7 @@ class BluntMeleeAttack(Spell):
             damage_entity(self, subject, self.power, DAMAGE_TYPES.BLUDGEONING)
 
 class SlashingMeleeAttack(Spell):
+    name = "Slashing Strike"
     def on_init(self):
         self.name = "Slashing Strike"
         self.description = "Striking with a sword, claw or similar implement to deal slashing damage."
@@ -441,6 +472,7 @@ class SlashingMeleeAttack(Spell):
             damage_entity(self, subject, self.power, DAMAGE_TYPES.SLASHING)
 
 class PiercingMeleeAttack(Spell):
+    name = "Piercing Strike"
     def on_init(self):
         self.name = "Piercing Strike"
         self.description = "Striking with a dagger, arrow or similar implement to deal piercing damage."
@@ -461,6 +493,7 @@ class PiercingMeleeAttack(Spell):
             damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)
 
 class FireSpit(Spell):
+    name = "Fire Spit"
     def __init__(self, caster):
         super().__init__(caster)
 
@@ -480,6 +513,8 @@ class FireSpit(Spell):
         damage_entity(self, subject, self.power, DAMAGE_TYPES.FIRE)
 
 class LightningBolt(Spell):
+    schools = [SCHOOLS.LIGHTNING, SCHOOLS.SORCERY]
+    name = "Lightning Bolt"
     def on_init(self):
         self.power = 8
         self.range = 9
@@ -511,6 +546,8 @@ class LightningBolt(Spell):
 
 
 class TidalWave(Spell):
+    name = "Tidal Wave"
+    schools = [SCHOOLS.WATER, SCHOOLS.SORCERY]
     def on_init(self):
         self.power = 20
         self.range = 9
@@ -545,6 +582,8 @@ class TidalWave(Spell):
         return affected_tiles
 
 class PoisonMist(Spell):
+    name = "Poison Mist"
+    schools = [SCHOOLS.NATURE, SCHOOLS.WATER, SCHOOLS.AIR]
     def on_init(self):
         self.power = 2
         self.range = 8
@@ -576,6 +615,7 @@ class PoisonMist(Spell):
 
 
 class SummonMonster(Spell):
+    name = "Summon Monster"
     def __init__(self, caster, monster_type, monster_count, cooldown):
         self.monster_type = monster_type
         self.monster_name = self.monster_type(caster.world).name
@@ -603,6 +643,8 @@ class SummonMonster(Spell):
 
 
 class RegenerationSpell(Spell):
+    name = "Regeneration"
+    schools = [SCHOOLS.NATURE, SCHOOLS.HOLY]
     def on_init(self):
         self.duration = 10
         self.power = 3
@@ -654,6 +696,8 @@ class RegenerationSpell(Spell):
 
 
 class ArcaneLessonAttack(Spell):
+    name = "Arcane Bolt"
+    schools = [SCHOOLS.ASTRAL]
     def on_init(self):
         self.power = 5
         self.level = 2
@@ -675,6 +719,8 @@ class ArcaneLessonAttack(Spell):
 
 
 class ArcaneLesson(Spell):
+    name = "Arcane Lesson"
+    schools = [SCHOOLS.ASTRAL, SCHOOLS.ENCHANTMENT]
     def on_init(self):
         self.duration = 22
         self.radius = 8
@@ -737,6 +783,8 @@ class ArcaneLesson(Spell):
 
 
 class Flickerstep(Spell):
+    name = "Flickerstep"
+    schools = [SCHOOLS.ASTRAL]
     def on_init(self):
         self.range = 8
         self.action_cost = 2
@@ -784,3 +832,59 @@ class Flickerstep(Spell):
     def should_cast(self):
         # This basically means the AI targets random tiles with the spell, and I think that's fine for now.
         return self.get_targetable_tiles()
+
+
+class Decrepify(Spell):
+    name = "Decrepify"
+    schools = [SCHOOLS.DEATH, SCHOOLS.ENCHANTMENT]
+    def on_init(self):
+        self.range = 13
+        self.action_cost = 2
+        self.max_charges = 5
+        self.radius = 4
+        self.duration = 9
+        #self.name = "Decrepify"
+        self.description = f"Burden enemies with the weight of time, slowing them down for {self.duration} turns. Does not affect the undead."
+        self.level = 2
+        self.schools = [SCHOOLS.DEATH, SCHOOLS.ENCHANTMENT]
+        self.upgrades = []
+        self.recovery_time = 10
+
+        # Upgrade for allowing affecting undead.
+
+        self.requires_line_of_sight = True
+        self.can_target_self = False
+        self.must_target_entity = False
+        self.cannot_target_entity = False
+        self.can_target_ground = True
+        self.can_target_water = True
+        self.can_target_void = True
+        self.can_target_wall = False
+
+        self.should_target_enemies = True
+        self.should_target_self = False
+        self.should_target_allies = False
+        self.should_target_empty = False
+
+    def get_description(self):
+        # Can add an if here for a future upgrade that makes it affect undead.
+        return f"Burden enemies with the weight of time, slowing them down for {self.duration} turns. Does not affect the undead."
+
+    def on_cast(self, target):
+        tiles = disk(target, self.radius, True)
+        for tile in tiles:
+            entity = self.caster.world.total_entities[tile]
+            if entity is not None:
+                if ENTITY_TAGS.UNDEAD not in entity.tags:
+                    debuff = Slow(self.caster, entity, duration=self.duration)
+                    effects.apply_passive(entity, debuff)
+
+    def should_cast(self):
+        should_cast_tiles = []
+        area = disk(self.caster.position, self.radius)
+        for tile in area:
+            subject = self.caster.world.total_entities[tile]
+            if subject is not None:
+                if subject.allegiance != self.caster.allegiance and subject.allegiance != ALLEGIANCES.NEUTRAL and ENTITY_TAGS.UNDEAD not in subject.tags and not subject.has_passive("Slow"):
+                    should_cast_tiles.append(tile)
+        return should_cast_tiles

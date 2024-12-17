@@ -1,15 +1,17 @@
 General things to do:
-Show allegiance on map somehow.
 
-Verify bug level of spellbook pickups. Seemed like they didn't give the right tier.
+Give Friar the right spellbook
+Implement Knight
+Populate church
+
+Verify bug level of spellbook pickups. Seemed like they didn't give the right ~~tier~~ school.
 
 ...sound
 
-Doors!
 Same-world teleporter tiles.
 
-PoIs
 The "wait" action should give one "recovery turn" to a random spell per action used.
+Refill all spell slots when there are no enemies in active tiles as a QoL thing.
 Use the 'mazetest.py' algorithm to make a cave biome (good for tunnels) - combine with noise for irregularly shaped chambers.
 
 Consider implementing *another* dict that remembers tiles you have seen to make FoW not regenerate. Update the show_los function to use this.
