@@ -1,10 +1,6 @@
 General things to do:
 
-Give Friar the right spellbook
-Implement Knight
-Populate church
-
-Verify bug level of spellbook pickups. Seemed like they didn't give the right ~~tier~~ school.
+Friars are getting two turns! :o
 
 ...sound
 
@@ -26,6 +22,7 @@ Add a "has noticed player" boolean to monsters. If False, at the beginning of ac
 check if player within certain range (representing hearing) or within LoS, or if ally within range is flagged as true.
 If not, skip turn.
 
+Determine whether spells should pass themselves or their caster as the source to on_damage, on_heal type things.
 
 Create more visual effects.
 Create projectile visual effect.

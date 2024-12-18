@@ -110,7 +110,7 @@ class StarterBiome(Biome):
 
     def generate_item(self, coords):
         if random.random() < 0.05:
-            return items.Spellbook(self.world, 5, coords, [SCHOOLS.HOLY])
+            return items.Spellbook(self.world, 5, coords, None)
         return None
 
 class PortalBiome(StarterBiome):

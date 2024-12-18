@@ -1,5 +1,7 @@
 import random
 
+from util import manhattan_distance
+
 
 class InfiniteMaze:
     def __init__(self):
@@ -35,7 +37,7 @@ class InfiniteMaze:
 
             # Carve only if this tile maintains a maze-like structure
             if floor_neighbors == 1:  # Ensure connectivity
-                if random.random() < 0.9:
+                if random.random() < 0.95:
                     self.maze[(x, y)] = True
                     self.add_frontier(x, y)  # Add its neighbors to the frontier
                     return True
@@ -72,12 +74,16 @@ class InfiniteMaze:
 maze = InfiniteMaze()
 character_position = (0, 0)
 
+radius = 15
+
 # Get visible tiles within a radius of 5
-visible = maze.get_visible_tiles(character_position[0], character_position[1], radius=5)
+visible = maze.get_visible_tiles(character_position[0], character_position[1], radius=radius)
+
+sorted(visible, manhattan_distance())
 
 # Print the maze section
-for y in range(-5, 6):
-    for x in range(-5, 6):
+for y in range(-radius, radius + 1):
+    for x in range(-radius, radius + 1):
         if (x, y) == character_position:
             print("@", end=" ")  # Character position
         elif visible.get((x, y), False):

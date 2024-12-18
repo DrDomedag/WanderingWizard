@@ -559,6 +559,13 @@ def find_path(entity, target):
 
     #print(f"entity.position: {entity.position}, translated_start: {translated_start}, target: {target}, translated_target: {translated_target}")
 
+    print(f"entity.name: {entity.name}")
+    print(f"entity.position: {entity.position}")
+    print(f"translated_start: {translated_start}")
+    print(f"target: {target}")
+    print(f"translated_target: {translated_target}")
+
+
     # Mark starting point as passable
     grid[translated_start[0]][translated_start[1]] = 1
     # Also mark ending point as passable. Otherwise we won't be able to use this to find the path to an entity.

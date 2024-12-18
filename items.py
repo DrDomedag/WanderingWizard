@@ -48,7 +48,7 @@ class Spellbook(Item):
                 self.world.total_items[self.position] = None
                 self.world.game.pc_available_spell_list.remove(spell)
             else:
-                print(f"No unlearned spells at tier {self.level}")
+                print(f"No unlearned spells at tier {target_level}")
             target_level -= 1
 
 '''

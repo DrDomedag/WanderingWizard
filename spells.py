@@ -9,7 +9,19 @@ import random
 class PCAvailableSpellList:
     def __init__(self, pc):
         self.pc = pc
-        self.spells = [IronNeedle, RaiseLongdead, SeismicJolt, FireBreath, LightningBolt, TidalWave, PoisonMist, ArcaneLesson, WordOfHealing, RegenerationSpell, Flickerstep, Decrepify]
+        self.spells = [IronNeedle,
+                       RaiseLongdead,
+                       SeismicJolt,
+                       FireBreath,
+                       LightningBolt,
+                       TidalWave,
+                       PoisonMist,
+                       ArcaneLesson,
+                       WordOfHealing,
+                       RegenerationSpell,
+                       Flickerstep,
+                       Decrepify,
+                       SummonHomunculus]
 
     def get_random_spells_of_tier(self, level, count, schools=None):
         candidates = []
@@ -46,6 +58,8 @@ class Spell:
     def __init__(self, caster):
         self.caster = caster
 
+        self.is_spell = True
+
         self.power = 5
         self.range = 1
         self.radius = 1
@@ -59,6 +73,7 @@ class Spell:
         self.schools = []
         self.upgrades = []
         self.recovery_time = 5
+        self.hp_cost = 0
 
         self.minion_damage = 1
         self.minion_health = 1
@@ -99,6 +114,7 @@ class Spell:
     def cast(self, target):
         #print(f"Cast {self.name} at {target}!")
         self.current_charges -= 1
+        self.caster.hp -= self.hp_cost
         self.on_cast(target)
         self.caster.current_actions -= self.action_cost
 
@@ -136,7 +152,7 @@ class Spell:
             #print("This spell does not target entities. Please select another target.... Jimzo.")
             return False
         if self.range < int(euclidean_distance(self.caster.position, target)):
-            #print(f"Can't use a {self.range} spell at a distance of {self.caster.world.euclidean_distance(self.caster.position, target)} tiles, that should be obvious, Jimmy old sport.")
+            #print(f"Can't use a {self.range} spell at a distance of {euclidean_distance(self.caster.position, target)} tiles, that should be obvious, Jimmy old sport.")
             return False
         if self.requires_line_of_sight and not(self.caster.can_see(target)):
             #print("Can't target what you can't see, Jimpers.")
@@ -154,16 +170,17 @@ class Spell:
         return True
 
     def can_cast(self, target):
-        if not self.can_target_tile(target):
-            #print(f"Can't cast that there.")
-            return False
         if self.caster.current_actions < self.action_cost:
             #print(f"Can't cast a {self.action_cost} action spell with only {self.caster.current_actions} actions!")
             return False
         if self.current_charges <= 0:
             #print(f"Can't cast - no charges!")
             return False
-
+        if self.caster.hp <= self.hp_cost:
+            return False
+        if not self.can_target_tile(target):
+            #print(f"Can't cast that there.")
+            return False
         return True
 
     def should_cast(self):
@@ -339,7 +356,7 @@ class RaiseLongdead(Spell):
 
     def on_init(self):
         self.power = 5
-        self.range = 1
+        self.range = 2
         self.radius = 1
         self.num_targets = 1
         self.action_cost = 2
@@ -380,9 +397,7 @@ class RaiseLongdead(Spell):
 class WordOfHealing(Spell):
     name = "Word of Healing"
     schools = [SCHOOLS.HOLY, SCHOOLS.NATURE]
-    def __init__(self, caster):
-        super().__init__(caster)
-
+    def on_init(self):
         self.power = 10
         self.range = 6
         self.radius = 1
@@ -401,8 +416,6 @@ class WordOfHealing(Spell):
         self.should_target_allies = True
         self.should_target_empty = False
 
-        self.on_init()
-
     def get_description(self):
         return f"Heal target living creature up to {self.range} tiles away by {self.power} hit points."
 
@@ -411,26 +424,25 @@ class WordOfHealing(Spell):
 
     def should_cast(self):
         tiles = []
-        for entity in self.caster.world.active_entities.values:
+        for entity in self.caster.world.active_entities.values():
             if entity is not None:
                 if entity.allegiance == self.caster.allegiance and entity.hp < entity.max_hp and ENTITY_TAGS.LIVING in entity.tags and self.can_cast(entity.position):
                     tiles.append(entity.position)
         return tiles
 
-    def cast(self, target):
+    def on_cast(self, target):
         for tile in disk(target, self.radius, include_origin_tile=True):
             entity = self.caster.world.active_entities[tile]
             if not entity is None:
                 if entity.allegiance == self.caster.allegiance and ENTITY_TAGS.LIVING in entity.tags:
-                    heal(self, entity, self.power)
+                    heal(self.caster, entity, self.power)
 
 
 class BluntMeleeAttack(Spell):
     name = "Bludgeoning Strike"
-    def __init__(self, caster):
-        super().__init__(caster)
 
     def on_init(self):
+        self.is_spell = False
         self.name = "Bludgeoning Strike"
         self.description = "Striking with a club, fist or similar implement to deal bludgeoning damage."
         self.power = 2
@@ -453,6 +465,7 @@ class BluntMeleeAttack(Spell):
 class SlashingMeleeAttack(Spell):
     name = "Slashing Strike"
     def on_init(self):
+        self.is_spell = False
         self.name = "Slashing Strike"
         self.description = "Striking with a sword, claw or similar implement to deal slashing damage."
         self.power = 2
@@ -474,6 +487,7 @@ class SlashingMeleeAttack(Spell):
 class PiercingMeleeAttack(Spell):
     name = "Piercing Strike"
     def on_init(self):
+        self.is_spell = False
         self.name = "Piercing Strike"
         self.description = "Striking with a dagger, arrow or similar implement to deal piercing damage."
         self.power = 2
@@ -496,6 +510,7 @@ class FireSpit(Spell):
     name = "Fire Spit"
     def __init__(self, caster):
         super().__init__(caster)
+        self.is_spell = False
 
     def on_init(self):
         self.power = 3
@@ -622,6 +637,7 @@ class SummonMonster(Spell):
         self.monster_count = monster_count
         super().__init__(caster)
         self.recovery_time = cooldown
+        self.is_spell = False
 
     def on_init(self):
         self.name = f"Summon {self.monster_name}"
@@ -843,7 +859,7 @@ class Decrepify(Spell):
         self.max_charges = 5
         self.radius = 4
         self.duration = 9
-        #self.name = "Decrepify"
+        self.name = "Decrepify"
         self.description = f"Burden enemies with the weight of time, slowing them down for {self.duration} turns. Does not affect the undead."
         self.level = 2
         self.schools = [SCHOOLS.DEATH, SCHOOLS.ENCHANTMENT]
@@ -888,3 +904,91 @@ class Decrepify(Spell):
                 if subject.allegiance != self.caster.allegiance and subject.allegiance != ALLEGIANCES.NEUTRAL and ENTITY_TAGS.UNDEAD not in subject.tags and not subject.has_passive("Slow"):
                     should_cast_tiles.append(tile)
         return should_cast_tiles
+
+
+class SummonHomunculus(Spell):
+    name = "Summon Homunculus"
+    schools = [SCHOOLS.BLOOD, SCHOOLS.ASTRAL, SCHOOLS.CONJURATION]
+
+    def on_init(self):
+        self.power = 1
+        self.range = 2
+        self.action_cost = 2
+        self.hp_cost = 5
+        self.max_charges = 2
+        self.radius = 1
+        self.duration = 30
+        self.name = "Summon Homunculus"
+        self.description = f"Form a small apprentice from your own flesh. The homunculus gains knowledge of one {self.power}st level spell you know."
+        self.level = 3
+        self.schools = [SCHOOLS.BLOOD, SCHOOLS.ASTRAL, SCHOOLS.CONJURATION]
+        self.upgrades = []
+        self.recovery_time = 30
+
+
+        self.minion_damage = 3
+        self.minion_health = 20
+        self.minion_count = 1
+
+        # Upgrade for winged homunculus
+        # Upgrade for second level spells
+        # No upgrade for third level spells, otherwise you get homunculi making homunculi and that's just weird.
+        # Upgrade for knowing more first level spells.
+
+        self.requires_line_of_sight = True
+        self.can_target_self = False
+        self.must_target_entity = False
+        self.cannot_target_entity = True
+        self.can_target_ground = True
+        self.can_target_water = False
+        self.can_target_void = False
+        self.can_target_wall = False
+
+        self.should_target_enemies = False
+        self.should_target_self = False
+        self.should_target_allies = False
+        self.should_target_empty = True
+
+    def get_description(self):
+        # Can add an if here for a future upgrade that makes it affect undead.
+        return f"Form a small apprentice from your own flesh. The homunculus gains knowledge of one {self.power}st level spell you know."
+
+    def on_cast(self, target):
+        entity = self.caster.world.game.available_entities["Homunculus"](self.caster.world)
+        entity.allegiance = self.caster.allegiance
+        entity.duration = self.duration
+        candidate_spells = []
+        for active in self.caster.actives:
+            if active.is_spell and active.level <= self.power:
+                candidate_spells.append(active)
+        if len(candidate_spells) > 0:
+            spell_to_copy = random.choice(candidate_spells)
+            spell = spell_to_copy.__class__(entity)
+            entity.actives.append(spell)
+        self.caster.world.summon_entities_from_instance([entity], target)
+
+
+
+class KnightSmite(Spell):
+    name = "Divine Smite"
+
+    def on_init(self):
+        self.is_spell = False
+        self.name = "Divine Smite"
+        self.description = "A strike infused with holy energy."
+        self.power = 5
+        self.range = 1
+        self.action_cost = 1
+        self.max_charges = 1
+        self.level = 1
+        self.schools = [SCHOOLS.HOLY]
+        self.recovery_time = 5
+
+    def get_description(self):
+        return f"Striking with a sword, claw or similar implement to deal {self.power} slashing damage and {self.power} Holy damage."
+
+    def on_cast(self, target):
+        if not self.caster.world.active_entities[target] is None:
+            subject = self.caster.world.active_entities[target]
+            damage_entity(self, subject, self.power, DAMAGE_TYPES.SLASHING)
+            damage_entity(self, subject, self.power, DAMAGE_TYPES.LIGHT)

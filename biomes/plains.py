@@ -1,6 +1,7 @@
 import random
 from biomes.biome import Biome
 from biomes.biome import PointOfInterest
+from entities.entities import Knight
 from floors import *
 from walls import *
 import entities.entities as entities
@@ -106,13 +107,17 @@ class Church(PointOfInterest):
         altar_pos = self.translate_poi_coordinates_to_world([(11, 6)])[0]
         self.world.total_walls[altar_pos] = ChurchAltar(self.world, altar_pos)
 
-        # Spawn enemies. Use monstergroup for everything but the priest, since we eventually want monstergroup
-        # to scale with a difficulty/monster frequency slider.
+        friar_pos = self.translate_poi_coordinates_to_world([(11, 5)])[0]
 
-        '''
         if self.world.game.enemy_spawns_enabled:
-            shaman = GoblinShaman(self.world)
-            shaman.allegiance = ALLEGIANCES.ENEMY_TEAM
-            shaman.position = self.centre_tile
-            self.world.total_entities[self.centre_tile] = shaman
-        '''
+            friar = entities.Friar(self.world)
+            friar.allegiance = ALLEGIANCES.ENEMY_TEAM
+            friar.position = friar_pos
+            self.world.total_entities[self.centre_tile] = friar
+
+            # monster_group, coordinates
+            knight_group_1_pos = self.translate_poi_coordinates_to_world([(7, 9)])[0]
+            knight_group_2_pos = self.translate_poi_coordinates_to_world([(16, 9)])[0]
+
+            self.world.summon_entity_from_class(Knight, 1, knight_group_1_pos, ALLEGIANCES.ENEMY_TEAM)
+            self.world.summon_entity_from_class(Knight, 1, knight_group_2_pos, ALLEGIANCES.ENEMY_TEAM)

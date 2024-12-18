@@ -326,11 +326,14 @@ class World:
         #direction_from_player = compute_direction(self.game.pc.position, coordinates, exact=True)
         direction_from_player = relative_quadrant(self.game.pc.position, coordinates)
         #print(f"direction_from_player: {direction_from_player}, self.game.pc.position: {self.game.pc.position}, target coordinates: {coordinates}")
+
         target_x = int(coordinates[0] - 4 * direction_from_player[0])
         target_y = int(coordinates[1] - 4 * direction_from_player[1])
         target = (target_x, target_y)
         #print(f"Final target coordinates: {target}")
         self.summon_entities_from_instance(monster_group, target)
+
+
 
     def filter_line_of_effect(self, origin, tiles, include_blocking_tile=True):
         """

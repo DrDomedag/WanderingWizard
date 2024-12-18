@@ -18,6 +18,9 @@ def get_all_entities():
         "Troll": Troll,
         "Kindling": Kindling,
         "Friar": Friar,
+        "Knight": Knight,
+        "Homunculus": Homunculus,
+
     }
 
 
@@ -375,6 +378,9 @@ class Friar(Entity):
     def on_init(self):
         self.name = "Friar"
         self.description = "Faithful keeper of the flock, humble spellcaster, and eyes and ears of the church in the provinces. A good life - at least until the gods went mad."
+
+        self.opens_doors = False
+
         self.max_hp = 15
         self.tags = [ENTITY_TAGS.LIVING]
         self.resistances[DAMAGE_TYPES.LIGHT] = 50
@@ -392,6 +398,7 @@ class Friar(Entity):
         fire_spit.max_charges = 1
         fire_spit.recovery_time = 2
         fire_spit.description = "A small bolt of holy energy."
+        fire_spit.get_description = lambda: f"A small bolt of holy energy."
         fire_spit.name = "Holy Bolt"
         self.actives.append(fire_spit)
 
@@ -399,3 +406,49 @@ class Friar(Entity):
 
         self.items.append(items.Spellbook(self.world, 2, self.position, schools=[SCHOOLS.HOLY]))
 
+
+
+class Knight(Entity):
+    def on_init(self):
+        self.name = "Knight"
+        self.description = "Protector of the realm, keeper of the law and guardian of the innocent. An honourable life - at least until the gods went mad."
+
+        self.opens_doors = False
+
+        self.max_hp = 20
+        self.tags = [ENTITY_TAGS.LIVING]
+        self.resistances[DAMAGE_TYPES.LIGHT] = 50
+        self.resistances[DAMAGE_TYPES.BLUDGEONING] = 25
+        self.resistances[DAMAGE_TYPES.SLASHING] = 50
+        self.resistances[DAMAGE_TYPES.PIERCING] = 50
+
+        self.asset_name = "knight"
+
+        melee_attack = spells.SlashingMeleeAttack(self)
+        melee_attack.power = 5
+        melee_attack.name = "Broadsword"
+        self.actives.append(melee_attack)
+
+        self.actives.append(spells.KnightSmite(self))
+
+
+
+
+class Homunculus(Entity):
+    def on_init(self):
+        self.name = "Homunculus"
+        self.description = "A small mage's assistant made of its master's flesh."
+        self.max_hp = 15
+        self.tags = [ENTITY_TAGS.LIVING, ENTITY_TAGS.CONSTRUCT]
+
+        self.asset_name = "homunculus"
+
+        melee_attack = spells.BluntMeleeAttack(self)
+        melee_attack.power = 2
+        melee_attack.name = "Fist"
+        self.actives.append(melee_attack)
+
+        regen = Regeneration(self, self)
+        regen.power = 1
+        regen.nature = INHERENT
+        self.passives.append(regen)

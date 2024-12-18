@@ -12,8 +12,9 @@ class Game:
     def __init__(self, display):
 
         # Debug settings
-        self.enemy_spawns_enabled = False
+        self.enemy_spawns_enabled = True
         self.infinite_spells = True
+        self.massive_regen = True
 
         #pygame.init()
         # display = pygame.display.set_mode((800, 600))
@@ -65,6 +66,13 @@ class Game:
         self.pc = PC(world)
         self.pc.position = (0, 0)
         world.total_entities[(0, 0)] = self.pc  # Dunno why it was so very wonky when I did this earlier, but i'm not going to complain that it works now.
+
+        if self.massive_regen:
+            regen = Regeneration(self.pc, self.pc)
+            regen.duration = None
+            regen.power = 50
+            regen.nature = INHERENT
+            self.pc.passives.append(regen)
 
         self.pc_available_spell_list = PCAvailableSpellList(self.pc)
 
