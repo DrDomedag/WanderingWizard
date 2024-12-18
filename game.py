@@ -13,6 +13,7 @@ class Game:
 
         # Debug settings
         self.enemy_spawns_enabled = False
+        self.infinite_spells = True
 
         #pygame.init()
         # display = pygame.display.set_mode((800, 600))
@@ -141,6 +142,9 @@ class Game:
         player_turn_ended = False
 
         self.pc.start_of_turn()
+        if self.infinite_spells:
+            for active in self.pc.actives:
+                active.current_charges = active.max_charges
 
         while not player_turn_ended:
             #self.graphics.find_tile_at_screen_coords(pygame.mouse.get_pos())
