@@ -284,21 +284,40 @@ class World:
 
         return entities
 
-    def summon_entities_from_instance(self, entity_group, target):
+    def summon_entities_from_instance(self, entity_group, target, precise=True, radius=4):
         for entity in entity_group:
-            proposed_tiles = disk(target, 4, include_origin_tile=True)
-            #print(len(proposed_tiles)) # 69 tiles should be more than enough for most scenarios.
-            random.shuffle(proposed_tiles)
-            placed = False
-            while not placed and len(proposed_tiles) > 0:
-                tile = proposed_tiles.pop()
-                if self.total_floor[tile] is None:
-                    self.generate_tile(tile)
-                if self.total_entities[tile] is None and entity.can_move(tile):
-                    entity.position = tile
-                    self.total_entities[tile] = entity
-                    self.active_entities[tile] = entity
-                    placed = True
+            if not precise:
+                proposed_tiles = disk(target, radius, include_origin_tile=True)
+                #print(len(proposed_tiles)) # 69 tiles should be more than enough for most scenarios.
+                random.shuffle(proposed_tiles)
+                placed = False
+                while not placed and len(proposed_tiles) > 0:
+                    tile = proposed_tiles.pop()
+                    if self.total_floor[tile] is None:
+                        self.generate_tile(tile)
+                    if self.total_entities[tile] is None and entity.can_move(tile):
+                        entity.position = tile
+                        self.total_entities[tile] = entity
+                        self.active_entities[tile] = entity
+                        placed = True
+            else:
+                placed = False
+                current_radius = 0
+                while not placed and current_radius <= radius:
+                    proposed_tiles = disk(target, current_radius, include_origin_tile=True)
+                    # print(len(proposed_tiles)) # 69 tiles should be more than enough for most scenarios.
+                    random.shuffle(proposed_tiles)
+                    placed = False
+                    while not placed and len(proposed_tiles) > 0:
+                        tile = proposed_tiles.pop()
+                        if self.total_floor[tile] is None:
+                            self.generate_tile(tile)
+                        if self.total_entities[tile] is None and entity.can_move(tile):
+                            entity.position = tile
+                            self.total_entities[tile] = entity
+                            self.active_entities[tile] = entity
+                            placed = True
+                    current_radius += 1
 
     def place_tile_effect(self, tile_effect, coordinates):
         if self.total_tile_effects[coordinates] is None:
@@ -331,7 +350,7 @@ class World:
         target_y = int(coordinates[1] - 4 * direction_from_player[1])
         target = (target_x, target_y)
         #print(f"Final target coordinates: {target}")
-        self.summon_entities_from_instance(monster_group, target)
+        self.summon_entities_from_instance(monster_group, target, precise=False)
 
 
 

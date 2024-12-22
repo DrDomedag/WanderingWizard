@@ -82,7 +82,7 @@ SCHOOLS = Tags(
     LIGHTNING=11,
     FIRE=12,
     NATURE=13,
-    HOLY=14,
+    LIGHT=14,
     DARK=15,
     DEATH=16,
     EARTH=17,
@@ -104,7 +104,7 @@ SCHOOL_NAMES = [
     "Lightning",
     "Fire",
     "Nature",
-    "Holy",
+    "Light",
     "Dark",
     "Death",
     "Earth",
@@ -531,7 +531,8 @@ def find_and_sort_enemies_by_distance(start_entity):
 
 
 def find_path(entity, target):
-    grid_size = entity.world.active_tile_range - 1 # Need this -1, but no more
+    #grid_size = entity.world.active_tile_range - 1 # Need this -1, but no more
+    grid_size = entity.world.active_tile_range  # Need this -1, but no more
     grid, centre_x, centre_y = generate_grid_centered(entity, grid_size)
 
     #print(f"Grid shape: {len(grid)}x{len(grid[0])}")
@@ -559,11 +560,13 @@ def find_path(entity, target):
 
     #print(f"entity.position: {entity.position}, translated_start: {translated_start}, target: {target}, translated_target: {translated_target}")
 
+    '''
     print(f"entity.name: {entity.name}")
     print(f"entity.position: {entity.position}")
     print(f"translated_start: {translated_start}")
     print(f"target: {target}")
     print(f"translated_target: {translated_target}")
+    '''
 
 
     # Mark starting point as passable
@@ -624,9 +627,9 @@ def generate_grid_centered(entity, grid_size=29):
 
     # Generate the grid
     grid = []
-    for y in range(min_y, max_y + 1):
+    for y in range(min_y, max_y):
         row = []
-        for x in range(min_x, max_x + 1):
+        for x in range(min_x, max_x):
             #if entity.world.active_floor[(y, x)] is None:
                 #print(f"No floor at {x}, {y}")
             # Fetch the tile value from the game world (replace this logic with your game's logic)

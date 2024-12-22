@@ -4,7 +4,7 @@ from effects import *
 from util import *
 #import entities.entities as entities
 import random
-
+from passives import *
 
 class PCAvailableSpellList:
     def __init__(self, pc):
@@ -21,7 +21,8 @@ class PCAvailableSpellList:
                        RegenerationSpell,
                        Flickerstep,
                        Decrepify,
-                       SummonHomunculus]
+                       SummonHomunculus,
+                       DivineLightSpell]
 
     def get_random_spells_of_tier(self, level, count, schools=None):
         candidates = []
@@ -228,8 +229,7 @@ class Spell:
 class IronNeedle(Spell):
     name = "Iron Needle"
     schools = [SCHOOLS.METAL, SCHOOLS.SORCERY]
-    def __init__(self, caster):
-        super().__init__(caster)
+
 
     def on_init(self):
         self.power = 5
@@ -341,7 +341,7 @@ class SeismicJolt(Spell):
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.BLUDGEONING)
             push_tile(self.caster.world, self.caster.position, tile, 1, push_walls=True)
-            #self.caster.world.show_effect(tile, SCHOOLS.FIRE) # Fix when bludgeoning damage is animated and animations work.
+            self.caster.world.show_effect(tile, "bludgeoning_explosion", (euclidean_distance(self.caster.position, tile) * 500))
 
     def get_impacted_tiles(self, target):
         return disk(self.caster.position, self.radius, include_origin_tile=False)
@@ -396,7 +396,7 @@ class RaiseLongdead(Spell):
 
 class WordOfHealing(Spell):
     name = "Word of Healing"
-    schools = [SCHOOLS.HOLY, SCHOOLS.NATURE]
+    schools = [SCHOOLS.LIGHT, SCHOOLS.NATURE]
     def on_init(self):
         self.power = 10
         self.range = 6
@@ -406,7 +406,7 @@ class WordOfHealing(Spell):
         self.name = "Word of Healing"
         self.description = f"Heal target living creature up to {self.range} tiles away by {self.power} hit points."
         self.level = 1
-        self.schools = [SCHOOLS.HOLY, SCHOOLS.NATURE]
+        self.schools = [SCHOOLS.LIGHT, SCHOOLS.NATURE]
         self.upgrades = []
         self.recovery_time = 15
 
@@ -436,6 +436,7 @@ class WordOfHealing(Spell):
             if not entity is None:
                 if entity.allegiance == self.caster.allegiance and ENTITY_TAGS.LIVING in entity.tags:
                     heal(self.caster, entity, self.power)
+                    self.caster.world.show_effect(tile, "light_explosion", 0)
 
 
 class BluntMeleeAttack(Spell):
@@ -461,6 +462,7 @@ class BluntMeleeAttack(Spell):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.BLUDGEONING)
+            self.caster.world.show_effect(target, "bludgeoning_explosion", 0)
 
 class SlashingMeleeAttack(Spell):
     name = "Slashing Strike"
@@ -483,6 +485,7 @@ class SlashingMeleeAttack(Spell):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.SLASHING)
+            self.caster.world.show_effect(target, "slashing_explosion", 0)
 
 class PiercingMeleeAttack(Spell):
     name = "Piercing Strike"
@@ -505,6 +508,7 @@ class PiercingMeleeAttack(Spell):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)
+            self.caster.world.show_effect(target, "piercing_explosion", 0)
 
 class FireSpit(Spell):
     name = "Fire Spit"
@@ -526,6 +530,7 @@ class FireSpit(Spell):
     def on_cast(self, target):
         subject = self.caster.world.active_entities[target]
         damage_entity(self, subject, self.power, DAMAGE_TYPES.FIRE)
+        # Add a projectile here at some point
 
 class LightningBolt(Spell):
     schools = [SCHOOLS.LIGHTNING, SCHOOLS.SORCERY]
@@ -553,6 +558,7 @@ class LightningBolt(Spell):
         affected_tiles = self.caster.world.filter_line_of_effect(self.caster.position, affected_tiles, include_blocking_tile=True)
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.LIGHTNING)
+            self.caster.world.show_effect(tile, "lightning_explosion", 0)
 
     def get_impacted_tiles(self, target):
         affected_tiles = bresenham(self.caster.position, target)
@@ -589,6 +595,7 @@ class TidalWave(Spell):
         for tile in affected_tiles:
             damage_tile(self.caster.world, self.caster, tile, self.power, DAMAGE_TYPES.BLUDGEONING)
             push_tile(self.caster.world, self.caster.position, tile, 3, push_walls=True)
+            self.caster.world.show_effect(tile, "water_explosion", (euclidean_distance(self.caster.position, tile) * 500))
 
 
     def get_impacted_tiles(self, target):
@@ -660,7 +667,7 @@ class SummonMonster(Spell):
 
 class RegenerationSpell(Spell):
     name = "Regeneration"
-    schools = [SCHOOLS.NATURE, SCHOOLS.HOLY]
+    schools = [SCHOOLS.NATURE, SCHOOLS.LIGHT]
     def on_init(self):
         self.duration = 10
         self.power = 3
@@ -668,7 +675,7 @@ class RegenerationSpell(Spell):
         self.max_charges = 3
         self.recovery_time = 10
         self.name = "Regeneration"
-        self.schools = [SCHOOLS.NATURE, SCHOOLS.HOLY]
+        self.schools = [SCHOOLS.NATURE, SCHOOLS.LIGHT]
         self.description = f"Target living creature regains {self.power} hit points at the start of each of its turns for the next {self.duration} turns."
         # Make it able to hit other things with upgrades.
 
@@ -698,6 +705,7 @@ class RegenerationSpell(Spell):
                 buff.duration = self.duration
                 buff.power = self.power
                 apply_passive(subject, buff)
+                self.caster.world.show_effect(target, "nature_explosion", 0)
 
     def should_cast(self):
         should_cast_tiles = []
@@ -783,6 +791,7 @@ class ArcaneLesson(Spell):
                     buff.duration = self.duration
                     buff.power = self.power
                     apply_passive(subject, buff)
+                    self.caster.world.show_effect(tile, "water_explosion", 0)
 
     def should_cast(self):
         area = disk(self.caster.position, self.radius)
@@ -840,6 +849,8 @@ class Flickerstep(Spell):
         return tiles
 
     def on_cast(self, target):
+        self.caster.world.show_effect(self.caster.position, "arcane_explosion", 0)
+        self.caster.world.show_effect(target, "arcane_explosion", 0)
         if self.caster == self.caster.world.game.pc:
             self.caster.world.move_player(target)
         else:
@@ -857,7 +868,7 @@ class Decrepify(Spell):
         self.range = 13
         self.action_cost = 2
         self.max_charges = 5
-        self.radius = 4
+        self.radius = 3
         self.duration = 9
         self.name = "Decrepify"
         self.description = f"Burden enemies with the weight of time, slowing them down for {self.duration} turns. Does not affect the undead."
@@ -894,6 +905,7 @@ class Decrepify(Spell):
                 if ENTITY_TAGS.UNDEAD not in entity.tags:
                     debuff = Slow(self.caster, entity, duration=self.duration)
                     effects.apply_passive(entity, debuff)
+            self.caster.world.show_effect(tile, "dark_explosion", 0)
 
     def should_cast(self):
         should_cast_tiles = []
@@ -981,14 +993,81 @@ class KnightSmite(Spell):
         self.action_cost = 1
         self.max_charges = 1
         self.level = 1
-        self.schools = [SCHOOLS.HOLY]
+        self.schools = [SCHOOLS.LIGHT]
         self.recovery_time = 5
 
     def get_description(self):
-        return f"Striking with a sword, claw or similar implement to deal {self.power} slashing damage and {self.power} Holy damage."
+        return f"Striking with a sword, claw or similar implement that has been imbued with holy energy to deal {self.power} slashing damage and {self.power} Holy damage."
 
     def on_cast(self, target):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.SLASHING)
             damage_entity(self, subject, self.power, DAMAGE_TYPES.LIGHT)
+
+class DivineLightSpell(Spell):
+    name = "Divine Light"
+
+    schools = [SCHOOLS.LIGHT, SCHOOLS.ENCHANTMENT]
+
+    def on_init(self):
+        self.power = 3
+        self.radius = 7
+        self.action_cost = 2
+        self.duration = 14
+        self.max_charges = 2
+        self.name = "Divine Light"
+        self.description = f"For {self.duration} turns, the caster radiates sacred luminance which deals {self.power} Light damage to enemies in a {self.radius} radius each turn."
+        self.level = 2
+        self.schools = [SCHOOLS.LIGHT, SCHOOLS.ENCHANTMENT]
+        self.upgrades = []
+        self.recovery_time = 30
+
+        self.requires_line_of_sight = True
+        self.can_target_self = True
+        self.must_target_entity = True
+        self.can_target_ground = True
+        self.can_target_water = True
+        self.can_target_void = True
+        self.can_target_wall = True
+
+        self.should_target_enemies = False
+        self.should_target_self = True
+        self.should_target_allies = False
+        self.should_target_empty = False
+
+        # Upgrade to also do Fire damage to undead and demons
+        # (ENTITY_TAGS.DEMON in entity.tags or ENTITY_TAGS.UNDEAD in entity.tags)
+
+    def get_description(self):
+        return f"For {self.duration} turns, the caster radiates sacred luminance which deals {self.power} Light damage to enemies in a {self.radius} radius each turn."
+
+    def get_relevant_stats(self):
+        return {"power": self.power,
+                "radius": self.range,
+                "action_cost": self.action_cost,
+                "max_charges": self.max_charges,
+                "recovery_time": self.recovery_time,
+                "duration": self.duration
+                }
+
+    def on_cast(self, target):
+        passive = DivineLightPassive(self.caster, self.caster, duration=self.duration)
+        passive.power = self.power
+        passive.radius = self.radius
+        apply_passive(self.caster, passive)
+
+
+    def get_impacted_tiles(self, target):
+        return disk(self.caster.position, self.radius, include_origin_tile=False)
+
+    def get_targetable_tiles(self):
+        return [self.caster.position]
+
+
+    def should_cast(self):
+        if not self.caster.has_passive("Divine Light"):
+            return self.caster.position
+        return []
+
+

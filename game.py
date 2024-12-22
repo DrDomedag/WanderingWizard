@@ -4,6 +4,7 @@ import sys
 from spells import *
 from world.world import *
 from ui import *
+import passives
 import entities.entities as entities
 from util import *
 
@@ -12,7 +13,7 @@ class Game:
     def __init__(self, display):
 
         # Debug settings
-        self.enemy_spawns_enabled = True
+        self.enemy_spawns_enabled = False
         self.infinite_spells = True
         self.massive_regen = True
 
@@ -39,6 +40,7 @@ class Game:
 
         self.pc = None
 
+        self.pc_available_spell_list = None
         #self.available_spell_list = AvailableSpellList()
 
         self.world = self.new_game()
@@ -63,15 +65,15 @@ class Game:
         overworld_biome_list = [BIOME_IDS.PLAINS, BIOME_IDS.FOREST, BIOME_IDS.STARTER_BIOME]
         world = World(self, overworld_biome_list)
         world.assets = self.assets
-        self.pc = PC(world)
+        self.pc = entities.PC(world)
         self.pc.position = (0, 0)
         world.total_entities[(0, 0)] = self.pc  # Dunno why it was so very wonky when I did this earlier, but i'm not going to complain that it works now.
 
         if self.massive_regen:
-            regen = Regeneration(self.pc, self.pc)
+            regen = passives.Regeneration(self.pc, self.pc)
             regen.duration = None
             regen.power = 50
-            regen.nature = INHERENT
+            regen.nature = passives.INHERENT
             self.pc.passives.append(regen)
 
         self.pc_available_spell_list = PCAvailableSpellList(self.pc)

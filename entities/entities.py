@@ -404,7 +404,7 @@ class Friar(Entity):
 
         self.actives.append(spells.WordOfHealing(self))
 
-        self.items.append(items.Spellbook(self.world, 2, self.position, schools=[SCHOOLS.HOLY]))
+        self.items.append(items.Spellbook(self.world, 2, self.position, schools=[SCHOOLS.LIGHT]))
 
 
 

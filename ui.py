@@ -87,20 +87,71 @@ class UI:
             origin_tile, target_tile, effect_type, delay = self.world.effect_queue.pop()
 
             if effect_type == "fire_explosion":
-                new_sprite = ExplosionEffect(self.world, "fire", target_tile, delay, self.ongoing_effects)
+                #world, asset_name, position, start_delay, color=None, *groups
+                new_sprite = ExplosionEffect(self.world, "fire", target_tile, delay, None, self.ongoing_effects)
                 self.ongoing_effects.add(new_sprite)
 
-            if effect_type == "metal_projectile":
+            elif effect_type == "metal_projectile":
                 origin_screen_coords = self.tile_to_screen_coords(origin_tile, offset_by_half_a_tile=True)
                 target_screen_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
                 projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["metal_projectile"], delay)
                 self.projectiles.append(projectile)
 
-            if effect_type == "arcane_projectile":
+            elif effect_type == "arcane_projectile":
                 origin_screen_coords = self.tile_to_screen_coords(origin_tile, offset_by_half_a_tile=True)
                 target_screen_coords = self.tile_to_screen_coords(target_tile, offset_by_half_a_tile=True)
                 projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["arcane_projectile"], delay)
                 self.projectiles.append(projectile)
+
+
+            elif effect_type == "bludgeoning_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.BLUDGEONING], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "piercing_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.PIERCING], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "slashing_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.SLASHING], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "cold_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.COLD], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "lightning_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.LIGHTNING], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "poison_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.POISON], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "dark_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.DARK], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "light_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.LIGHT], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "psychic_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.PSYCHIC], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "arcane_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.ARCANE], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "water_explosion":
+                print(f"Rendering water explosion at {target_tile}")
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, SCHOOL_COLOURS[SCHOOLS.WATER], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "nature_explosion":
+                new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, SCHOOL_COLOURS[SCHOOLS.NATURE], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
 
 
         # Render tiles:
@@ -590,19 +641,21 @@ class SpellSelectorButton:
 
 
 class ExplosionEffect(pygame.sprite.Sprite):
-    def __init__(self, world, asset_name, position, start_delay, *groups):
+    def __init__(self, world, asset_name, position, start_delay, colour, *groups):
         """
         Creates an explosion effect that animates through a list of sprites and deletes itself.
 
-        :param sprites: List of PyGame surfaces or sprite frames.
+        :param world: Reference to the game world object.
+        :param asset_name: Base name of the explosion sprite asset.
         :param position: Tuple (x, y) for the position of the effect.
-        :param delay: Time in milliseconds between frames.
+        :param start_delay: Time in milliseconds before the effect starts animating.
+        :param colour: Optional color (R, G, B) to tint the effect.
         :param groups: PyGame sprite groups to which this effect belongs.
         """
         super().__init__(*groups)
         self.world = world
         self.asset_name = asset_name
-        self.sprite = self.get_sprites()
+        self.sprite = self.get_sprites(colour)
         self.position = position
         self.delay = 100
         self.start_delay = start_delay
@@ -612,37 +665,54 @@ class ExplosionEffect(pygame.sprite.Sprite):
         self.image = self.sprite[self.current_frame]
         self.rect = self.image.get_rect(center=self.position)
 
-    def get_sprites(self):
-        i = 0
-        '''
-        print(self.world.assets.keys())
-        print(self.asset_name)
-        print(f"{self.asset_name}_0")
-        print(self.world.assets["fire_0"])
-        print(self.world.assets[f"{self.asset_name}_{i}"])
-        '''
+    def get_sprites(self, colour):
+        """
+        Loads the sprite frames for the explosion effect. Applies a tint if a color is provided.
+
+        :param colour: Optional color (R, G, B) to tint the frames.
+        :return: List of tinted sprite frames.
+        """
+        i = 1
         sprite_list = []
-        if self.world.game.assets[f"{self.asset_name}_{i}"]:
-            #print(f"Determined that there is a frame {i}")
-            while self.world.game.assets[f"{self.asset_name}_{i}"]:
-                #print(f"Found sprite frame {i}")
-                sprite_list.append(self.world.game.assets[f"{self.asset_name}_{i}"])
-                i += 1
+
+        # Collect all frames for the explosion animation
+        while f"{self.asset_name}_{i}" in self.world.game.assets:
+            frame = self.world.game.assets[f"{self.asset_name}_{i}"].copy()
+            if colour is not None:
+                frame = tint_sprite(frame, colour)
+            sprite_list.append(frame)
+            i += 1
         else:
-            sprite_list.append(self.world.game.assets[f"{self.asset_name}"])
+            frame = self.world.game.assets[f"{self.asset_name}"].copy()
+            if colour:
+                frame = tint_sprite(frame, colour)
+            sprite_list.append(frame)
+
         return sprite_list
+
+    @staticmethod
+    def tint_surface(surface, colour):
+        """
+        Applies a color tint to a PyGame surface.
+
+        :param surface: The surface to tint.
+        :param colour: Tuple (R, G, B) specifying the tint color.
+        :return: A new tinted surface.
+        """
+        tinted_surface = surface.copy()
+        tint = pygame.Surface(surface.get_size(), flags=pygame.SRCALPHA)
+        tint.fill(colour)
+        tinted_surface.blit(tint, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        return tinted_surface
 
     def update(self):
         """
         Updates the explosion animation by switching frames and removing itself when done.
         """
-
         now = pygame.time.get_ticks()
-
         self.time_since_start += now - self.last_update_time
 
         if self.time_since_start >= self.start_delay:
-
             target_coords = self.world.game.ui.tile_to_screen_coords(self.position, offset_by_half_a_tile=True)
 
             if now - self.last_update_time >= self.delay:
@@ -658,8 +728,12 @@ class ExplosionEffect(pygame.sprite.Sprite):
                     self.rect = self.image.get_rect(center=target_coords)
 
     def draw(self, display):
+        """
+        Draws the explosion effect to the display.
+        """
         if self.time_since_start >= self.start_delay:
             super().draw(display)
+
 
 
 # Consider moving this into the UI class. It works fine like this, tbf.
