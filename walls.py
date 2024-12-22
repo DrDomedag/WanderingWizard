@@ -93,8 +93,8 @@ class Gravestone(StoneWall):
 
 class ChurchAltar(StoneWall):
     def on_init(self):
-        self.name = "Gravestone"
-        self.description = "Pity the dead."
+        self.name = "Altar"
+        self.description = "A place for prayer, sermons and sacrifice."
         self.max_hp = 20
         self.hp = self.max_hp
         self.asset_name = "church_altar"
@@ -118,10 +118,11 @@ class Door(Wall):
 
         self.openable = True
 
-        self.resistances = RESISTANCE_SETS.STONE
+        self.resistances = RESISTANCE_SETS.DEAD_WOOD
 
 
         self.blocks_vision = not self.is_open
+        self.blocks_line_of_effect = not self.is_open
         self.walkable = self.is_open
         self.flyable = self.is_open
         self.swimmable = self.is_open
@@ -129,6 +130,7 @@ class Door(Wall):
     def open(self):
         self.is_open = True
         self.blocks_vision = not self.is_open
+        self.blocks_line_of_effect = not self.is_open
         self.walkable = self.is_open
         self.flyable = self.is_open
         self.swimmable = self.is_open
@@ -138,6 +140,7 @@ class Door(Wall):
     def close(self):
         self.is_open = False
         self.blocks_vision = not self.is_open
+        self.blocks_line_of_effect = not self.is_open
         self.walkable = self.is_open
         self.flyable = self.is_open
         self.swimmable = self.is_open
@@ -147,6 +150,7 @@ class Door(Wall):
     def toggle_state(self):
         self.is_open = not self.is_open
         self.blocks_vision = not self.is_open
+        self.blocks_line_of_effect = not self.is_open
         self.walkable = self.is_open
         self.flyable = self.is_open
         self.swimmable = self.is_open

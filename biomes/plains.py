@@ -113,7 +113,7 @@ class Church(PointOfInterest):
             friar = entities.Friar(self.world)
             friar.allegiance = ALLEGIANCES.ENEMY_TEAM
             friar.position = friar_pos
-            self.world.total_entities[self.centre_tile] = friar
+            self.world.total_entities[friar_pos] = friar
 
             # monster_group, coordinates
             knight_group_1_pos = self.translate_poi_coordinates_to_world([(7, 9)])[0]

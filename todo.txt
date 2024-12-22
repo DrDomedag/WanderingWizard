@@ -1,7 +1,5 @@
 General things to do:
 
-Friars are getting two turns! :o
-
 ...sound
 
 Same-world teleporter tiles.
