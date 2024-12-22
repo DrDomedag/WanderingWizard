@@ -917,6 +917,9 @@ class Decrepify(Spell):
                     should_cast_tiles.append(tile)
         return should_cast_tiles
 
+    def get_impacted_tiles(self, target):
+        return disk(target, self.radius, include_origin_tile=True)
+
 
 class SummonHomunculus(Spell):
     name = "Summon Homunculus"
