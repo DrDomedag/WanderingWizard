@@ -52,6 +52,8 @@ class PCAvailableSpellList:
         self.spells.remove(spell)
 
 
+
+
 class Spell:
     name = "Unnamed Spell"
     level = 1
@@ -96,6 +98,9 @@ class Spell:
         self.should_target_allies = False
         self.should_target_empty = False
 
+        self.iterations = []
+        self.innovations = {}
+
         self.on_init()
 
         self.current_charges = self.max_charges
@@ -108,9 +113,10 @@ class Spell:
     def get_description(self):
         return self.description
 
-    def get_relevant_stats(self):
-        return {}
-
+    # Not having useless stats and relying on this instead is probably the way?
+    def get_stats(self):
+        attributes = [value for key, value in self.__dict__.keys()]
+        return attributes
 
     def cast(self, target):
         #print(f"Cast {self.name} at {target}!")
@@ -226,10 +232,18 @@ class Spell:
         return target_tiles
 
 
+class Innovation:
+    def __init__(self, name, description, cost, requires, incompatible_with):
+        self.name = name
+        self.description = description
+        self.cost = cost
+        self.requires = requires
+        self.incompatible_with = incompatible_with
+        self.unlocked = False
+
 class IronNeedle(Spell):
     name = "Iron Needle"
     schools = [SCHOOLS.METAL, SCHOOLS.SORCERY]
-
 
     def on_init(self):
         self.power = 5
@@ -240,7 +254,12 @@ class IronNeedle(Spell):
         self.description = f"Quickly fire a needle of iron dealing {self.power} damage to a single target."
         self.level = 1
         self.schools = [SCHOOLS.METAL, SCHOOLS.SORCERY]
-        self.upgrades = []
+        self.innovations = {
+            "Twin Needles": Innovation("Twin Needles", "Iron Needle fires an additional projectile.", 1, [], ["Iron Spear"]),
+            "Iron Storm": Innovation("Iron Storm", "Iron Needle fires yet another projectile.", 1, ["Twin Needles"], ["Iron Spear"]),
+            "Iron Spear": Innovation("Iron Spear", "Iron Needle damages all tiles it passes through.", 1, [], ["Twin Needles"]),
+            "Silver Spear": Innovation("Silver Spear", "Iron Needle deals Light damage to all tiles it passes through and those adjacent thereto.", 1, ["Iron Spear"], ["Twin Needles"])
+        }
         self.recovery_time = 5
 
     def get_description(self):
@@ -255,11 +274,41 @@ class IronNeedle(Spell):
                 }
 
     def on_cast(self, target):
-        damage_tile(self.caster.world, self, target, self.power, DAMAGE_TYPES.PIERCING)
-        '''if not self.caster.world.active_entities[target] is None:
-            subject = self.caster.world.active_entities[target]
-            damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)'''
-        self.caster.world.show_projectile(self.caster.position, target, "metal_projectile", 0)
+        if self.innovations["Iron Spear"].unlocked:
+            tiles = bresenham(self.caster.position, target)
+            tiles.remove(self.caster.position)
+            for tile in tiles:
+                damage_tile(self.caster.world, self, tile, self.power, DAMAGE_TYPES.PIERCING)
+            self.caster.world.show_projectile(self.caster.position, target, "metal_projectile", 0)
+            if self.innovations["Silver Spear"].unlocked:
+                tiles = get_all_neighbors(tiles, include_diagonals=True, include_original_points=True)
+                tiles.remove(self.caster.position)
+                for tile in tiles:
+                    damage_tile(self.caster.world, self, tile, self.power, DAMAGE_TYPES.LIGHT)
+                    self.caster.world.show_effect(tile, "light_explosion", (euclidean_distance(self.caster.position, tile) * 500))
+
+        else:
+            projectile_count = 1
+            if self.innovations["Twin Needles"].unlocked:
+                projectile_count += 1
+            if self.innovations["Iron Storm"].unlocked:
+                projectile_count += 1
+            for i in range(projectile_count):
+                damage_tile(self.caster.world, self, target, self.power, DAMAGE_TYPES.PIERCING)
+                self.caster.world.show_projectile(self.caster.position, target, "metal_projectile", 100 * i)
+
+    def get_impacted_tiles(self, target):
+        if self.innovations["Iron Spear"].unlocked:
+            tiles = bresenham(self.caster.position, target)
+            tiles.remove(self.caster.position)
+            if self.innovations["Silver Spear"].unlocked:
+                tiles = get_all_neighbors(tiles, include_diagonals=True, include_original_points=True)
+                tiles.remove(self.caster.position)
+        else:
+            tiles = [target]
+        return tiles
+
+
 
 class FireBreath(Spell):
     name = "Fire Breath"

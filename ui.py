@@ -169,7 +169,7 @@ class UI:
                 item = self.world.total_items[item_coords]
                 if item.layer == "item":
                     #print(f"Rendering {entity.name} at game coords: {entity_coords}, self-registered coords: {entity.position} screen-centered x: {(entity_coords[0] - self.world.current_coordinates[0])}, screen x: {self.SPRITE_SIZE * (entity_coords[0] - self.world.current_coordinates[0]) + self.centre_x}, screen-centered y: {(entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}, screen y: {self.SPRITE_SIZE * (entity_coords[1] - self.world.current_coordinates[1]) + self.centre_y}")
-                    self.display.blit(self.world.game.assets[item.asset], self.tile_to_screen_coords(item_coords))
+                    self.display.blit(item.asset, self.tile_to_screen_coords(item_coords))
 
         # Render walls:
         for entity_coords in self.world.active_walls.keys():

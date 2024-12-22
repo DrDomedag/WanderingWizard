@@ -13,7 +13,7 @@ class Game:
     def __init__(self, display):
 
         # Debug settings
-        self.enemy_spawns_enabled = False
+        self.enemy_spawns_enabled = True
         self.infinite_spells = True
         self.massive_regen = True
 
@@ -79,8 +79,12 @@ class Game:
         self.pc_available_spell_list = PCAvailableSpellList(self.pc)
 
         # TEMP
-
-        self.pc.actives.append(IronNeedle(self.pc))
+        irne = IronNeedle(self.pc)
+        irne.innovations["Twin Needles"].unlocked = False
+        irne.innovations["Iron Storm"].unlocked = False
+        irne.innovations["Iron Spear"].unlocked = True
+        irne.innovations["Silver Spear"].unlocked = True
+        self.pc.actives.append(irne)
         fb = FireBreath(self.pc)
         fb.range = 15
         fb.power = 20

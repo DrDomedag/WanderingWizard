@@ -45,6 +45,28 @@ Unsure whether it's an issue, but LoS display could get weird if wall in tiles y
 
 
 
+Spell upgrades!
+Types:
+Iterations (raw stat buffs)
+Innovations (upgrades that change how a spell works)
+
+Iterations are found as loot on powerful enemies and apply to spells of a specific school
+E.g. "Blood Damage iteration" which can be slotted (permanently) into a Blood spell and increases its Damage stat.
+
+Innovations are bought with points found in specific PoIs and more fundamentally alter how a spell works.
+E.g. adding a damage type, making a spell distinguish friend from foe.
+
+How:
+    Add a thing to cast() that gets the final stats and passes them to on_cast()
+    It gets relevant stats and edits them for each modifier.
+    In order:
+        Spell upgrades
+        Innovations
+        Iterations
+        Items
+        Passive skills
+
+
 
 Spell ideas:
 

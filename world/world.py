@@ -97,6 +97,8 @@ class World:
         self.world_generator.generate_tile(coords)
 
     def check_can_move(self, entity, target):
+        if self.total_floor[target] is None:
+            self.generate_tile(target)
         if self.total_entities[target] is not None:
             #print(f"{entity.name} could not move because {self.active_entities[target].name} blocked the way.")
             return False # Change down the line to allow PC to walk into ally spaces.

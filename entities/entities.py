@@ -234,6 +234,8 @@ class Entity:
 class PC(Entity):
     def __init__(self, world):
         super().__init__(world)
+        self.innovation_points = 0
+        self.iterations = []
 
     def on_init(self):
 
@@ -247,11 +249,15 @@ class PC(Entity):
         self.load_assets()
         self.current_actions = self.actions_per_round
 
+
     def move(self, target):
         return self.world.move_player(target)
 
     def on_death(self):
         self.world.game.game_over()
+
+    def add_incrementation(self, iteration):
+        self.iterations.append(iteration)
 
 
 class Spawner(Entity):

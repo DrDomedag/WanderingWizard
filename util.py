@@ -6,13 +6,21 @@ import numpy as np
 import math
 import heapq
 from a_star import a_star_search
-
+import random
 
 class Tags:
     def __init__(self, **kwargs):
         # Initialize with key-value pairs
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+    def get_random_value(self):
+        attributes = [value for key, value in self.__dict__.items()]
+        return random.choice(attributes)
+
+    def get_random_key(self):
+        attributes = [value for key, value in self.__dict__.keys()]
+        return random.choice(attributes).title()
 
 
 BIOME_SCALE = 1000
@@ -375,6 +383,43 @@ def bresenham(a, b):
 
     return paired_coordinates
 
+
+def get_all_neighbors(points, include_diagonals=False, include_original_points=True):
+    """
+    Get all unique neighbors of a set of grid points.
+
+    :param points: A set of (x, y) tuples representing points on a grid.
+    :param include_diagonals: If True, include diagonal neighbors; otherwise, include only horizontal and vertical.
+    :return: A set of (x, y) tuples representing the neighbors.
+    """
+    # Define directions for neighbors
+    directions = [
+        (0, 1),  # North
+        (1, 0),  # East
+        (0, -1), # South
+        (-1, 0)  # West
+    ]
+
+    if include_diagonals:
+        directions += [
+            (1, 1),   # Northeast
+            (1, -1),  # Southeast
+            (-1, -1), # Southwest
+            (-1, 1)   # Northwest
+        ]
+
+    # Use a set to automatically handle duplicates
+    neighbors = set()
+
+    for x, y in points:
+        for dx, dy in directions:
+            neighbors.add((x + dx, y + dy))
+
+    # Remove original points from neighbors (optional, depending on use case)
+    if not include_original_points:
+        neighbors -= points
+
+    return neighbors
 
 def wide_line(start, end, width):
     """
