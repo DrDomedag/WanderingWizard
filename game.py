@@ -14,7 +14,7 @@ class Game:
 
         # Debug settings
         self.enemy_spawns_enabled = True
-        self.infinite_spells = True
+        self.infinite_spells = False
         self.massive_regen = True
 
         #pygame.init()

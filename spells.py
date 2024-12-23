@@ -300,10 +300,9 @@ class IronNeedle(Spell):
     def get_impacted_tiles(self, target):
         if self.innovations["Iron Spear"].unlocked:
             tiles = bresenham(self.caster.position, target)
-            tiles.remove(self.caster.position)
             if self.innovations["Silver Spear"].unlocked:
                 tiles = get_all_neighbors(tiles, include_diagonals=True, include_original_points=True)
-                tiles.remove(self.caster.position)
+            tiles.remove(self.caster.position)
         else:
             tiles = [target]
         return tiles

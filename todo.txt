@@ -33,8 +33,6 @@ Give harder biomes a bias of arctan(x-a)-1.5 where x is the tile and a is the mi
 
 Things that are 'implemented' but do not currently work:
 
-Pushing walls still doesn't work, though entities does.
-
 For some inexplicable reason, walking into a portal by clicking on it moves you one tile off target in the other world,
 but clicking on the far side of the portal or using the keyboard, you land on target.
 This is in spite of the fact that both use the world.move_player(target) function.

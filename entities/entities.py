@@ -259,6 +259,20 @@ class PC(Entity):
     def add_incrementation(self, iteration):
         self.iterations.append(iteration)
 
+    def start_of_turn(self):
+        super().start_of_turn()
+        is_enemy = False
+        for entity in self.world.active_entities.values():
+            if entity is not None:
+                if entity.allegiance != ALLEGIANCES.NEUTRAL and entity.allegiance != self.allegiance:
+                    is_enemy = True
+                    break
+        if not is_enemy:
+            for active in self.actives:
+                if active.current_charges < active.max_charges:
+                    active.recovery_turns_left = active.recovery_time
+                    active.current_charges = active.max_charges
+
 
 class Spawner(Entity):
     def __init__(self, world, monster_type, monster_count, cooldown, colour):
