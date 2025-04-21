@@ -555,7 +555,26 @@ class UI:
                 self.display.blit(descr, descrRect)
                 '''
                 pos = (left_end + 5, vertical_offset)
-                blit_text(self.display, self.hovered_spell.get_description(), pos, self.font_14, color=COLOURS.GRAY)
+                vertical_offset = blit_text(self.display, self.hovered_spell.get_description(), pos, self.font_14, color=COLOURS.GRAY)
+
+                vertical_offset += 20
+
+                for innovation in self.hovered_spell.innovations.values():
+                    if innovation.unlocked:
+
+                        name = self.font_14.render(f"{innovation.name}", True,
+                                                   COLOURS.WHITE, COLOURS.DARK_GRAY)
+                        nameRect = name.get_rect()
+                        nameRect.center = (left_end + width // 2, vertical_offset)
+                        vertical_offset += 20
+                        self.display.blit(name, nameRect)
+
+                        pos = (left_end + 5, vertical_offset)
+                        vertical_offset = blit_text(self.display, innovation.description, pos, self.font_14, color=COLOURS.GRAY)
+
+                        vertical_offset += 20
+
+
 
     def show_LoS_at_cursor(self):
         origin_tile = self.find_tile_at_screen_coords(pygame.mouse.get_pos())
