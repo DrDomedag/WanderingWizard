@@ -1,0 +1,72 @@
+General things to do:
+
+...sound
+
+Same-world teleporter tiles.
+
+The "wait" action should give one "recovery turn" to a random spell per action used.
+Refill all spell slots when there are no enemies in active tiles as a QoL thing.
+Use the 'mazetest.py' algorithm to make a cave biome (good for tunnels) - combine with noise for irregularly shaped chambers.
+Could make the cave biome 'generate_tile' be a lot more aggressive, generating a larger area.
+
+Use Perlin noise and make the high and low values walls and the mid values floors to make snakey caves.
+This works really well with the tile-by-tile generation.
+
+
+Create "fear" status effect that causes enemies to flee, make trolls suffer it when they take fire damage.
+
+Make multicoloured text. ChatGPT had a suggestion that didn't seem horrible.
+
+Use the desaturation thing to make and show a Petrified status effect.
+
+Add a "has noticed player" boolean to monsters. If False, at the beginning of act(),
+check if player within certain range (representing hearing) or within LoS, or if ally within range is flagged as true.
+If not, skip turn.
+
+Determine whether spells should pass themselves or their caster as the source to on_damage, on_heal type things.
+If they *always* pass themselves, you can always go spell.caster, *but* not all effect sources have a caster.
+Porque no los dos? "source" and "caster", and if "caster" is none, don't do that kind of thing.
+
+Create more visual effects.
+Create projectile visual effect.
+
+
+Biome plan:
+Give harder biomes a bias of arctan(x-a)-1.5 where x is the tile and a is the minimum distance it should spawn at.
+
+
+
+Things that are 'implemented' but do not currently work:
+
+For some inexplicable reason, walking into a portal by clicking on it moves you one tile off target in the other world,
+but clicking on the far side of the portal or using the keyboard, you land on target.
+This is in spite of the fact that both use the world.move_player(target) function.
+
+Unsure whether it's an issue, but LoS display could get weird if wall in tiles you have seen previously are destroyed.
+
+
+
+Spell upgrades!
+Types:
+Iterations (raw stat buffs)
+Innovations (upgrades that change how a spell works)
+
+Iterations are found as loot on powerful enemies and apply to spells of a specific school
+E.g. "Blood Damage iteration" which can be slotted (permanently) into a Blood spell and increases its Damage stat.
+School specific iterations, like "number of targets" for Lightning or "Life drain" for Blood
+
+Innovations are bought with points found in specific PoIs and more fundamentally alter how a spell works.
+E.g. adding a damage type, making a spell distinguish friend from foe.
+
+How:
+    Add a thing to cast() that gets the final stats and passes them to on_cast()
+    It gets relevant stats and edits them for each modifier.
+    In order:
+        Spell upgrades
+        Innovations
+        Iterations
+        Items
+        Passive skills
+
+
+

@@ -79,7 +79,7 @@ radius = 15
 # Get visible tiles within a radius of 5
 visible = maze.get_visible_tiles(character_position[0], character_position[1], radius=radius)
 
-sorted(visible, manhattan_distance())
+#sorted(visible, manhattan_distance())
 
 # Print the maze section
 for y in range(-radius, radius + 1):

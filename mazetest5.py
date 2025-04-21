@@ -54,5 +54,5 @@ def print_maze(maze):
 
 
 # Example usage
-maze = generate_maze(40, 10)
+maze = generate_maze(60, 18)
 print_maze(maze)
