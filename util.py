@@ -578,7 +578,11 @@ def find_and_sort_enemies_by_distance(start_entity):
 def find_path(entity, target):
     #grid_size = entity.world.active_tile_range - 1 # Need this -1, but no more
     grid_size = entity.world.active_tile_range  # Need this -1, but no more
-    grid, centre_x, centre_y = generate_grid_centered(entity, grid_size)
+
+    #grid, centre_x, centre_y = generate_grid_centered(entity, grid_size)
+
+    # The grid has to be centered on the PC, otherwise we might end up trying to path through unloaded areas.
+    grid, centre_x, centre_y = generate_grid_centered(entity.world.game.pc, grid_size)
 
     #print(f"Grid shape: {len(grid)}x{len(grid[0])}")
     #print(grid[24:38])
