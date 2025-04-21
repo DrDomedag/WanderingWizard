@@ -510,7 +510,7 @@ class BluntMeleeAttack(Spell):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.BLUDGEONING)
-            self.caster.world.show_effect(target, "bludgeoning_explosion", 0)
+            self.caster.world.show_effect(target, "bludgeoning_attack", 0)
 
 class SlashingMeleeAttack(Spell):
     name = "Slashing Strike"
@@ -533,7 +533,7 @@ class SlashingMeleeAttack(Spell):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.SLASHING)
-            self.caster.world.show_effect(target, "slashing_explosion", 0)
+            self.caster.world.show_effect(target, "slashing_attack", 0)
 
 class PiercingMeleeAttack(Spell):
     name = "Piercing Strike"
@@ -556,7 +556,7 @@ class PiercingMeleeAttack(Spell):
         if not self.caster.world.active_entities[target] is None:
             subject = self.caster.world.active_entities[target]
             damage_entity(self, subject, self.power, DAMAGE_TYPES.PIERCING)
-            self.caster.world.show_effect(target, "piercing_explosion", 0)
+            self.caster.world.show_effect(target, "piercing_attack", 0)
 
 class FireSpit(Spell):
     name = "Fire Spit"

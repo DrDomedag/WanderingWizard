@@ -204,6 +204,10 @@ class Game:
         #print(f"{allegiance} turn starts.")
         pygame.time.set_timer(EVENT_TYPES.NPC_TURN_START, 20)
 
+        # Make sure only creatures that are currently on active tiles get their turn.
+        # Otherwise the game crashes when trying to pathfind.
+        self.world.set_current_active_tiles()
+
         initiative_queue = []
 
         for entity in self.world.active_entities.values():

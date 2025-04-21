@@ -103,6 +103,17 @@ class UI:
                 projectile = Projectile(self.world, origin_screen_coords, target_screen_coords, 30, self.world.game.assets["arcane_projectile"], delay)
                 self.projectiles.append(projectile)
 
+            elif effect_type == "bludgeoning_attack":
+                new_sprite = ExplosionEffect(self.world, "bludgeoning_attack", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.BLUDGEONING], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "slashing_attack":
+                new_sprite = ExplosionEffect(self.world, "slashing_attack", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.SLASHING], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
+
+            elif effect_type == "piercing_attack":
+                new_sprite = ExplosionEffect(self.world, "piercing_attack", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.PIERCING], self.ongoing_effects)
+                self.ongoing_effects.add(new_sprite)
 
             elif effect_type == "bludgeoning_explosion":
                 new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, DAMAGE_TYPE_COLOURS[DAMAGE_TYPES.BLUDGEONING], self.ongoing_effects)
