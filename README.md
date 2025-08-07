@@ -1,0 +1,2 @@
+# Wandering Wizard
+This is a game inspired heavily by [Rift Wizard 2](https://store.steampowered.com/app/2058570/Rift_Wizard_2/). It's currently in an early stage of development. You can try it out by running main.py, though there is no requirements.txt, so you'll have to install the necessary packages manually. There is also no tutorial, nor is making one a priority, but the game is primarily mouse controlled, and I think you can figure it out.
