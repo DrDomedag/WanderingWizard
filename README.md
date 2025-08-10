@@ -15,5 +15,5 @@ In the face of a second group of goblins approaching from the east, the wizard h
 ![Realizing that most of the skeletons are occupied defending the wizard from the south, they decide to cast Fire Breath, a spell they have spent some amount of time and resources honing into a large cone of fiery death, annihilating most of the eastern group.](/misc/ss3.png)
 Realizing that most of the skeletons are occupied defending the wizard from the south, they decide to cast Fire Breath, a spell they have spent some amount of time and resources honing into a large cone of fiery death, annihilating most of the eastern group.
 
-![Screenshot 4](/misc/ss4.png)
+![After cleaning up the goblins, the wizard decides to explore the plains. They come upon a fenced-off stone building with what appears to be a graveyard. Will the Wizard step up to the door to open it, risking finding themselves in the thick of an ambush, or will they spend spell charges to blast it open from afar?](/misc/ss4.png)
 After cleaning up the goblins, the wizard decides to explore the plains. They come upon a fenced-off stone building with what appears to be a graveyard. Will the Wizard step up to the door to open it, risking finding themselves in the thick of an ambush, or will they spend spell charges to blast it open from afar?
