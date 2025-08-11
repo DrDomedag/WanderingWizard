@@ -250,7 +250,7 @@ class Game:
                     while active_entity.current_actions > 0:
                         active_entity.act()
                         self.ui.render_everything()
-                        pygame.time.delay(5)
+                        #pygame.time.delay(5)
                     active_entity.end_of_turn()
 
             self.ui.render_everything()

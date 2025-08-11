@@ -8,6 +8,10 @@ Look into making the player spawn into a room rather than at (0, 0).
 
 Reformat UI code to use fixed variables rather than arbitrary numbers for font size/line spacing.
 
+Try to figure out whether it's possible to stop the delay between enemy turns when said enemies are out of line of sight.
+
+Make curtains reclose automatically when no entity is in their tile.
+
 Make it possible to select spells during ally/enemy turns.
 Probably best solution:
 - Inform the UI object when the active turn changes.
