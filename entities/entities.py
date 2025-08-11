@@ -247,6 +247,7 @@ class PC(Entity):
         self.tags = [ENTITY_TAGS.LIVING]
         self.load_assets()
         self.current_actions = self.actions_per_round
+        self.opens_doors = True
 
 
     def move(self, target):
