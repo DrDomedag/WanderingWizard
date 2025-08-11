@@ -1,5 +1,5 @@
 # Wandering Wizard
-This is a game inspired heavily by [Rift Wizard 2](https://store.steampowered.com/app/2058570/Rift_Wizard_2/). It's currently in an early stage of development, but does feature an infinite, procedurally generated world to explore, enemies to kill, spells to learn and cast and points of interest to discover. You can try it out by installing the packages in requirements.txt and running main.py. There is no tutorial, nor is making one a priority, but there is currently no real objective other than to not die, and some basic controls are listed below:
+This is a game inspired heavily by [Rift Wizard 2](https://store.steampowered.com/app/2058570/Rift_Wizard_2/), made using PyGame for graphics. It's currently in an early stage of development, but does feature an infinite, procedurally generated world to explore, enemies to kill, spells to learn and cast, and points of interest to discover. You can try it out by installing the packages in requirements.txt and running main.py. There is no tutorial, nor is making one a priority, but there is currently no real objective other than to not die, and some basic controls are listed below:
 
 Basic controls:
 Click the spells in the left-hand menu or use the scroll wheel to select one.
