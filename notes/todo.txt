@@ -2,6 +2,18 @@ General things to do:
 
 ...sound
 
+Change catacomb portal to stairs.
+
+Reformat UI code to use fixed variables rather than arbitrary numbers for font size/line spacing.
+
+Make it possible to select spells during ally/enemy turns.
+Probably best solution:
+- Inform the UI object when the active turn changes.
+- Add check for player turn in suitable locations in the "if self.mouse_over_game_area" check in ui.py.
+
+Make all summons disappear on world transfer.
+(prevent stacking up on summons near teleporters by saving up charges in one world and then popping into the other to actually summon)
+
 Same-world teleporter tiles.
 
 The "wait" action should give one "recovery turn" to a random spell per action used.

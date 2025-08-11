@@ -2,6 +2,8 @@ from noise import snoise2
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+
+from biomes.church_catacombs import ChurchCatacombs
 from util import Tags
 from walls import *
 from floors import *
@@ -80,7 +82,8 @@ BIOMES = [
     StarterBiome,
     Plains,
     Forest,
-    PortalBiome
+    PortalBiome,
+    ChurchCatacombs
 ]
 
 class WorldGenerator:

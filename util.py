@@ -175,7 +175,8 @@ BIOME_IDS = Tags(
     STARTER_BIOME=0,
     PLAINS=1,
     FOREST=2,
-    PORTAL_BIOME=3
+    PORTAL_BIOME=3,
+    CHURCH_CATACOMBS=4
 )
 
 
@@ -206,7 +207,7 @@ STONE = defaultdict(lambda : 0,
         DAMAGE_TYPES.DARK: 80,
         DAMAGE_TYPES.LIGHT: 80,
         DAMAGE_TYPES.PSYCHIC: 100,
-        DAMAGE_TYPES.ARCANE: 50,
+        DAMAGE_TYPES.ARCANE: 0,
     }
 ),
 
@@ -222,7 +223,7 @@ DEAD_WOOD = defaultdict(lambda : 0,
             DAMAGE_TYPES.DARK: 50,
             DAMAGE_TYPES.LIGHT: 80,
             DAMAGE_TYPES.PSYCHIC: 100,
-            DAMAGE_TYPES.ARCANE: 50
+            DAMAGE_TYPES.ARCANE: 0
         }
     ),
 
@@ -238,7 +239,7 @@ LIVING_WOOD = defaultdict(lambda : 0,
             DAMAGE_TYPES.DARK: 0,
             DAMAGE_TYPES.LIGHT: 50,
             DAMAGE_TYPES.PSYCHIC: 100,
-            DAMAGE_TYPES.ARCANE: 50
+            DAMAGE_TYPES.ARCANE: 0
         }
     ),
 
@@ -254,7 +255,7 @@ SENTIENT_WOOD = defaultdict(lambda : 0,
             DAMAGE_TYPES.DARK: 0,
             DAMAGE_TYPES.LIGHT: 0,
             DAMAGE_TYPES.PSYCHIC: 0,
-            DAMAGE_TYPES.ARCANE: 50
+            DAMAGE_TYPES.ARCANE: 0
         }
     ),
 
@@ -332,6 +333,21 @@ GOOD_GHOST = defaultdict(lambda : 0,
         }
     ),
 
+CLOTH = defaultdict(lambda : 0,
+        {
+            DAMAGE_TYPES.BLUDGEONING: 75,
+            DAMAGE_TYPES.PIERCING: 90,
+            DAMAGE_TYPES.SLASHING: 0,
+            DAMAGE_TYPES.FIRE: -50,
+            DAMAGE_TYPES.COLD: 100,
+            DAMAGE_TYPES.LIGHTNING: 0,
+            DAMAGE_TYPES.POISON: 100,
+            DAMAGE_TYPES.DARK: 50,
+            DAMAGE_TYPES.LIGHT: 50,
+            DAMAGE_TYPES.PSYCHIC: 100,
+            DAMAGE_TYPES.ARCANE: 0
+        }
+    ),
 )
 
 

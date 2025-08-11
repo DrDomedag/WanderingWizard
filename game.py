@@ -226,7 +226,12 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-                #self.check_for_mouse_input(event) # This technically kind of works, but it is very sluggish.
+
+                # This technically kind of works, but it is very sluggish.
+                # It also ends up queuing up commands - the click isn't actually processed until between entity moves.
+                # It *also* means that the Wizard can do things like move out of turn at no action cost, so that's bad.
+                #self.check_for_mouse_input(event)
+
 
                 if event.type == EVENT_TYPES.NPC_TURN_START and len(initiative_queue) > 0:
                     active_entity = initiative_queue.pop()

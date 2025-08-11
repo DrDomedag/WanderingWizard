@@ -56,7 +56,7 @@ class Entity:
         self.position = None
         self.owner = None
 
-        self.opens_doors = True
+        self.opens_doors = False
 
         self.expires = False
         self.duration = 0
@@ -77,6 +77,9 @@ class Entity:
         self.hp = self.max_hp
 
         self.post_init()
+
+    def __str__(self):
+        return self.name
 
     def on_init(self):
         pass

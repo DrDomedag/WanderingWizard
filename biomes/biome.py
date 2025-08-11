@@ -19,6 +19,7 @@ class Biome:
         self.pois = []
         self.poi_weights = []
         self.fow_colour = (255, 255, 255)
+        self.starting_coords = (0, 0)
 
     def intensity_weight(self, coords):
         return 1
@@ -70,7 +71,7 @@ class Biome:
                 generated_monster.allegiance = ALLEGIANCES.ENEMY_TEAM
                 generated_monsters.append(generated_monster)
 
-            self.world.place_monster_group(generated_monsters, coords)
+            self.world.place_monster_group_from_instances(generated_monsters, coords)
 
 class StarterBiome(Biome):
     def __init__(self, world, biome_id):
@@ -121,9 +122,6 @@ class PortalBiome(StarterBiome):
         return 8 - 2 * euclidean_distance((0, 0), coords)
 
 
-class InfiniteStoneBiome(Biome):
-    def generate_floor_tile(self, coords):
-        return (self.world, coords)
 
 class PointOfInterest:
     def __init__(self, world, generation_coordinates):

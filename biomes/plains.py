@@ -7,6 +7,7 @@ from walls import *
 import entities.entities as entities
 from util import *
 
+
 class Plains(Biome):
     def __init__(self, world, biome_id):
         super().__init__(world, biome_id)
@@ -83,6 +84,17 @@ class Church(PointOfInterest):
             floor = DirtFloorTile(self.world, tile)
             self.world.total_floor[tile] = floor
             self.world.active_floor[tile] = floor
+
+        catacombs_stair_coordinates = self.translate_poi_coordinates_to_world([(26, 20)])[0]
+
+        from world.world import World
+
+        catacomb_world = World(self.world.game, [BIOME_IDS.CHURCH_CATACOMBS])
+
+        catacomb_stairs = Portal(self.world, catacomb_world, catacombs_stair_coordinates, away_world_coordinates=(0, 0), paired_portal=None)
+        self.world.total_floor[catacombs_stair_coordinates] = catacomb_stairs
+        self.world.active_floor[catacombs_stair_coordinates] = catacomb_stairs
+        #home_world, away_world, home_world_coordinates, away_world_coordinates=(0, 0), paired_portal=None
 
         carpet_points = [(11, 6), (11, 21)]
         carpet_points = self.translate_poi_coordinates_to_world(carpet_points)

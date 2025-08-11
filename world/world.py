@@ -23,7 +23,6 @@ DOWN_RIGHT = 3
 class World:
     def __init__(self, game, biome_list):
         self.game = game
-        self.world_generator = WorldGenerator(self, biome_list)
         #self.total_tiles = defaultdict(lambda: None)
         #self.active_tiles = defaultdict(lambda: None)
         self.total_floor = defaultdict(lambda: None)
@@ -40,6 +39,7 @@ class World:
         self.active_tile_range = 30 # Consider changing
         self.current_coordinates = (0, 0)
         self.effect_queue = []
+        self.world_generator = WorldGenerator(self, biome_list)
 
 
 
@@ -287,7 +287,9 @@ class World:
         return entities
 
     def summon_entities_from_instance(self, entity_group, target, precise=True, radius=4):
+        print(f"Trying to summon monsters. Target: {target}")
         for entity in entity_group:
+            print(f"Trying to place: {entity}")
             if not precise:
                 proposed_tiles = disk(target, radius, include_origin_tile=True)
                 #print(len(proposed_tiles)) # 69 tiles should be more than enough for most scenarios.
@@ -296,7 +298,10 @@ class World:
                 while not placed and len(proposed_tiles) > 0:
                     tile = proposed_tiles.pop()
                     if self.total_floor[tile] is None:
-                        self.generate_tile(tile)
+                        #self.generate_tile(tile)
+                        # Switching to skipping if tile is ungenerated to prevent crashing when creating a new world
+                        # (calling generate_tile before world_generator object initialised)
+                        continue
                     if self.total_entities[tile] is None and entity.can_move(tile):
                         entity.position = tile
                         self.total_entities[tile] = entity
@@ -343,13 +348,17 @@ class World:
                     self.active_items[tile] = item
                     return
 
-    def place_monster_group(self, monster_group, coordinates):
+    def place_monster_group_from_instances(self, monster_group, coordinates, away_from_player=True):
         #direction_from_player = compute_direction(self.game.pc.position, coordinates, exact=True)
-        direction_from_player = relative_quadrant(self.game.pc.position, coordinates)
         #print(f"direction_from_player: {direction_from_player}, self.game.pc.position: {self.game.pc.position}, target coordinates: {coordinates}")
 
-        target_x = int(coordinates[0] - 4 * direction_from_player[0])
-        target_y = int(coordinates[1] - 4 * direction_from_player[1])
+        if away_from_player:
+            direction_from_player = relative_quadrant(self.game.pc.position, coordinates)
+            target_x = int(coordinates[0] - 4 * direction_from_player[0])
+            target_y = int(coordinates[1] - 4 * direction_from_player[1])
+        else:
+            target_x = coordinates[0]
+            target_y = coordinates[1]
         target = (target_x, target_y)
         #print(f"Final target coordinates: {target}")
         self.summon_entities_from_instance(monster_group, target, precise=False)

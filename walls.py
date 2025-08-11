@@ -170,3 +170,21 @@ class Door(Wall):
             if not entity.intangible:
                 self.open()
 
+class Curtain(Door):
+    def on_init(self):
+        self.name = "Curtain"
+        self.description = "That such a flimsy thing would block your sight."
+        self.max_hp = 1
+        self.hp = self.max_hp
+        self.asset_name = "curtain"
+
+        self.openable = True
+
+        self.resistances = RESISTANCE_SETS.CLOTH
+
+
+        self.blocks_vision = not self.is_open
+        self.blocks_line_of_effect = not self.is_open
+        self.walkable = self.is_open
+        self.flyable = self.is_open
+        self.swimmable = self.is_open
