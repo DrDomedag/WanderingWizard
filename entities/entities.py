@@ -135,11 +135,7 @@ class Entity:
             p.start_of_turn_effect()
             p.increment_duration()
         for active in self.actives:
-            if active.current_charges < active.max_charges:
-                active.recovery_turns_left -= 1
-                if active.recovery_turns_left <= 0 and active.current_charges < active.max_charges:
-                    active.current_charges += 1
-                    active.recovery_turns_left += active.recovery_time
+            active.turn_recovery()
 
 
     def can_see(self, target):

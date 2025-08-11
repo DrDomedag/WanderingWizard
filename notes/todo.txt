@@ -3,6 +3,8 @@ General things to do:
 ...sound
 
 Change catacomb portal to stairs.
+Make catacombs interesting with PoIs and monsters.
+Look into making the player spawn into a room rather than at (0, 0).
 
 Reformat UI code to use fixed variables rather than arbitrary numbers for font size/line spacing.
 
@@ -14,10 +16,12 @@ Probably best solution:
 Make all summons disappear on world transfer.
 (prevent stacking up on summons near teleporters by saving up charges in one world and then popping into the other to actually summon)
 
+Add boolean to tiles to signify whether they contain a PoI, and make PoI spawning logic check for this to prevent overlapping PoIs.
+
 Same-world teleporter tiles.
 
-The "wait" action should give one "recovery turn" to a random spell per action used.
-Refill all spell slots when there are no enemies in active tiles as a QoL thing.
+Make UI show (remaining) recovery turns for spells.
+
 Use the 'mazetest.py' algorithm to make a cave biome (good for tunnels) - combine with noise for irregularly shaped chambers.
 Could make the cave biome 'generate_tile' be a lot more aggressive, generating a larger area.
 

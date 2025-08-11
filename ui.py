@@ -156,7 +156,6 @@ class UI:
                 self.ongoing_effects.add(new_sprite)
 
             elif effect_type == "water_explosion":
-                print(f"Rendering water explosion at {target_tile}")
                 new_sprite = ExplosionEffect(self.world, "generic_effect", target_tile, delay, SCHOOL_COLOURS[SCHOOLS.WATER], self.ongoing_effects)
                 self.ongoing_effects.add(new_sprite)
 

@@ -183,7 +183,19 @@ class Game:
                         if self.world.player_step(DOWN):
                             self.pc.current_actions -= 1
                     if event.key == pygame.K_KP_5:
-                            self.pc.current_actions = 0
+                        # Add logic here for doing one turn of recovery for a random spell per action used.
+                        while self.pc.current_actions > 0:
+                            self.pc.current_actions -= 1
+                            actives_for_consideration = []
+                            for active in self.pc.actives:
+                                if active.recovery_turns_left > 0:
+                                    actives_for_consideration.append(active)
+                            print(f"Actives for consideration: {actives_for_consideration}")
+                            active = random.choice(actives_for_consideration)
+                            print(f"Active chosen: {active}, charges before:{active.current_charges}, recovery turns before: {active.recovery_turns_left}")
+                            active.turn_recovery()
+                            print(f"Active chosen: {active}, charges after:{active.current_charges}, recovery turns after: {active.recovery_turns_left}")
+
                     if event.key == pygame.K_KP_7:
                         if self.world.player_step(UP_LEFT):
                             self.pc.current_actions -= 1

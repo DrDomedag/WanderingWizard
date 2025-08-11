@@ -231,6 +231,12 @@ class Spell:
                 target_tiles.remove(tile)
         return target_tiles
 
+    def turn_recovery(self):
+        if self.current_charges < self.max_charges:
+            self.recovery_turns_left -= 1
+            if self.recovery_turns_left <= 0 and self.current_charges < self.max_charges:
+                self.current_charges += 1
+                self.recovery_turns_left += self.recovery_time
 
 class Innovation:
     def __init__(self, name, description, cost, requires, incompatible_with):
@@ -707,7 +713,6 @@ class SummonMonster(Spell):
         return f"Summons a {self.monster_name}."
 
     def on_cast(self, target):
-        #print(f"Summoning {self.monster_name}. Current charges: {self.current_charges}, remaining recovery turns: {self.recovery_turns_left}, recovery time: {self.recovery_time}")
         self.caster.world.summon_entity_from_class(self.monster_type, self.monster_count, self.caster.position, self.caster.allegiance)
 
     def should_cast(self):

@@ -167,6 +167,14 @@ class World:
             return True
         return False
 
+    def activate_tile(self, coords):
+        if self.total_floor[coords] is None:
+            self.generate_tile(coords)
+        if chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
+            self.active_floor[coords] = self.total_floor[coords]
+            self.active_walls[coords] = self.total_walls[coords]
+            self.active_entities[coords] = self.total_entities[coords]
+
 
     def set_current_active_tiles(self):
         self.active_walls = defaultdict(lambda: None)
@@ -178,12 +186,7 @@ class World:
             for y in range(self.current_coordinates[1] - self.active_tile_range,
                            self.current_coordinates[1] + self.active_tile_range):
                 coords = (x, y)
-                if self.total_floor[coords] is None:
-                    self.generate_tile(coords)
-                if chebyshev_distance(coords, self.current_coordinates) < self.active_tile_range:
-                    self.active_floor[coords] = self.total_floor[coords]
-                    self.active_walls[coords] = self.total_walls[coords]
-                    self.active_entities[coords] = self.total_entities[coords]
+                self.activate_tile(coords)
 
 
     def move_entity(self, entity, target):
@@ -195,6 +198,11 @@ class World:
             entity.position = target
             for item in entity.items:
                 item.position = target
+
+            # We (usually temporarily) activate a tile if an entity moves into it, even if it's outside our current
+            # active zone.
+            self.activate_tile(target)
+
             if self.active_tile_effects[target] is not None:
                 self.active_tile_effects[target].on_enter_effect()
             if self.active_walls[target] is not None:
@@ -287,9 +295,7 @@ class World:
         return entities
 
     def summon_entities_from_instance(self, entity_group, target, precise=True, radius=4):
-        print(f"Trying to summon monsters. Target: {target}")
         for entity in entity_group:
-            print(f"Trying to place: {entity}")
             if not precise:
                 proposed_tiles = disk(target, radius, include_origin_tile=True)
                 #print(len(proposed_tiles)) # 69 tiles should be more than enough for most scenarios.
